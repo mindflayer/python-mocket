@@ -1,0 +1,113 @@
+from BaseHTTPServer import BaseHTTPRequestHandler
+from StringIO import StringIO
+import re
+from urlparse import urlsplit, parse_qs
+import time
+from .registry import Mocket
+
+STATUS = dict([(k, v[0]) for k, v in BaseHTTPRequestHandler.responses.items()])
+CRLF = '\r\n'
+
+
+def utf8(s):
+    if isinstance(s, unicode):
+        s = s.encode('utf-8')
+    return str(s)
+
+
+class Request(BaseHTTPRequestHandler):
+    def __init__(self, data):
+        _, self.body = data.split(CRLF * 2, 1)
+        self.rfile = StringIO(data)
+        self.raw_requestline = self.rfile.readline()
+        self.error_code = self.error_message = None
+        self.parse_request()
+        self.method = self.command
+
+
+class Response(object):
+    def __init__(self, body='', status=200, headers=None):
+        headers = headers or {}
+        self.body = utf8(body)
+        self.status = status
+        self.headers = {
+            'Status': str(self.status),
+            'Date': time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime()),
+            'Server': 'Python/Mocket',
+            'Connection': 'close',
+            'Content-Type': 'text/plain; charset=utf-8',
+            'Content-Lenght': str(len(self.body)),
+        }
+        for k, v in headers.items():
+            self.headers['-'.join([token.capitalize() for token in k.split('-')])] = utf8(v)
+
+    def __str__(self):
+        status_line = 'HTTP/1.1 {status_code} {status}'.format(status_code=self.status, status=STATUS[self.status])
+        header_lines = CRLF.join(['{0}: {1}'.format(k.capitalize(), utf8(v)) for k, v in self.headers.items()])
+        return status_line + CRLF + header_lines + CRLF * 2 + self.body
+
+
+class Entry(object):
+    GET = 'GET'
+    PUT = 'PUT'
+    POST = 'POST'
+    DELETE = 'DELETE'
+    HEAD = 'HEAD'
+    PATCH = 'PATCH'
+    METHODS = (GET, PUT, POST, DELETE, HEAD, PATCH)
+
+    def __init__(self, uri, method, responses):
+        uri = urlsplit(uri)
+        self.schema = uri.scheme
+        self.path = uri.path
+        self.query = uri.query
+        self.method = method.upper()
+        self.responses = responses or (Response(),)
+        self.response_index = 0
+        self._location = (uri.hostname, uri.port or 80)
+
+    def can_handle(self, data):
+        try:
+            requestline, _ = data.split(CRLF, 1)
+            method, path, version = self.parse_requestline(requestline)
+        except ValueError:
+            return True
+        uri = urlsplit(path)
+        return uri.path == self.path and parse_qs(uri.query) == parse_qs(self.query)
+
+
+    def write(self, data):
+        Mocket.collect(Request(data))
+        response = self.responses[self.response_index]
+        if self.response_index < len(self.responses) - 1:
+            self.response_index += 1
+        return str(response)
+
+    @staticmethod
+    def parse_requestline(line):
+        """
+        http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5
+
+        >>> Entry.parse_requestline('GET / HTTP/1.0')
+        ('GET', '/', '1.0')
+        >>> Entry.parse_requestline('post /testurl htTP/1.1')
+        ('POST', '/testurl', '1.1')
+        >>> Entry.parse_requestline('Im not a RequestLine')
+        Traceback (most recent call last):
+            ...
+        ValueError: Not a Request-Line
+        """
+        methods = '|'.join(Entry.METHODS)
+        m = re.match(r'(' + methods + ')\s+(.*)\s+HTTP/(1.[0|1])', line, re.I)
+        if m:
+            return m.group(1).upper(), m.group(2), m.group(3)
+        else:
+            raise ValueError('Not a Request-Line')
+
+    @staticmethod
+    def register(method, uri, *responses):
+        Mocket.register(Entry(uri, method, responses))
+
+    @staticmethod
+    def single_register(method, uri, body='', status=200, headers=None):
+        Entry.register(method, uri, Response(body=body, status=status, headers=headers))
