@@ -22,6 +22,7 @@ true_getaddrinfo = socket.getaddrinfo
 gethostbyname = lambda host: host
 gethostname = lambda: 'localhost'
 getaddrinfo = lambda host, port, **kwargs: [(2, 1, 6, '', (host, port))]
+CRLF = '\r\n'
 
 
 def create_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, sender_address=None):

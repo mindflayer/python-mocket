@@ -65,6 +65,7 @@ class AbstractEntry(object):
     def __init__(self, responses):
         self.responses = responses or (self.response_cls(),)
         self.response_index = 0
+        self._location = NotImplemented
 
     def write(self, data):
         Mocket.collect(self.request_cls(data))

@@ -3,3 +3,4 @@ pytest-cov>=1.4
 mock
 requests
 pytest
+redis

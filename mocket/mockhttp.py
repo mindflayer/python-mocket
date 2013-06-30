@@ -4,9 +4,9 @@ import re
 from urlparse import urlsplit, parse_qs
 import time
 from .registry import Mocket, AbstractEntry
+from .mocket import CRLF
 
 STATUS = dict([(k, v[0]) for k, v in BaseHTTPRequestHandler.responses.items()])
-CRLF = '\r\n'
 
 
 def utf8(s):
