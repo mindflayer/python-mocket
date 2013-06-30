@@ -82,9 +82,21 @@ def mocketize(test):
     @functools.wraps(test)
     def wrapper(*args, **kw):
         Mocket.enable()
+
+        instance = args[0]
+
+        mocketize_setup = getattr(instance, 'mocketize_setup', None)
+        if mocketize_setup and callable(mocketize_setup):
+            mocketize_setup()
+
         try:
             return test(*args, **kw)
         finally:
             Mocket.disable()
             Mocket.reset()
+
+            mocketize_teardown = getattr(instance, 'mocketize_teardown', None)
+            if mocketize_teardown and callable(mocketize_teardown):
+                mocketize_teardown()
+
     return wrapper
