@@ -53,12 +53,18 @@ class Entry(AbstractEntry):
         return ['*{0}'.format(len(mapping))] + list(chain(*zip(['${0}'.format(len(x)) for x in mapping], mapping)))
 
     def can_handle(self, data):
+        print data.splitlines(), self.command
         return data.splitlines() == self.command
 
     @staticmethod
     def register(addr, command, *responses):
-        Mocket.register(Entry(addr, command, *responses))
+        responses = [Entry.response_cls(r) for r in responses]
+        Mocket.register(Entry(addr, command, responses))
 
     @staticmethod
     def single_register(command, response, addr=None):
-        Entry.register(addr, command, (Entry.response_cls(response),))
+        Entry.register(addr, command, response)
+
+    @staticmethod
+    def multi_register(command, responses, addr=None):
+        Entry.register(addr, command, *responses)
