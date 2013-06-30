@@ -1,9 +1,8 @@
 install-dev-requirements:
-	pip install "file://`pwd`/#egg=python-mocket[dev]"
+	pip install -q -e .
 
 install-test-requirements:
-	pip install "file://`pwd`/#egg=python-mocket[tests]"
-
+	pip install -q -r test_requirements.txt
 
 test-python:
 	@echo "Running Python tests"

@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, os
 
 # Hack to prevent stupid "TypeError: 'NoneType' object is not callable" error
 # in multiprocessing/util.py _exit_function when running `python
@@ -11,13 +11,7 @@ for m in ('multiprocessing', 'billiard'):
         pass
 
 dev_requires = []
-tests_require = [
-    'flake8>=1.7.0,<2.0',
-    'pytest-cov>=1.4',
-    'mock',
-    'requests',
-    'pytest',
-]
+tests_require = open(os.path.join(os.path.dirname(__file__), 'test_requirements.txt')).read()
 install_requires = []
 
 setup(
