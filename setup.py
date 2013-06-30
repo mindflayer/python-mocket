@@ -10,11 +10,10 @@ for m in ('multiprocessing', 'billiard'):
     except ImportError:
         pass
 
-dev_requires = [
+dev_requires = []
+tests_require = [
     'flake8>=1.7.0,<2.0',
     'pytest-cov>=1.4',
-]
-tests_require = [
     'mock',
     'requests',
     'pytest',
