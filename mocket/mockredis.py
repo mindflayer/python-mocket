@@ -27,15 +27,30 @@ class Entry(AbstractEntry):
         self.command = self._redisize(command)
         self._location = addr or ('localhost', 6379)
 
-    @staticmethod
-    def _redisize(command):
+    @classmethod
+    def redis_map(cls, mapping):
+        """
+        >>> Entry.redis_map({'f1': 'one', 'f2': 'two'})
+        ['*4', '$2', 'f1', '$3', 'one', '$2', 'f2', '$3', 'two']
+        """
+        d = list(chain(*tuple(mapping.items())))
+        return cls._redisize_tokens(d)
+
+    @classmethod
+    def _redisize(cls, command):
         """
         >>> Entry._redisize('SET "mocket" "is awesome!"')
         ['*3', '$3', 'SET', '$6', 'mocket', '$11', 'is awesome!']
+        >>> Entry._redisize('set "mocket" "is awesome!"')
+        ['*3', '$3', 'SET', '$6', 'mocket', '$11', 'is awesome!']
         """
-
         d = shlex.split(command)
-        return ['*{0}'.format(len(d))] + list(chain(*zip(['${0}'.format(len(x)) for x in d], d)))
+        d[0] = d[0].upper()
+        return cls._redisize_tokens(d)
+
+    @staticmethod
+    def _redisize_tokens(mapping):
+        return ['*{0}'.format(len(mapping))] + list(chain(*zip(['${0}'.format(len(x)) for x in mapping], mapping)))
 
     def can_handle(self, data):
         return data.splitlines() == self.command
