@@ -27,7 +27,8 @@ class Mocket(object):
 
     @classmethod
     def remove_last(cls):
-        del cls._requests[-1]
+        if cls._requests:
+            del cls._requests[-1]
 
     @classmethod
     def reset(cls):
