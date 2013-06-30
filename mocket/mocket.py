@@ -45,7 +45,6 @@ class MocketSocket(object):
         self.fd = MocketFile()
         self._closed = True
         self._sock = self
-        self._entry = None
         self._sent_data = ''
 
     def setsockopt(self, family, type, protocol):
@@ -68,10 +67,6 @@ class MocketSocket(object):
     def makefile(self, mode='r', bufsize=-1):
         self._mode = mode
         self._bufsize = bufsize
-        if self._entry:
-            response = self._entry.write(self._sent_data)
-            self.fd.write(response)
-        self.fd.seek(0)
         return self.fd
 
     def sendall(self, data, *args, **kwargs):
@@ -80,7 +75,8 @@ class MocketSocket(object):
         if not entry:
             return self.true_sendall(data, *args, **kwargs)
         self._sent_data += data
-        self._entry = entry
+        self.fd.write(entry.write(self._sent_data))
+        self.fd.seek(0)
 
     def true_sendall(self, data, *args, **kwargs):
         self.true_socket.connect(self._address)
