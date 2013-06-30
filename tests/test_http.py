@@ -67,6 +67,7 @@ class HttpEntryTestCase(TestCase):
             'date': 'Tue, 30 Apr 2013 10:39:21 GMT',
             'content-type': 'text/plain; charset=utf-8'
         })
+        self.assertEqual(len(Mocket._requests), 1)
 
     @mocketize
     def test_sendall_json(self):
@@ -90,6 +91,7 @@ class HttpEntryTestCase(TestCase):
             'date': 'Tue, 30 Apr 2013 10:39:21 GMT',
             'content-type': 'application/json',
         })
+        self.assertEqual(len(Mocket._requests), 1)
 
     @mocketize
     def test_sendall_double(self):
@@ -99,6 +101,7 @@ class HttpEntryTestCase(TestCase):
         self.assertEqual(response.code, 200)
         response = urlopen('http://testme.org/')
         self.assertEqual(response.code, 200)
+        self.assertEqual(len(Mocket._requests), 3)
 
     @mocketize
     def test_multipart(self):
@@ -115,3 +118,4 @@ class HttpEntryTestCase(TestCase):
         headers = dict(last_request.headers)
         self.assertEqual(headers['content-length'], '495')
         self.assertEqual(headers['content-type'], 'multipart/form-data; boundary=xXXxXXyYYzzz')
+        self.assertEqual(len(Mocket._requests), 1)

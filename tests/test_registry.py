@@ -64,6 +64,12 @@ class MocketTestCase(TestCase):
 
 
 class MocketizeTestCase(TestCase):
+    def mocketize_setup(self):
+        pass
+
+    def mocketize_teardown(self):
+        pass
+
     @mocketize
     def test_gethostname(self):
         self.assertEqual(socket.gethostname(), 'localhost')

@@ -26,6 +26,10 @@ class Mocket(object):
         cls._requests.append(data)
 
     @classmethod
+    def remove_last(cls):
+        del cls._requests[-1]
+
+    @classmethod
     def reset(cls):
         cls._entries = {}
         cls._requests = []
@@ -67,15 +71,17 @@ class AbstractEntry(object):
         self.response_index = 0
         self._location = NotImplemented
 
-    def write(self, data):
+    def can_handle(self, data):
+        raise NotImplementedError
+
+    def collect(self, data):
         Mocket.collect(self.request_cls(data))
+
+    def get_response(self):
         response = self.responses[self.response_index]
         if self.response_index < len(self.responses) - 1:
             self.response_index += 1
         return str(response)
-
-    def can_handle(self, data):
-        raise NotImplementedError
 
 
 def mocketize(test):

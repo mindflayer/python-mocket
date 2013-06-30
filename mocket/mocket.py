@@ -46,7 +46,6 @@ class MocketSocket(object):
         self.fd = MocketFile()
         self._closed = True
         self._sock = self
-        self._sent_data = ''
 
     def setsockopt(self, family, type, protocol):
         self.family = family
@@ -75,8 +74,9 @@ class MocketSocket(object):
         entry = Mocket.get_entry(self._host, self._port, data)
         if not entry:
             return self.true_sendall(data, *args, **kwargs)
-        self._sent_data += data
-        self.fd.write(entry.write(self._sent_data))
+        entry.collect(data)
+        self.fd.seek(0)
+        self.fd.write(entry.get_response())
         self.fd.seek(0)
 
     def true_sendall(self, data, *args, **kwargs):

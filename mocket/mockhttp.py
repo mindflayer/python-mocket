@@ -66,12 +66,18 @@ class Entry(AbstractEntry):
         self.query = uri.query
         self.method = method.upper()
         self._location = (uri.hostname, uri.port or 80)
+        self._sent_data = ''
+
+    def collect(self, data):
+        self._sent_data += data
+        return super(Entry, self).collect(self._sent_data)
 
     def can_handle(self, data):
         try:
             requestline, _ = data.split(CRLF, 1)
             method, path, version = self._parse_requestline(requestline)
         except ValueError:
+            Mocket.remove_last()
             return True
         uri = urlsplit(path)
         return uri.path == self.path and parse_qs(uri.query) == parse_qs(self.query)
