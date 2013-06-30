@@ -28,13 +28,21 @@ class Entry(AbstractEntry):
         self._location = addr or ('localhost', 6379)
 
     @classmethod
-    def redis_map(cls, mapping):
+    def redis_int(cls, integer):
+        r"""
+        >>> Entry.redis_int(10)
+        ':10'
         """
+        return ':{0}'.format(integer)
+
+    @classmethod
+    def redis_map(cls, mapping):
+        r"""
         >>> Entry.redis_map({'f1': 'one', 'f2': 'two'})
-        ['*4', '$2', 'f1', '$3', 'one', '$2', 'f2', '$3', 'two']
+        '*4\r\n$2\r\nf1\r\n$3\r\none\r\n$2\r\nf2\r\n$3\r\ntwo'
         """
         d = list(chain(*tuple(mapping.items())))
-        return cls._redisize_tokens(d)
+        return CRLF.join(cls._redisize_tokens(d))
 
     @classmethod
     def _redisize(cls, command):
@@ -53,7 +61,6 @@ class Entry(AbstractEntry):
         return ['*{0}'.format(len(mapping))] + list(chain(*zip(['${0}'.format(len(x)) for x in mapping], mapping)))
 
     def can_handle(self, data):
-        print data.splitlines(), self.command
         return data.splitlines() == self.command
 
     @staticmethod
