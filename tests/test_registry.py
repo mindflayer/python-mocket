@@ -57,6 +57,11 @@ class MocketTestCase(TestCase):
         self.assertEqual(Mocket.last_request(), request)
         self.assertEqual(Mocket._requests, [request])
 
+    def test_remove_last(self):
+        Mocket._requests = [1, 2]
+        Mocket.remove_last()
+        self.assertEqual(Mocket._requests, [1])
+
     def test_getentry(self):
         entry = TestEntry('localhost', 80)
         Mocket.register(entry)
