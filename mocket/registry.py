@@ -58,6 +58,25 @@ class Mocket(object):
         socket.inet_aton = socket.__dict__['inet_aton'] = true_gethostbyname
 
 
+class AbstractEntry(object):
+    request_cls = NotImplemented
+    response_cls = NotImplemented
+
+    def __init__(self, responses):
+        self.responses = responses or (self.response_cls(),)
+        self.response_index = 0
+
+    def write(self, data):
+        Mocket.collect(self.request_cls(data))
+        response = self.responses[self.response_index]
+        if self.response_index < len(self.responses) - 1:
+            self.response_index += 1
+        return str(response)
+
+    def can_handle(self, data):
+        raise NotImplementedError
+
+
 def mocketize(test):
     @functools.wraps(test)
     def wrapper(*args, **kw):

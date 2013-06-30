@@ -3,7 +3,7 @@ from StringIO import StringIO
 import re
 from urlparse import urlsplit, parse_qs
 import time
-from .registry import Mocket
+from .registry import Mocket, AbstractEntry
 
 STATUS = dict([(k, v[0]) for k, v in BaseHTTPRequestHandler.responses.items()])
 CRLF = '\r\n'
@@ -47,7 +47,7 @@ class Response(object):
         return status_line + CRLF + header_lines + CRLF * 2 + self.body
 
 
-class Entry(object):
+class Entry(AbstractEntry):
     GET = 'GET'
     PUT = 'PUT'
     POST = 'POST'
@@ -55,44 +55,37 @@ class Entry(object):
     HEAD = 'HEAD'
     PATCH = 'PATCH'
     METHODS = (GET, PUT, POST, DELETE, HEAD, PATCH)
+    request_cls = Request
+    response_cls = Response
 
     def __init__(self, uri, method, responses):
+        super(Entry, self).__init__(responses)
         uri = urlsplit(uri)
         self.schema = uri.scheme
         self.path = uri.path
         self.query = uri.query
         self.method = method.upper()
-        self.responses = responses or (Response(),)
-        self.response_index = 0
         self._location = (uri.hostname, uri.port or 80)
 
     def can_handle(self, data):
         try:
             requestline, _ = data.split(CRLF, 1)
-            method, path, version = self.parse_requestline(requestline)
+            method, path, version = self._parse_requestline(requestline)
         except ValueError:
             return True
         uri = urlsplit(path)
         return uri.path == self.path and parse_qs(uri.query) == parse_qs(self.query)
 
-
-    def write(self, data):
-        Mocket.collect(Request(data))
-        response = self.responses[self.response_index]
-        if self.response_index < len(self.responses) - 1:
-            self.response_index += 1
-        return str(response)
-
     @staticmethod
-    def parse_requestline(line):
+    def _parse_requestline(line):
         """
         http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5
 
-        >>> Entry.parse_requestline('GET / HTTP/1.0')
+        >>> Entry._parse_requestline('GET / HTTP/1.0')
         ('GET', '/', '1.0')
-        >>> Entry.parse_requestline('post /testurl htTP/1.1')
+        >>> Entry._parse_requestline('post /testurl htTP/1.1')
         ('POST', '/testurl', '1.1')
-        >>> Entry.parse_requestline('Im not a RequestLine')
+        >>> Entry._parse_requestline('Im not a RequestLine')
         Traceback (most recent call last):
             ...
         ValueError: Not a Request-Line
