@@ -10,9 +10,9 @@ class Mocket(object):
     @classmethod
     def register(cls, *entries):
         for entry in entries:
-            if entry._location not in cls._entries:
-                cls._entries[entry._location] = []
-            cls._entries[entry._location].append(entry)
+            if entry.location not in cls._entries:
+                cls._entries[entry.location] = []
+            cls._entries[entry.location].append(entry)
 
     @classmethod
     def get_entry(cls, host, port, data):
@@ -67,10 +67,10 @@ class AbstractEntry(object):
     request_cls = NotImplemented
     response_cls = NotImplemented
 
-    def __init__(self, responses):
+    def __init__(self, location, responses):
+        self.location = location
         self.responses = responses or (self.response_cls(),)
         self.response_index = 0
-        self._location = NotImplemented
 
     def can_handle(self, data):
         raise NotImplementedError

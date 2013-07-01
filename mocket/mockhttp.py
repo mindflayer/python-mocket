@@ -59,13 +59,12 @@ class Entry(AbstractEntry):
     response_cls = Response
 
     def __init__(self, uri, method, responses):
-        super(Entry, self).__init__(responses)
         uri = urlsplit(uri)
+        super(Entry, self).__init__((uri.hostname, uri.port or 80), responses)
         self.schema = uri.scheme
         self.path = uri.path
         self.query = uri.query
         self.method = method.upper()
-        self._location = (uri.hostname, uri.port or 80)
         self._sent_data = ''
 
     def collect(self, data):

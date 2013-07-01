@@ -5,7 +5,7 @@ from mocket.registry import Mocket, mocketize
 
 class TestEntry(object):
     def __init__(self, hostname, port):
-        self._location = (hostname, port)
+        self.location = (hostname, port)
 
     def can_handle(self, data):
         return data

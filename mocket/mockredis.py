@@ -46,9 +46,8 @@ class Entry(AbstractEntry):
     response_cls = Response
 
     def __init__(self, addr, command, responses):
-        super(Entry, self).__init__(responses)
+        super(Entry, self).__init__(addr or ('localhost', 6379), responses)
         self.command = self._redisize(command)
-        self._location = addr or ('localhost', 6379)
 
     @classmethod
     def _redisize(cls, command):
