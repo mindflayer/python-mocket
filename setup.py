@@ -22,8 +22,7 @@ setup(
     url='https://github.com/z4r/python-mocket',
     description='A Mock Socket Framework',
     long_description=open('README.rst').read(),
-    package_dir={'': 'mocket'},
-    packages=find_packages('mocket'),
+    packages=find_packages(exclude=('tests', )),
     install_requires=install_requires,
     extras_require={
         'tests': tests_require,
