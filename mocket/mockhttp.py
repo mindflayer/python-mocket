@@ -77,7 +77,7 @@ class Entry(AbstractEntry):
             requestline, _ = data.split(CRLF, 1)
             method, path, version = self._parse_requestline(requestline)
         except ValueError:
-            Mocket.remove_last()
+            Mocket.remove_last_request()
             return True
         uri = urlsplit(path)
         return uri.path == self.path and parse_qs(uri.query) == parse_qs(self.query)

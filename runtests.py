@@ -11,7 +11,6 @@ def runtests(args=None):
     if not any(a for a in args[1:] if not a.startswith('-')):
         args.append('tests')
         args.append('mocket')
-        args.append('--doctest-modules')
 
     sys.exit(pytest.main(args))
 

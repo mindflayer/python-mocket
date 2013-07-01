@@ -59,11 +59,11 @@ class MocketTestCase(TestCase):
 
     def test_remove_last(self):
         Mocket._requests = [1, 2]
-        Mocket.remove_last()
+        Mocket.remove_last_request()
         self.assertEqual(Mocket._requests, [1])
 
     def test_remove_last_empty(self):
-        Mocket.remove_last()
+        Mocket.remove_last_request()
         self.assertEqual(Mocket._requests, [])
 
     def test_getentry(self):

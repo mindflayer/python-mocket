@@ -26,11 +26,6 @@ class Mocket(object):
         cls._requests.append(data)
 
     @classmethod
-    def remove_last(cls):
-        if cls._requests:
-            del cls._requests[-1]
-
-    @classmethod
     def reset(cls):
         cls._entries = {}
         cls._requests = []
@@ -39,6 +34,11 @@ class Mocket(object):
     def last_request(cls):
         if cls._requests:
             return cls._requests[-1]
+
+    @classmethod
+    def remove_last_request(cls):
+        if cls._requests:
+            del cls._requests[-1]
 
     @staticmethod
     def enable():

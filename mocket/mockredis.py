@@ -4,6 +4,14 @@ from .registry import AbstractEntry, Mocket
 from .mocket import CRLF
 
 
+def redisize_tokens(mapping):
+    """
+    >>> redisize_tokens({'f1': 'one', 'f2': 'two'})
+    ['*2', '$2', 'f1', '$2', 'f2']
+    """
+    return ['*{0}'.format(len(mapping))] + list(chain(*zip(['${0}'.format(len(x)) for x in mapping], mapping)))
+
+
 class Request(object):
     def __init__(self, data):
         self.data = data
@@ -14,7 +22,23 @@ class Response(object):
         self.reply = reply
 
     def __str__(self):
-        return self.reply + CRLF
+        return self.redisize(self.reply)
+
+    @staticmethod
+    def redisize(data):
+        r"""
+        >>> Response.redisize(10)
+        ':10\r\n'
+        >>> Response.redisize({'f1': 'one', 'f2': 'two'})
+        '*4\r\n$2\r\nf1\r\n$3\r\none\r\n$2\r\nf2\r\n$3\r\ntwo\r\n'
+        >>> Response.redisize('+OK')
+        '+OK\r\n'
+        """
+        CONVERSION = {
+            dict: lambda x: CRLF.join(redisize_tokens(list(chain(*tuple(data.items()))))),
+            int: lambda x: ':{0}'.format(x),
+        }
+        return CONVERSION.get(type(data), lambda x: x)(data)  + CRLF
 
 
 class Entry(AbstractEntry):
@@ -23,26 +47,8 @@ class Entry(AbstractEntry):
 
     def __init__(self, addr, command, responses):
         super(Entry, self).__init__(responses)
-
         self.command = self._redisize(command)
         self._location = addr or ('localhost', 6379)
-
-    @classmethod
-    def redis_int(cls, integer):
-        r"""
-        >>> Entry.redis_int(10)
-        ':10'
-        """
-        return ':{0}'.format(integer)
-
-    @classmethod
-    def redis_map(cls, mapping):
-        r"""
-        >>> Entry.redis_map({'f1': 'one', 'f2': 'two'})
-        '*4\r\n$2\r\nf1\r\n$3\r\none\r\n$2\r\nf2\r\n$3\r\ntwo'
-        """
-        d = list(chain(*tuple(mapping.items())))
-        return CRLF.join(cls._redisize_tokens(d))
 
     @classmethod
     def _redisize(cls, command):
@@ -54,11 +60,7 @@ class Entry(AbstractEntry):
         """
         d = shlex.split(command)
         d[0] = d[0].upper()
-        return cls._redisize_tokens(d)
-
-    @staticmethod
-    def _redisize_tokens(mapping):
-        return ['*{0}'.format(len(mapping))] + list(chain(*zip(['${0}'.format(len(x)) for x in mapping], mapping)))
+        return redisize_tokens(d)
 
     def can_handle(self, data):
         return data.splitlines() == self.command

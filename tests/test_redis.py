@@ -49,7 +49,7 @@ class RedisEntryTestCase(TestCase):
 
     @mocketize
     def test_sendall_incr(self):
-        Entry.multi_register('INCRBY counter 1', (Entry.redis_int(1), Entry.redis_int(2), Entry.redis_int(3)))
+        Entry.multi_register('INCRBY counter 1', (1, 2, 3))
         self.assertEqual(self.rclient.incr('counter'), 1)
         self.assertEqual(self.rclient.incr('counter'), 2)
         self.assertEqual(self.rclient.incr('counter'), 3)
@@ -61,7 +61,7 @@ class RedisEntryTestCase(TestCase):
     @mocketize
     def test_sendall_hgetall(self):
         h = {'f1': 'one', 'f2': 'two'}
-        Entry.single_register('HGETALL hash', Entry.redis_map({'f1': 'one', 'f2': 'two'}))
+        Entry.single_register('HGETALL hash', {'f1': 'one', 'f2': 'two'})
         self.assertEqual(self.rclient.hgetall('hash'), h)
         self.assertEqual(len(Mocket._requests), 1)
         self.assertEqual(Mocket._requests[0].data, '*2\r\n$7\r\nHGETALL\r\n$4\r\nhash\r\n')
