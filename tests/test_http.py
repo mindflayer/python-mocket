@@ -2,10 +2,27 @@
 import time
 import mock
 from urllib2 import urlopen, HTTPError
+import pytest
 import requests
 from unittest import TestCase
 from mocket.mockhttp import Entry, Response, utf8
 from mocket.mocket import Mocket, mocketize
+
+
+@pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
+class TrueHttpEntryTestCase(TestCase):
+    @mocketize
+    def test_truesendall(self):
+        resp = urlopen('http://httpbin.org/ip')
+        self.assertEqual(resp.code, 200)
+        resp = requests.get('http://httpbin.org/ip')
+        self.assertEqual(resp.status_code, 200)
+
+    @mocketize
+    def test_wrongpath_truesendall(self):
+        Entry.register(Entry.GET, 'http://httpbin.org/user.agent', Response())
+        response = urlopen('http://httpbin.org/ip')
+        self.assertEqual(response.code, 200)
 
 
 class HttpEntryTestCase(TestCase):
@@ -37,19 +54,6 @@ class HttpEntryTestCase(TestCase):
             'Content-Type': 'application/json',
         })
         self.assertEqual(str(response), 'HTTP/1.1 200 OK\r\nStatus: 200\r\nContent-lenght: 12\r\nServer: Python/Mocket\r\nConnection: close\r\nDate: Tue, 30 Apr 2013 10:39:21 GMT\r\nContent-type: application/json\r\n\r\n{"a": "€"}')
-
-    @mocketize
-    def test_truesendall(self):
-        resp = urlopen('http://httpbin.org/ip')
-        self.assertEqual(resp.code, 200)
-        resp = requests.get('http://httpbin.org/ip')
-        self.assertEqual(resp.status_code, 200)
-
-    @mocketize
-    def test_wrongpath_truesendall(self):
-        Entry.register(Entry.GET, 'http://httpbin.org/user.agent', Response())
-        response = urlopen('http://httpbin.org/ip')
-        self.assertEqual(response.code, 200)
 
     @mocketize
     def test_sendall(self):

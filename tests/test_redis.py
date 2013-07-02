@@ -1,19 +1,18 @@
 # coding=utf-8
+import pytest
 import redis
 from unittest import TestCase
 from mocket.mockredis import Entry, OK, ERROR
 from mocket.mocket import mocketize, Mocket
 
 
+@pytest.mark.skipif('os.getenv("SKIP_TRUE_REDIS", False)')
 class TrueRedisEntryTestCase(TestCase):
     def setUp(self):
         self.rclient = redis.StrictRedis()
 
     def mocketize_setup(self):
-        try:
-            self.rclient.flushdb()
-        except redis.ConnectionError:
-            return
+        self.rclient.flushdb()
 
     def mocketize_teardown(self):
         self.assertEqual(len(Mocket._requests), 0)
