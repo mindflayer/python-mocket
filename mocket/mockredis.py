@@ -18,14 +18,12 @@ class Response(object):
 
 class Redisizer(str):
     @staticmethod
-    def tokens(mapping):
+    def tokens(iterable):
         """
-        >>> Redisizer.tokens({'f1': 'one', 'f2': 'two'})
-        ['*2', '$2', 'f1', '$2', 'f2']
         >>> Redisizer.tokens(['SET', 'mocket', 'is awesome!'])
         ['*3', '$3', 'SET', '$6', 'mocket', '$11', 'is awesome!']
         """
-        return ['*{0}'.format(len(mapping))] + list(chain(*zip(['${0}'.format(len(x)) for x in mapping], mapping)))
+        return ['*{0}'.format(len(iterable))] + list(chain(*zip(['${0}'.format(len(x)) for x in iterable], iterable)))
 
     @classmethod
     def redisize(cls, data):
@@ -44,32 +42,32 @@ class Redisizer(str):
         if isinstance(data, cls):
             return data
         CONVERSION = {
-            dict: lambda x: CRLF.join(cls.tokens(list(chain(*tuple(x.items()))))),
+            dict: lambda x: CRLF.join(Redisizer.tokens(list(chain(*tuple(x.items()))))),
             int: lambda x: ':{0}'.format(x),
             str: lambda x: CRLF.join(['${0}'.format(len(x)), x]),
-            list: lambda x: CRLF.join(cls.tokens(x)),
+            list: lambda x: CRLF.join(Redisizer.tokens(x)),
         }
-        return cls(CONVERSION.get(type(data), lambda x: x)(data) + CRLF)
+        return Redisizer(CONVERSION.get(type(data), lambda x: x)(data) + CRLF)
 
-    @classmethod
-    def command(cls, description, _type='+'):
+    @staticmethod
+    def command(description, _type='+'):
         r"""
         >>> Redisizer.command('OK')
         '+OK\r\n'
         """
-        return cls(''.join([_type, description, CRLF]))
+        return Redisizer(''.join([_type, description, CRLF]))
 
-    @classmethod
-    def error(cls, description):
+    @staticmethod
+    def error(description):
         r"""
         >>> Redisizer.error('ERR this is ugly!')
         '-ERR this is ugly!\r\n'
         """
-        return cls.command(description, _type='-')
-
+        return Redisizer.command(description, _type='-')
 OK = Redisizer.command('OK')
 QUEUED = Redisizer.command('QUEUED')
 ERROR = Redisizer.error
+
 
 class Entry(MocketEntry):
     request_cls = Request
