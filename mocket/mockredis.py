@@ -69,7 +69,7 @@ class Redisizer(str):
 
 OK = Redisizer.command('OK')
 QUEUED = Redisizer.command('QUEUED')
-
+ERROR = Redisizer.error
 
 class Entry(MocketEntry):
     request_cls = Request
