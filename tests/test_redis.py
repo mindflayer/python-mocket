@@ -34,6 +34,16 @@ class TrueRedisEntryTestCase(TestCase):
         self.assertEqual(self.rclient.get('mocket'), 'is awesome!')
 
     @mocketize
+    def test_get_utf8(self):
+        self.rclient.set('snowman', '☃')
+        self.assertEqual(self.rclient.get('snowman'), '☃')
+
+    @mocketize
+    def test_get_unicode(self):
+        self.rclient.set('snowman', u'\u2603')
+        self.assertEqual(self.rclient.get('snowman'), '☃')
+
+    @mocketize
     def test_hm(self):
         h = {'f1': 'one', 'f2': 'two'}
         self.assertTrue(self.rclient.hmset('hash', h))
@@ -86,6 +96,18 @@ class MocketRedisEntryTestCase(TestCase):
     def test_get(self):
         Entry.single_register('GET mocket', 'is awesome!')
         self.assertEqual(self.rclient.get('mocket'), 'is awesome!')
+        self.assertEqual(len(Mocket._requests), 1)
+
+    @mocketize
+    def test_get_utf8(self):
+        Entry.single_register('GET snowman', '☃')
+        self.assertEqual(self.rclient.get('snowman'), '☃')
+        self.assertEqual(len(Mocket._requests), 1)
+
+    @mocketize
+    def test_get_unicode(self):
+        Entry.single_register('GET snowman', u'\u2603')
+        self.assertEqual(self.rclient.get('snowman'), '☃')
         self.assertEqual(len(Mocket._requests), 1)
 
     @mocketize

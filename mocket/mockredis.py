@@ -1,3 +1,4 @@
+# coding=utf-8
 import shlex
 from itertools import chain
 from mocket import Mocket, MocketEntry, CRLF
@@ -38,11 +39,17 @@ class Redisizer(str):
         '+OK\r\n'
         >>> Redisizer.redisize('is awesome!')
         '$11\r\nis awesome!\r\n'
+        >>> Redisizer.redisize('☃')
+        '$3\r\n\xe2\x98\x83\r\n'
+        >>> Redisizer.redisize(u'\u2603')
+        '$3\r\n\xe2\x98\x83\r\n'
         >>> Redisizer.redisize(['1st', '2nd', 'and 3rd'])
         '*3\r\n$3\r\n1st\r\n$3\r\n2nd\r\n$7\r\nand 3rd\r\n'
         """
         if isinstance(data, cls):
             return data
+        if isinstance(data, unicode):
+            data = data.encode('utf-8')
         CONVERSION = {
             dict: lambda x: CRLF.join(cls.tokens(list(chain(*tuple(x.items()))))),
             int: lambda x: ':{0}'.format(x),
