@@ -10,8 +10,6 @@ from mocket.mocket import mocketize, Mocket
 class TrueRedisEntryTestCase(TestCase):
     def setUp(self):
         self.rclient = redis.StrictRedis()
-
-    def mocketize_setup(self):
         self.rclient.flushdb()
 
     def mocketize_teardown(self):
@@ -63,7 +61,10 @@ class MocketRedisEntryTestCase(TestCase):
         self.rclient = redis.StrictRedis()
 
     def mocketize_setup(self):
-        self.rclient = redis.StrictRedis()
+        Entry.single_register('FLUSHDB', OK)
+        self.rclient.flushdb()
+        self.assertEqual(len(Mocket._requests), 1)
+        Mocket.reset()
 
     @mocketize
     def test_set(self):
@@ -96,18 +97,21 @@ class MocketRedisEntryTestCase(TestCase):
         Entry.single_register('GET mocket', 'is awesome!')
         self.assertEqual(self.rclient.get('mocket'), 'is awesome!')
         self.assertEqual(len(Mocket._requests), 1)
+        self.assertEqual(Mocket._requests[0].data, '*2\r\n$3\r\nGET\r\n$6\r\nmocket\r\n')
 
     @mocketize
     def test_get_utf8(self):
         Entry.single_register('GET snowman', '☃')
         self.assertEqual(self.rclient.get('snowman'), '☃')
         self.assertEqual(len(Mocket._requests), 1)
+        self.assertEqual(Mocket._requests[0].data, '*2\r\n$3\r\nGET\r\n$7\r\nsnowman\r\n')
 
     @mocketize
     def test_get_unicode(self):
         Entry.single_register('GET snowman', u'\u2603')
         self.assertEqual(self.rclient.get('snowman'), '☃')
         self.assertEqual(len(Mocket._requests), 1)
+        self.assertEqual(Mocket.last_request().data, '*2\r\n$3\r\nGET\r\n$7\r\nsnowman\r\n')
 
     @mocketize
     def test_lrange(self):
@@ -115,9 +119,11 @@ class MocketRedisEntryTestCase(TestCase):
         Entry.single_register('LRANGE list 0 -1', l)
         self.assertEqual(self.rclient.lrange('list', 0, -1), l)
         self.assertEqual(len(Mocket._requests), 1)
+        self.assertEqual(Mocket.last_request().data, '*4\r\n$6\r\nLRANGE\r\n$4\r\nlist\r\n$1\r\n0\r\n$2\r\n-1\r\n')
 
     @mocketize
     def test_err(self):
         Entry.single_register('INCRBY counter one', ERROR('ERR value is not an integer or out of range'))
         self.assertRaises(redis.ResponseError, self.rclient.incr, 'counter', 'one')
         self.assertEqual(len(Mocket._requests), 1)
+        self.assertEqual(Mocket.last_request().data, '*3\r\n$6\r\nINCRBY\r\n$7\r\ncounter\r\n$3\r\none\r\n')
