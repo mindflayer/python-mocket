@@ -2,7 +2,7 @@
 import redis
 from unittest import TestCase
 from mocket.mockredis import Entry
-from mocket.registry import mocketize, Mocket
+from mocket.mocket import mocketize, Mocket
 
 
 class RedisEntryTestCase(TestCase):

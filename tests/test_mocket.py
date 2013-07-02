@@ -1,6 +1,6 @@
 import socket
 from unittest import TestCase
-from mocket.registry import Mocket, mocketize
+from mocket.mocket import Mocket, mocketize
 
 
 class TestEntry(object):

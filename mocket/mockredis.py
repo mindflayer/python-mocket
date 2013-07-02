@@ -1,7 +1,6 @@
 import shlex
 from itertools import chain
-from .registry import AbstractEntry, Mocket
-from .mocket import CRLF
+from mocket import Mocket, MocketEntry, CRLF
 
 
 def redisize_tokens(mapping):
@@ -38,10 +37,10 @@ class Response(object):
             dict: lambda x: CRLF.join(redisize_tokens(list(chain(*tuple(data.items()))))),
             int: lambda x: ':{0}'.format(x),
         }
-        return CONVERSION.get(type(data), lambda x: x)(data)  + CRLF
+        return CONVERSION.get(type(data), lambda x: x)(data) + CRLF
 
 
-class Entry(AbstractEntry):
+class Entry(MocketEntry):
     request_cls = Request
     response_cls = Response
 

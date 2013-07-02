@@ -3,9 +3,7 @@ from StringIO import StringIO
 import re
 from urlparse import urlsplit, parse_qs
 import time
-from .registry import Mocket, AbstractEntry
-from .mocket import CRLF
-
+from mocket import Mocket, MocketEntry, CRLF
 STATUS = dict([(k, v[0]) for k, v in BaseHTTPRequestHandler.responses.items()])
 
 
@@ -47,7 +45,7 @@ class Response(object):
         return status_line + CRLF + header_lines + CRLF * 2 + self.body
 
 
-class Entry(AbstractEntry):
+class Entry(MocketEntry):
     GET = 'GET'
     PUT = 'PUT'
     POST = 'POST'

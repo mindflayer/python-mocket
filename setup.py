@@ -16,7 +16,7 @@ install_requires = []
 
 setup(
     name='python-mocket',
-    version='0.1',
+    version='0.2',
     author='Andrea de Marco',
     author_email='<24erre@gmail.com>',
     url='https://github.com/z4r/python-mocket',

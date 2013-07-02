@@ -5,7 +5,7 @@ from urllib2 import urlopen, HTTPError
 import requests
 from unittest import TestCase
 from mocket.mockhttp import Entry, Response, utf8
-from mocket.registry import Mocket, mocketize
+from mocket.mocket import Mocket, mocketize
 
 
 class HttpEntryTestCase(TestCase):
