@@ -1,7 +1,7 @@
 # coding=utf-8
 import redis
 from unittest import TestCase
-from mocket.mockredis import Entry
+from mocket.mockredis import Entry, OK
 from mocket.mocket import mocketize, Mocket
 
 
@@ -42,7 +42,7 @@ class RedisEntryTestCase(TestCase):
 
     @mocketize
     def test_sendall_set(self):
-        Entry.single_register('SET mocket "is awesome!"', '+OK')
+        Entry.single_register('SET mocket "is awesome!"', OK)
         self.assertTrue(self.rclient.set('mocket', 'is awesome!'))
         self.assertEqual(len(Mocket._requests), 1)
         self.assertEqual(Mocket.last_request().data, '*3\r\n$3\r\nSET\r\n$6\r\nmocket\r\n$11\r\nis awesome!\r\n')

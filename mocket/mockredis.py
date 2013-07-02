@@ -3,14 +3,6 @@ from itertools import chain
 from mocket import Mocket, MocketEntry, CRLF
 
 
-def redisize_tokens(mapping):
-    """
-    >>> redisize_tokens({'f1': 'one', 'f2': 'two'})
-    ['*2', '$2', 'f1', '$2', 'f2']
-    """
-    return ['*{0}'.format(len(mapping))] + list(chain(*zip(['${0}'.format(len(x)) for x in mapping], mapping)))
-
-
 class Request(object):
     def __init__(self, data):
         self.data = data
@@ -21,23 +13,62 @@ class Response(object):
         self.reply = reply
 
     def __str__(self):
-        return self.redisize(self.reply)
+        return Redisizer.redisize(self.reply)
 
+
+class Redisizer(str):
     @staticmethod
-    def redisize(data):
+    def tokens(mapping):
+        """
+        >>> Redisizer.tokens({'f1': 'one', 'f2': 'two'})
+        ['*2', '$2', 'f1', '$2', 'f2']
+        >>> Redisizer.tokens(['SET', 'mocket', 'is awesome!'])
+        ['*3', '$3', 'SET', '$6', 'mocket', '$11', 'is awesome!']
+        """
+        return ['*{0}'.format(len(mapping))] + list(chain(*zip(['${0}'.format(len(x)) for x in mapping], mapping)))
+
+    @classmethod
+    def redisize(cls, data):
         r"""
-        >>> Response.redisize(10)
+        >>> Redisizer.redisize(10)
         ':10\r\n'
-        >>> Response.redisize({'f1': 'one', 'f2': 'two'})
+        >>> Redisizer.redisize({'f1': 'one', 'f2': 'two'})
         '*4\r\n$2\r\nf1\r\n$3\r\none\r\n$2\r\nf2\r\n$3\r\ntwo\r\n'
-        >>> Response.redisize('+OK')
+        >>> Redisizer.redisize(Redisizer.command('OK'))
+        '+OK\r\n'
+        >>> Redisizer.redisize('is awesome!')
+        '$11\r\nis awesome!\r\n'
+        >>> Redisizer.redisize(['1st', '2nd', 'and 3rd'])
+        '*3\r\n$3\r\n1st\r\n$3\r\n2nd\r\n$7\r\nand 3rd\r\n'
+        """
+        if isinstance(data, cls):
+            return data
+        CONVERSION = {
+            dict: lambda x: CRLF.join(cls.tokens(list(chain(*tuple(x.items()))))),
+            int: lambda x: ':{0}'.format(x),
+            str: lambda x: CRLF.join(['${0}'.format(len(x)), x]),
+            list: lambda x: CRLF.join(cls.tokens(x)),
+        }
+        return cls(CONVERSION.get(type(data), lambda x: x)(data) + CRLF)
+
+    @classmethod
+    def command(cls, description, _type='+'):
+        r"""
+        >>> Redisizer.command('OK')
         '+OK\r\n'
         """
-        CONVERSION = {
-            dict: lambda x: CRLF.join(redisize_tokens(list(chain(*tuple(data.items()))))),
-            int: lambda x: ':{0}'.format(x),
-        }
-        return CONVERSION.get(type(data), lambda x: x)(data) + CRLF
+        return cls(''.join([_type, description, CRLF]))
+
+    @classmethod
+    def error(cls, description):
+        r"""
+        >>> Redisizer.error('ERR this is ugly!')
+        '-ERR this is ugly!\r\n'
+        """
+        return cls.command(description, _type='-')
+
+OK = Redisizer.command('OK')
+QUEUED = Redisizer.command('QUEUED')
 
 
 class Entry(MocketEntry):
@@ -58,7 +89,7 @@ class Entry(MocketEntry):
         """
         d = shlex.split(command)
         d[0] = d[0].upper()
-        return redisize_tokens(d)
+        return Redisizer.tokens(d)
 
     def can_handle(self, data):
         return data.splitlines() == self.command
