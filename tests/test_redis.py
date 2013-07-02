@@ -61,21 +61,21 @@ class MocketRedisEntryTestCase(TestCase):
         self.rclient = redis.StrictRedis()
 
     def mocketize_setup(self):
-        Entry.single_register('FLUSHDB', OK)
+        Entry.register_response('FLUSHDB', OK)
         self.rclient.flushdb()
         self.assertEqual(len(Mocket._requests), 1)
         Mocket.reset()
 
     @mocketize
     def test_set(self):
-        Entry.single_register('SET mocket "is awesome!"', OK)
+        Entry.register_response('SET mocket "is awesome!"', OK)
         self.assertTrue(self.rclient.set('mocket', 'is awesome!'))
         self.assertEqual(len(Mocket._requests), 1)
         self.assertEqual(Mocket.last_request().data, '*3\r\n$3\r\nSET\r\n$6\r\nmocket\r\n$11\r\nis awesome!\r\n')
 
     @mocketize
     def test_incr(self):
-        Entry.multi_register('INCRBY counter 1', (1, 2, 3))
+        Entry.register_responses('INCRBY counter 1', (1, 2, 3))
         self.assertEqual(self.rclient.incr('counter'), 1)
         self.assertEqual(self.rclient.incr('counter'), 2)
         self.assertEqual(self.rclient.incr('counter'), 3)
@@ -87,28 +87,28 @@ class MocketRedisEntryTestCase(TestCase):
     @mocketize
     def test_hgetall(self):
         h = {'f1': 'one', 'f2': 'two'}
-        Entry.single_register('HGETALL hash', {'f1': 'one', 'f2': 'two'})
+        Entry.register_response('HGETALL hash', {'f1': 'one', 'f2': 'two'})
         self.assertEqual(self.rclient.hgetall('hash'), h)
         self.assertEqual(len(Mocket._requests), 1)
         self.assertEqual(Mocket._requests[0].data, '*2\r\n$7\r\nHGETALL\r\n$4\r\nhash\r\n')
 
     @mocketize
     def test_get(self):
-        Entry.single_register('GET mocket', 'is awesome!')
+        Entry.register_response('GET mocket', 'is awesome!')
         self.assertEqual(self.rclient.get('mocket'), 'is awesome!')
         self.assertEqual(len(Mocket._requests), 1)
         self.assertEqual(Mocket._requests[0].data, '*2\r\n$3\r\nGET\r\n$6\r\nmocket\r\n')
 
     @mocketize
     def test_get_utf8(self):
-        Entry.single_register('GET snowman', '☃')
+        Entry.register_response('GET snowman', '☃')
         self.assertEqual(self.rclient.get('snowman'), '☃')
         self.assertEqual(len(Mocket._requests), 1)
         self.assertEqual(Mocket._requests[0].data, '*2\r\n$3\r\nGET\r\n$7\r\nsnowman\r\n')
 
     @mocketize
     def test_get_unicode(self):
-        Entry.single_register('GET snowman', u'\u2603')
+        Entry.register_response('GET snowman', u'\u2603')
         self.assertEqual(self.rclient.get('snowman'), '☃')
         self.assertEqual(len(Mocket._requests), 1)
         self.assertEqual(Mocket.last_request().data, '*2\r\n$3\r\nGET\r\n$7\r\nsnowman\r\n')
@@ -116,14 +116,14 @@ class MocketRedisEntryTestCase(TestCase):
     @mocketize
     def test_lrange(self):
         l = ['one', 'two', 'three']
-        Entry.single_register('LRANGE list 0 -1', l)
+        Entry.register_response('LRANGE list 0 -1', l)
         self.assertEqual(self.rclient.lrange('list', 0, -1), l)
         self.assertEqual(len(Mocket._requests), 1)
         self.assertEqual(Mocket.last_request().data, '*4\r\n$6\r\nLRANGE\r\n$4\r\nlist\r\n$1\r\n0\r\n$2\r\n-1\r\n')
 
     @mocketize
     def test_err(self):
-        Entry.single_register('INCRBY counter one', ERROR('ERR value is not an integer or out of range'))
+        Entry.register_response('INCRBY counter one', ERROR('ERR value is not an integer or out of range'))
         self.assertRaises(redis.ResponseError, self.rclient.incr, 'counter', 'one')
         self.assertEqual(len(Mocket._requests), 1)
         self.assertEqual(Mocket.last_request().data, '*3\r\n$6\r\nINCRBY\r\n$7\r\ncounter\r\n$3\r\none\r\n')

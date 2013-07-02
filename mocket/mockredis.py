@@ -105,9 +105,9 @@ class Entry(MocketEntry):
         Mocket.register(Entry(addr, command, responses))
 
     @staticmethod
-    def single_register(command, response, addr=None):
+    def register_response(command, response, addr=None):
         Entry.register(addr, command, response)
 
     @staticmethod
-    def multi_register(command, responses, addr=None):
+    def register_responses(command, responses, addr=None):
         Entry.register(addr, command, *responses)
