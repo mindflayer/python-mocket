@@ -1,4 +1,5 @@
 from StringIO import StringIO
+from collections import defaultdict
 import functools
 import socket
 
@@ -93,14 +94,12 @@ class MocketSocket(object):
 
 
 class Mocket(object):
-    _entries = {}
+    _entries = defaultdict(list)
     _requests = []
 
     @classmethod
     def register(cls, *entries):
         for entry in entries:
-            if entry.location not in cls._entries:
-                cls._entries[entry.location] = []
             cls._entries[entry.location].append(entry)
 
     @classmethod
@@ -116,7 +115,7 @@ class Mocket(object):
 
     @classmethod
     def reset(cls):
-        cls._entries = {}
+        cls._entries = defaultdict(list)
         cls._requests = []
 
     @classmethod
@@ -174,25 +173,29 @@ class MocketEntry(object):
         return str(response)
 
 
-def mocketize(test):
-    @functools.wraps(test)
-    def wrapper(*args, **kw):
+class Mocketizer(object):
+    def __init__(self, instance):
+        self.instance = instance
+
+    def __enter__(self):
         Mocket.enable()
+        self.check_and_call('mocketize_setup')
 
-        instance = args[0]
+    def __exit__( self, type, value, tb ):
+        self.check_and_call('mocketize_teardown')
+        Mocket.disable()
+        Mocket.reset()
+    
+    def check_and_call(self, method):
+        method = getattr(self.instance, method, None)
+        if callable(method):
+            method()
 
-        mocketize_setup = getattr(instance, 'mocketize_setup', None)
-        if mocketize_setup and callable(mocketize_setup):
-            mocketize_setup()
-
-        try:
-            return test(*args, **kw)
-        finally:
-            Mocket.disable()
-            Mocket.reset()
-
-            mocketize_teardown = getattr(instance, 'mocketize_teardown', None)
-            if mocketize_teardown and callable(mocketize_teardown):
-                mocketize_teardown()
-
-    return wrapper
+    @staticmethod
+    def wrap(test):
+        @functools.wraps(test)
+        def wrapper(*args, **kw):
+            with Mocketizer(args[0]):
+                return test(*args, **kw)
+        return wrapper
+mocketize = Mocketizer.wrap

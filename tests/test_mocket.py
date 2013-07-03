@@ -13,8 +13,7 @@ class TestEntry(object):
 
 class MocketTestCase(TestCase):
     def setUp(self):
-        Mocket._entries = {}
-        Mocket._requests = []
+        Mocket.reset()
 
     def test_lastrequest(self):
         self.assertEqual(Mocket.last_request(), None)
@@ -50,7 +49,7 @@ class MocketTestCase(TestCase):
             ('localhost', 80): [entry_1, entry_2],
             ('localhost', 8080): [entry_3],
         })
-        
+
     def test_collect(self):
         request = 'GET /get/p/?b=2&a=1 HTTP/1.1\r\nAccept-Encoding: identity\r\nHost: testme.org\r\nConnection: close\r\nUser-Agent: Python-urllib/2.6\r\n\r\n'
         Mocket.collect(request)
