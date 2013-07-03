@@ -8,4 +8,4 @@ mocket /mɔˈkɛt/
 .. image:: https://coveralls.io/repos/mocketize/python-mocket/badge.png?branch=master
     :target: https://coveralls.io/r/mocketize/python-mocket
 
-Mock Socket Framework
+socket mock framework
