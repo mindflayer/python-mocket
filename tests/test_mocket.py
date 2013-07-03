@@ -1,14 +1,6 @@
 import socket
 from unittest import TestCase
-from mocket.mocket import Mocket, mocketize
-
-
-class TestEntry(object):
-    def __init__(self, hostname, port):
-        self.location = (hostname, port)
-
-    def can_handle(self, data):
-        return data
+from mocket.mocket import Mocket, mocketize, MocketEntry
 
 
 class MocketTestCase(TestCase):
@@ -41,9 +33,9 @@ class MocketTestCase(TestCase):
         self.assertEqual(socket.gethostbyname('localhost'), host)
 
     def test_register(self):
-        entry_1 = TestEntry('localhost', 80)
-        entry_2 = TestEntry('localhost', 80)
-        entry_3 = TestEntry('localhost', 8080)
+        entry_1 = MocketEntry(('localhost', 80), True)
+        entry_2 = MocketEntry(('localhost', 80), True)
+        entry_3 = MocketEntry(('localhost', 8080), True)
         Mocket.register(entry_1, entry_2, entry_3)
         self.assertEqual(Mocket._entries, {
             ('localhost', 80): [entry_1, entry_2],
@@ -66,7 +58,7 @@ class MocketTestCase(TestCase):
         self.assertEqual(Mocket._requests, [])
 
     def test_getentry(self):
-        entry = TestEntry('localhost', 80)
+        entry = MocketEntry(('localhost', 80), True)
         Mocket.register(entry)
         self.assertEqual(Mocket.get_entry('localhost', 80, True), entry)
 

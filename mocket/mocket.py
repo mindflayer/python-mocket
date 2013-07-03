@@ -152,8 +152,8 @@ class Mocket(object):
 
 
 class MocketEntry(object):
-    request_cls = NotImplemented
-    response_cls = NotImplemented
+    request_cls = str
+    response_cls = str
 
     def __init__(self, location, responses):
         self.location = location
@@ -161,7 +161,7 @@ class MocketEntry(object):
         self.response_index = 0
 
     def can_handle(self, data):
-        raise NotImplementedError
+        return True
 
     def collect(self, data):
         Mocket.collect(self.request_cls(data))
