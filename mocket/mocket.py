@@ -181,11 +181,11 @@ class Mocketizer(object):
         Mocket.enable()
         self.check_and_call('mocketize_setup')
 
-    def __exit__( self, type, value, tb ):
+    def __exit__(self, type, value, tb):
         self.check_and_call('mocketize_teardown')
         Mocket.disable()
         Mocket.reset()
-    
+ 
     def check_and_call(self, method):
         method = getattr(self.instance, method, None)
         if callable(method):

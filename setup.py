@@ -15,8 +15,8 @@ tests_require = open(os.path.join(os.path.dirname(__file__), 'test_requirements.
 install_requires = []
 
 setup(
-    name='python-mocket',
-    version='0.2',
+    name='mocket',
+    version='0.9',
     author='Andrea de Marco',
     author_email='<24erre@gmail.com>',
     url='https://github.com/z4r/python-mocket',
@@ -31,7 +31,7 @@ setup(
     test_suite='runtests.runtests',
     license='BSD',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.6',
