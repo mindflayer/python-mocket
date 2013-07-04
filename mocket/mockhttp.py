@@ -34,7 +34,7 @@ class Response(object):
             'Server': 'Python/Mocket',
             'Connection': 'close',
             'Content-Type': 'text/plain; charset=utf-8',
-            'Content-Lenght': str(len(self.body)),
+            'Content-Length': str(len(self.body)),
         }
         for k, v in headers.items():
             self.headers['-'.join([token.capitalize() for token in k.split('-')])] = utf8(v)

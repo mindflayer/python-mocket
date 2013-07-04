@@ -50,10 +50,10 @@ class HttpEntryTestCase(TestCase):
             'Date': 'Tue, 30 Apr 2013 10:39:21 GMT',
             'Connection': 'close',
             'Server': 'Python/Mocket',
-            'Content-Lenght': '12',
+            'Content-Length': '12',
             'Content-Type': 'application/json',
         })
-        self.assertEqual(str(response), 'HTTP/1.1 200 OK\r\nStatus: 200\r\nContent-lenght: 12\r\nServer: Python/Mocket\r\nConnection: close\r\nDate: Tue, 30 Apr 2013 10:39:21 GMT\r\nContent-type: application/json\r\n\r\n{"a": "€"}')
+        self.assertEqual(str(response), 'HTTP/1.1 200 OK\r\nStatus: 200\r\nContent-length: 12\r\nServer: Python/Mocket\r\nConnection: close\r\nDate: Tue, 30 Apr 2013 10:39:21 GMT\r\nContent-type: application/json\r\n\r\n{"a": "€"}')
 
     @mocketize
     def test_sendall(self):
@@ -65,7 +65,7 @@ class HttpEntryTestCase(TestCase):
         self.assertEqual(resp.read(), 'test_body')
         self.assertEqual(dict(resp.headers), {
             'status': '200',
-            'content-lenght': '9',
+            'content-length': '9',
             'server': 'Python/Mocket',
             'connection': 'close',
             'date': 'Tue, 30 Apr 2013 10:39:21 GMT',
@@ -89,7 +89,7 @@ class HttpEntryTestCase(TestCase):
         self.assertEqual(response.read(), '{"a": "€"}')
         self.assertEqual(dict(response.headers), {
             'status': '200',
-            'content-lenght': '12',
+            'content-length': '12',
             'server': 'Python/Mocket',
             'connection': 'close',
             'date': 'Tue, 30 Apr 2013 10:39:21 GMT',
