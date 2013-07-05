@@ -16,7 +16,7 @@ install_requires = []
 
 setup(
     name='mocket',
-    version='0.9.1',
+    version='0.9.2',
     author='Andrea de Marco',
     author_email='<24erre@gmail.com>',
     url='https://github.com/mocketize/python-mocket',
