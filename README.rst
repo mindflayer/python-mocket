@@ -22,3 +22,9 @@ Installation
 Using pip::
 
     $ pip install mocket
+
+Video presentation
+==================
+EuroPython 2013, Florence
+
+https://www.youtube.com/watch?v=-LvXbl5d02U
