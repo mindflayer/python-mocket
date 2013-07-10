@@ -1,22 +1,18 @@
-from BaseHTTPServer import BaseHTTPRequestHandler
-from StringIO import StringIO
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import re
-from urlparse import urlsplit, parse_qs
 import time
-from mocket import Mocket, MocketEntry, CRLF
+from io import BytesIO
+from .compat import BaseHTTPRequestHandler, urlsplit, parse_qs, encode_utf8, decode_utf8
+from .mocket import Mocket, MocketEntry
 STATUS = dict([(k, v[0]) for k, v in BaseHTTPRequestHandler.responses.items()])
-
-
-def utf8(s):
-    if isinstance(s, unicode):
-        s = s.encode('utf-8')
-    return str(s)
+CRLF = '\r\n'
 
 
 class Request(BaseHTTPRequestHandler):
     def __init__(self, data):
-        _, self.body = data.split(CRLF * 2, 1)
-        self.rfile = StringIO(data)
+        _, self.body = decode_utf8(data).split('\r\n\r\n', 1)
+        self.rfile = BytesIO(encode_utf8(data))
         self.raw_requestline = self.rfile.readline()
         self.error_code = self.error_message = None
         self.parse_request()
@@ -26,7 +22,7 @@ class Request(BaseHTTPRequestHandler):
 class Response(object):
     def __init__(self, body='', status=200, headers=None):
         headers = headers or {}
-        self.body = utf8(body)
+        self.body = encode_utf8(body)
         self.status = status
         self.headers = {
             'Status': str(self.status),
@@ -37,12 +33,13 @@ class Response(object):
             'Content-Length': str(len(self.body)),
         }
         for k, v in headers.items():
-            self.headers['-'.join([token.capitalize() for token in k.split('-')])] = utf8(v)
+            self.headers['-'.join([token.capitalize() for token in k.split('-')])] = v
+        self.data = self.get_data()
 
-    def __str__(self):
+    def get_data(self):
         status_line = 'HTTP/1.1 {status_code} {status}'.format(status_code=self.status, status=STATUS[self.status])
-        header_lines = CRLF.join(['{0}: {1}'.format(k.capitalize(), utf8(v)) for k, v in self.headers.items()])
-        return status_line + CRLF + header_lines + CRLF * 2 + self.body
+        header_lines = CRLF.join(['{0}: {1}'.format(k.capitalize(), v) for k, v in self.headers.items()])
+        return '{0}\r\n{1}\r\n\r\n{2}'.format(status_line, header_lines, decode_utf8(self.body)).encode('utf-8')
 
 
 class Entry(MocketEntry):
@@ -63,7 +60,7 @@ class Entry(MocketEntry):
         self.path = uri.path
         self.query = uri.query
         self.method = method.upper()
-        self._sent_data = ''
+        self._sent_data = b''
 
     def collect(self, data):
         self._sent_data += data
@@ -71,7 +68,7 @@ class Entry(MocketEntry):
 
     def can_handle(self, data):
         try:
-            requestline, _ = data.split(CRLF, 1)
+            requestline, _ = decode_utf8(data).split(CRLF, 1)
             method, path, version = self._parse_requestline(requestline)
         except ValueError:
             Mocket.remove_last_request()
@@ -84,8 +81,8 @@ class Entry(MocketEntry):
         """
         http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5
 
-        >>> Entry._parse_requestline('GET / HTTP/1.0')
-        ('GET', '/', '1.0')
+        >>> Entry._parse_requestline('GET / HTTP/1.0') == ('GET', '/', '1.0')
+        True
         >>> Entry._parse_requestline('post /testurl htTP/1.1')
         ('POST', '/testurl', '1.1')
         >>> Entry._parse_requestline('Im not a RequestLine')

@@ -1,7 +1,10 @@
-from StringIO import StringIO
-from collections import defaultdict
+# coding=utf-8
+from __future__ import unicode_literals
 import functools
 import socket
+from collections import defaultdict
+from io import BytesIO
+
 
 __all__ = (
     'true_socket',
@@ -27,7 +30,6 @@ true_getaddrinfo = socket.getaddrinfo
 gethostbyname = lambda host: host
 gethostname = lambda: 'localhost'
 getaddrinfo = lambda host, port, **kwargs: [(2, 1, 6, '', (host, port))]
-CRLF = '\r\n'
 
 
 def create_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, sender_address=None):
@@ -43,7 +45,7 @@ class MocketSocket(object):
         self.setsockopt(family, type, proto)
         self.settimeout(socket._GLOBAL_DEFAULT_TIMEOUT)
         self.true_socket = true_socket(family, type, proto)
-        self.fd = StringIO()
+        self.fd = BytesIO()
         self._closed = True
         self._sock = self
 
@@ -164,13 +166,14 @@ class MocketEntry(object):
         return True
 
     def collect(self, data):
-        Mocket.collect(self.request_cls(data))
+        req = self.request_cls(data)
+        Mocket.collect(req)
 
     def get_response(self):
         response = self.responses[self.response_index]
         if self.response_index < len(self.responses) - 1:
             self.response_index += 1
-        return str(response)
+        return response.data
 
 
 class Mocketizer(object):
@@ -185,7 +188,7 @@ class Mocketizer(object):
         self.check_and_call('mocketize_teardown')
         Mocket.disable()
         Mocket.reset()
- 
+
     def check_and_call(self, method):
         method = getattr(self.instance, method, None)
         if callable(method):

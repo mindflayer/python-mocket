@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import socket
 from unittest import TestCase
 from mocket.mocket import Mocket, mocketize, MocketEntry

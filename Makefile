@@ -16,7 +16,7 @@ lint-python:
 
 develop: install-dev-requirements install-test-requirements
 
-test: install-test-requirements lint-python test-python
+test: install-test-requirements test-python
 
 safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
