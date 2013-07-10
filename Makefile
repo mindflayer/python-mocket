@@ -11,7 +11,7 @@ test-python:
 
 lint-python:
 	@echo "Linting Python files"
-	flake8 --exit-zero --ignore=E501 mocket
+	flake8 --exit-zero --ignore=E501 --exclude=.git,compat.py mocket
 	@echo ""
 
 develop: install-dev-requirements install-test-requirements

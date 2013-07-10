@@ -2,6 +2,7 @@
 omit =
     *.egg/*
     *site-packages*
+    *compat.py
 
 [report]
 exclude_lines =
