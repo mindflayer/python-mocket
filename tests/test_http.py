@@ -1,11 +1,12 @@
 # coding=utf-8
+from __future__ import unicode_literals
 import time
 import mock
-from urllib2 import urlopen, HTTPError
+from . import urlopen, HTTPError
 import pytest
 import requests
 from unittest import TestCase
-from mocket.mockhttp import Entry, Response, utf8
+from mocket.mockhttp import Entry, Response
 from mocket.mocket import Mocket, mocketize
 
 
@@ -43,7 +44,7 @@ class HttpEntryTestCase(TestCase):
         self.assertEqual(entry.query, 'a=1&b=2')
         self.assertEqual(len(entry.responses), 1)
         response = entry.responses[0]
-        self.assertEqual(response.body, utf8('{"a": "€"}'))
+        self.assertEqual(response.body, b'{"a": "\xe2\x82\xac"}')
         self.assertEqual(response.status, 200)
         self.assertEqual(response.headers, {
             'Status': '200',
@@ -53,7 +54,6 @@ class HttpEntryTestCase(TestCase):
             'Content-Length': '12',
             'Content-Type': 'application/json',
         })
-        self.assertEqual(str(response), 'HTTP/1.1 200 OK\r\nStatus: 200\r\nContent-length: 12\r\nServer: Python/Mocket\r\nConnection: close\r\nDate: Tue, 30 Apr 2013 10:39:21 GMT\r\nContent-type: application/json\r\n\r\n{"a": "€"}')
 
     @mocketize
     def test_sendall(self):
@@ -62,14 +62,14 @@ class HttpEntryTestCase(TestCase):
             Entry.single_register(Entry.GET, 'http://testme.org/get/p/?a=1&b=2', body='test_body')
         resp = urlopen('http://testme.org/get/p/?b=2&a=1', timeout=10)
         self.assertEqual(resp.code, 200)
-        self.assertEqual(resp.read(), 'test_body')
-        self.assertEqual(dict(resp.headers), {
-            'status': '200',
-            'content-length': '9',
-            'server': 'Python/Mocket',
-            'connection': 'close',
-            'date': 'Tue, 30 Apr 2013 10:39:21 GMT',
-            'content-type': 'text/plain; charset=utf-8'
+        self.assertEqual(resp.read(), b'test_body')
+        self.assertEqualHeaders(dict(resp.headers), {
+            'Status': '200',
+            'Content-length': '9',
+            'Server': 'Python/Mocket',
+            'Connection': 'close',
+            'Date': 'Tue, 30 Apr 2013 10:39:21 GMT',
+            'Content-type': 'text/plain; charset=utf-8'
         })
         self.assertEqual(len(Mocket._requests), 1)
 
@@ -80,14 +80,14 @@ class HttpEntryTestCase(TestCase):
             Entry.single_register(
                 Entry.GET,
                 'http://testme.org/get?a=1&b=2#test',
-                body=u'{"a": "€"}',
+                body='{"a": "€"}',
                 headers={'content-type': 'application/json'}
             )
 
         response = urlopen('http://testme.org/get?b=2&a=1#test', timeout=10)
         self.assertEqual(response.code, 200)
-        self.assertEqual(response.read(), '{"a": "€"}')
-        self.assertEqual(dict(response.headers), {
+        self.assertEqual(response.read(), b'{"a": "\xe2\x82\xac"}')
+        self.assertEqualHeaders(dict(response.headers), {
             'status': '200',
             'content-length': '12',
             'server': 'Python/Mocket',
@@ -111,7 +111,13 @@ class HttpEntryTestCase(TestCase):
     def test_multipart(self):
         url = 'http://httpbin.org/post'
         data = '--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="content"\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 68\r\n\r\nAction: comment\nText: Comment with attach\nAttachment: x1.txt, x2.txt\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_2"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_1"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz--\r\n'
-        headers = {'Content-Length': '495', 'Content-Type': 'multipart/form-data; boundary=xXXxXXyYYzzz', 'Accept': 'text/plain'}
+        headers = {
+            'Content-Length': '495',
+            'Content-Type': 'multipart/form-data; boundary=xXXxXXyYYzzz',
+            'Accept': 'text/plain',
+            'User-Agent': 'Mocket',
+            'Accept-encoding': 'identity',
+        }
         Entry.register(Entry.POST, url)
         response = requests.post(url, data=data, headers=headers)
         self.assertEqual(response.status_code, 200)
@@ -119,7 +125,15 @@ class HttpEntryTestCase(TestCase):
         self.assertEqual(last_request.method, 'POST')
         self.assertEqual(last_request.path, '/post')
         self.assertEqual(last_request.body, data)
-        headers = dict(last_request.headers)
-        self.assertEqual(headers['content-length'], '495')
-        self.assertEqual(headers['content-type'], 'multipart/form-data; boundary=xXXxXXyYYzzz')
-        self.assertEqual(len(Mocket._requests), 1)
+        sent_headers = dict(last_request.headers)
+        self.assertEqualHeaders(sent_headers, {'accept': 'text/plain',
+'accept-encoding': 'identity',
+'content-length': '495',
+'content-type': 'multipart/form-data; boundary=xXXxXXyYYzzz',
+'host': 'httpbin.org',
+'user-agent': 'Mocket'})
+
+    def assertEqualHeaders(self, first, second, msg=None):
+        first = dict([(k.lower(), v) for k, v in first.items()])
+        second = dict([(k.lower(), v) for k, v in second.items()])
+        self.assertEqual(first, second, msg)

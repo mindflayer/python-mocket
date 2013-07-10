@@ -1,7 +1,8 @@
 # coding=utf-8
-import shlex
+from __future__ import unicode_literals
 from itertools import chain
-from mocket import Mocket, MocketEntry, CRLF
+from .compat import text_type, byte_type, encode_utf8, decode_utf8, shsplit
+from .mocket import MocketEntry, Mocket
 
 
 class Request(object):
@@ -10,66 +11,36 @@ class Request(object):
 
 
 class Response(object):
-    def __init__(self, reply):
-        self.reply = reply
-
-    def __str__(self):
-        return Redisizer.redisize(self.reply)
+    def __init__(self, data=None):
+        self.data = Redisizer.redisize(data or OK)
 
 
-class Redisizer(str):
+class Redisizer(byte_type):
     @staticmethod
     def tokens(iterable):
-        """
-        >>> Redisizer.tokens(['SET', 'mocket', 'is awesome!'])
-        ['*3', '$3', 'SET', '$6', 'mocket', '$11', 'is awesome!']
-        """
-        return ['*{0}'.format(len(iterable))] + list(chain(*zip(['${0}'.format(len(x)) for x in iterable], iterable)))
+        iterable = [encode_utf8(x) for x in iterable]
+        return ['*{0}'.format(len(iterable)).encode('utf-8')] + list(chain(*zip(['${0}'.format(len(x)).encode('utf-8') for x in iterable], iterable)))
 
-    @classmethod
-    def redisize(cls, data):
-        r"""
-        >>> Redisizer.redisize(10)
-        ':10\r\n'
-        >>> Redisizer.redisize({'f1': 'one', 'f2': 'two'})
-        '*4\r\n$2\r\nf1\r\n$3\r\none\r\n$2\r\nf2\r\n$3\r\ntwo\r\n'
-        >>> Redisizer.redisize(Redisizer.command('OK'))
-        '+OK\r\n'
-        >>> Redisizer.redisize('is awesome!')
-        '$11\r\nis awesome!\r\n'
-        >>> Redisizer.redisize('☃')
-        '$3\r\n\xe2\x98\x83\r\n'
-        >>> Redisizer.redisize(u'\u2603')
-        '$3\r\n\xe2\x98\x83\r\n'
-        >>> Redisizer.redisize(['1st', '2nd', 'and 3rd'])
-        '*3\r\n$3\r\n1st\r\n$3\r\n2nd\r\n$7\r\nand 3rd\r\n'
-        """
-        if isinstance(data, cls):
+    @staticmethod
+    def redisize(data):
+        if isinstance(data, Redisizer):
             return data
-        if isinstance(data, unicode):
-            data = data.encode('utf-8')
+        if isinstance(data, byte_type):
+            data = decode_utf8(data)
         CONVERSION = {
-            dict: lambda x: CRLF.join(Redisizer.tokens(list(chain(*tuple(x.items()))))),
-            int: lambda x: ':{0}'.format(x),
-            str: lambda x: CRLF.join(['${0}'.format(len(x)), x]),
-            list: lambda x: CRLF.join(Redisizer.tokens(x)),
+            dict: lambda x: b'\r\n'.join(Redisizer.tokens(list(chain(*tuple(x.items()))))),
+            int: lambda x: ':{0}'.format(x).encode('utf-8'),
+            text_type: lambda x: '${0}\r\n{1}'.format(len(x.encode('utf-8')), x).encode('utf-8'),
+            list: lambda x: b'\r\n'.join(Redisizer.tokens(x)),
         }
-        return Redisizer(CONVERSION.get(type(data), lambda x: x)(data) + CRLF)
+        return Redisizer(CONVERSION[type(data)](data) + b'\r\n')
 
     @staticmethod
     def command(description, _type='+'):
-        r"""
-        >>> Redisizer.command('OK')
-        '+OK\r\n'
-        """
-        return Redisizer(''.join([_type, description, CRLF]))
+        return Redisizer('{0}{1}{2}'.format(_type, description, '\r\n').encode('utf-8'))
 
     @staticmethod
     def error(description):
-        r"""
-        >>> Redisizer.error('ERR this is ugly!')
-        '-ERR this is ugly!\r\n'
-        """
         return Redisizer.command(description, _type='-')
 OK = Redisizer.command('OK')
 QUEUED = Redisizer.command('QUEUED')
@@ -82,19 +53,9 @@ class Entry(MocketEntry):
 
     def __init__(self, addr, command, responses):
         super(Entry, self).__init__(addr or ('localhost', 6379), responses)
-        self.command = self._redisize(command)
-
-    @classmethod
-    def _redisize(cls, command):
-        """
-        >>> Entry._redisize('SET "mocket" "is awesome!"')
-        ['*3', '$3', 'SET', '$6', 'mocket', '$11', 'is awesome!']
-        >>> Entry._redisize('set "mocket" "is awesome!"')
-        ['*3', '$3', 'SET', '$6', 'mocket', '$11', 'is awesome!']
-        """
-        d = shlex.split(command)
+        d = shsplit(command)
         d[0] = d[0].upper()
-        return Redisizer.tokens(d)
+        self.command = Redisizer.tokens(d)
 
     def can_handle(self, data):
         return data.splitlines() == self.command

@@ -1,13 +1,98 @@
 # coding=utf-8
+from __future__ import unicode_literals
 import pytest
 import redis
 from unittest import TestCase
-from mocket.mockredis import Entry, OK, ERROR
 from mocket.mocket import mocketize, Mocket
+from mocket.mockredis import Entry, OK, ERROR, Redisizer
+
+
+class RedisizerTestCase(TestCase):
+    def test_token(self):
+        self.assertEqual(
+            Redisizer.tokens(['SET', 'snowman', 'is ☃!']),
+            [b'*3', b'$3', b'SET', b'$7', b'snowman', b'$7', b'is \xe2\x98\x83!']
+        )
+
+    def test_command(self):
+        self.assertEqual(Redisizer.command('OK'), b'+OK\r\n')
+
+    def test_error(self):
+        self.assertEqual(
+            Redisizer.error('ERR: ☃ summer'),
+            b'-ERR: \xe2\x98\x83 summer\r\n'
+        )
+
+    def test_redisize_int(self):
+        self.assertEqual(Redisizer.redisize(10), b':10\r\n')
+
+    def test_redisize_list(self):
+        self.assertEqual(
+            Redisizer.redisize(['snowman', '☃']),
+            b'*2\r\n$7\r\nsnowman\r\n$3\r\n\xe2\x98\x83\r\n'
+        )
+
+    def test_redisize_dict(self):
+        self.assertEqual(
+            Redisizer.redisize({'snowman': '☃'}),
+            b'*2\r\n$7\r\nsnowman\r\n$3\r\n\xe2\x98\x83\r\n'
+        )
+
+    def test_redisize_text(self):
+        self.assertEqual(
+            Redisizer.redisize('☃'),
+            b'$3\r\n\xe2\x98\x83\r\n'
+        )
+
+    def test_redisize_byte(self):
+        self.assertEqual(
+            Redisizer.redisize(b'\xe2\x98\x83'),
+            b'$3\r\n\xe2\x98\x83\r\n'
+        )
+
+    def test_redisize_command(self):
+        self.assertEqual(
+            Redisizer.redisize(Redisizer.command('OK')),
+            b'+OK\r\n'
+        )
+
+
+class RedisEntryTestCase(TestCase):
+    def test_init_text(self):
+        entry = Entry(addr=None, command='SET snowman "is ☃!"', responses=[])
+        self.assertEqual(
+            entry.command,
+            [b'*3', b'$3', b'SET', b'$7', b'snowman', b'$7', b'is \xe2\x98\x83!']
+        )
+
+    def test_init_byte(self):
+        entry = Entry(addr=None, command=b'SET snowman "is \xe2\x98\x83!"', responses=[])
+        self.assertEqual(
+            entry.command,
+            [b'*3', b'$3', b'SET', b'$7', b'snowman', b'$7', b'is \xe2\x98\x83!']
+        )
+
+    def test_can_handle(self):
+        entry = Entry(addr=None, command='SET snowman "is ☃!"', responses=[])
+        self.assertTrue(entry.can_handle(b'*3\r\n$3\r\nSET\r\n$7\r\nsnowman\r\n$7\r\nis \xe2\x98\x83!'))
+
+    def test_register(self):
+        Entry.register(('localhost', 6379), 'SET snowman "is ☃!"', OK)
+        self.assertEqual(
+            Mocket._entries[('localhost', 6379)][0].command,
+            [b'*3', b'$3', b'SET', b'$7', b'snowman', b'$7', b'is \xe2\x98\x83!']
+        )
+        self.assertEqual(
+            Mocket._entries[('localhost', 6379)][0].responses[0].data,
+            b'+OK\r\n'
+        )
+
+    def test_register_response(self):
+        Entry.register_response(command='SET snowman "is ☃!"', response='')
 
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_REDIS", False)')
-class TrueRedisEntryTestCase(TestCase):
+class TrueRedisTestCase(TestCase):
     def setUp(self):
         self.rclient = redis.StrictRedis()
         self.rclient.flushdb()
@@ -28,27 +113,27 @@ class TrueRedisEntryTestCase(TestCase):
     @mocketize
     def test_get(self):
         self.rclient.set('mocket', 'is awesome!')
-        self.assertEqual(self.rclient.get('mocket'), 'is awesome!')
+        self.assertEqual(self.rclient.get('mocket'), b'is awesome!')
 
     @mocketize
     def test_get_utf8(self):
         self.rclient.set('snowman', '☃')
-        self.assertEqual(self.rclient.get('snowman'), '☃')
+        self.assertEqual(self.rclient.get('snowman'), b'\xe2\x98\x83')
 
     @mocketize
     def test_get_unicode(self):
         self.rclient.set('snowman', u'\u2603')
-        self.assertEqual(self.rclient.get('snowman'), '☃')
+        self.assertEqual(self.rclient.get('snowman'), b'\xe2\x98\x83')
 
     @mocketize
     def test_hm(self):
-        h = {'f1': 'one', 'f2': 'two'}
+        h = {b'f1': b'one', b'f2': b'two'}
         self.assertTrue(self.rclient.hmset('hash', h))
         self.assertEqual(self.rclient.hgetall('hash'), h)
 
     @mocketize
     def test_lrange(self):
-        l = ['one', 'two', 'three']
+        l = [b'one', b'two', b'three']
         self.rclient.rpush('list', *l)
         self.assertEqual(self.rclient.lrange('list', 0, -1), l)
 
@@ -56,7 +141,8 @@ class TrueRedisEntryTestCase(TestCase):
     def test_err(self):
         self.assertRaises(redis.ResponseError, self.rclient.incr, 'counter', 'one')
 
-class MocketRedisEntryTestCase(TestCase):
+
+class RedisTestCase(TestCase):
     def setUp(self):
         self.rclient = redis.StrictRedis()
 
@@ -71,7 +157,7 @@ class MocketRedisEntryTestCase(TestCase):
         Entry.register_response('SET mocket "is awesome!"', OK)
         self.assertTrue(self.rclient.set('mocket', 'is awesome!'))
         self.assertEqual(len(Mocket._requests), 1)
-        self.assertEqual(Mocket.last_request().data, '*3\r\n$3\r\nSET\r\n$6\r\nmocket\r\n$11\r\nis awesome!\r\n')
+        self.assertEqual(Mocket.last_request().data, b'*3\r\n$3\r\nSET\r\n$6\r\nmocket\r\n$11\r\nis awesome!\r\n')
 
     @mocketize
     def test_incr(self):
@@ -80,50 +166,50 @@ class MocketRedisEntryTestCase(TestCase):
         self.assertEqual(self.rclient.incr('counter'), 2)
         self.assertEqual(self.rclient.incr('counter'), 3)
         self.assertEqual(len(Mocket._requests), 3)
-        self.assertEqual(Mocket._requests[0].data, '*3\r\n$6\r\nINCRBY\r\n$7\r\ncounter\r\n$1\r\n1\r\n')
-        self.assertEqual(Mocket._requests[1].data, '*3\r\n$6\r\nINCRBY\r\n$7\r\ncounter\r\n$1\r\n1\r\n')
-        self.assertEqual(Mocket._requests[2].data, '*3\r\n$6\r\nINCRBY\r\n$7\r\ncounter\r\n$1\r\n1\r\n')
+        self.assertEqual(Mocket._requests[0].data, b'*3\r\n$6\r\nINCRBY\r\n$7\r\ncounter\r\n$1\r\n1\r\n')
+        self.assertEqual(Mocket._requests[1].data, b'*3\r\n$6\r\nINCRBY\r\n$7\r\ncounter\r\n$1\r\n1\r\n')
+        self.assertEqual(Mocket._requests[2].data, b'*3\r\n$6\r\nINCRBY\r\n$7\r\ncounter\r\n$1\r\n1\r\n')
 
     @mocketize
     def test_hgetall(self):
-        h = {'f1': 'one', 'f2': 'two'}
-        Entry.register_response('HGETALL hash', {'f1': 'one', 'f2': 'two'})
+        h = {b'f1': b'one', b'f2': b'two'}
+        Entry.register_response('HGETALL hash', h)
         self.assertEqual(self.rclient.hgetall('hash'), h)
         self.assertEqual(len(Mocket._requests), 1)
-        self.assertEqual(Mocket._requests[0].data, '*2\r\n$7\r\nHGETALL\r\n$4\r\nhash\r\n')
+        self.assertEqual(Mocket._requests[0].data, b'*2\r\n$7\r\nHGETALL\r\n$4\r\nhash\r\n')
 
     @mocketize
     def test_get(self):
         Entry.register_response('GET mocket', 'is awesome!')
-        self.assertEqual(self.rclient.get('mocket'), 'is awesome!')
+        self.assertEqual(self.rclient.get('mocket'), b'is awesome!')
         self.assertEqual(len(Mocket._requests), 1)
-        self.assertEqual(Mocket._requests[0].data, '*2\r\n$3\r\nGET\r\n$6\r\nmocket\r\n')
+        self.assertEqual(Mocket._requests[0].data, b'*2\r\n$3\r\nGET\r\n$6\r\nmocket\r\n')
 
     @mocketize
     def test_get_utf8(self):
         Entry.register_response('GET snowman', '☃')
-        self.assertEqual(self.rclient.get('snowman'), '☃')
+        self.assertEqual(self.rclient.get('snowman'), b'\xe2\x98\x83')
         self.assertEqual(len(Mocket._requests), 1)
-        self.assertEqual(Mocket._requests[0].data, '*2\r\n$3\r\nGET\r\n$7\r\nsnowman\r\n')
+        self.assertEqual(Mocket._requests[0].data, b'*2\r\n$3\r\nGET\r\n$7\r\nsnowman\r\n')
 
     @mocketize
     def test_get_unicode(self):
-        Entry.register_response('GET snowman', u'\u2603')
-        self.assertEqual(self.rclient.get('snowman'), '☃')
+        Entry.register_response('GET snowman', '\u2603')
+        self.assertEqual(self.rclient.get('snowman'), b'\xe2\x98\x83')
         self.assertEqual(len(Mocket._requests), 1)
-        self.assertEqual(Mocket.last_request().data, '*2\r\n$3\r\nGET\r\n$7\r\nsnowman\r\n')
+        self.assertEqual(Mocket.last_request().data, b'*2\r\n$3\r\nGET\r\n$7\r\nsnowman\r\n')
 
     @mocketize
     def test_lrange(self):
-        l = ['one', 'two', 'three']
+        l = [b'one', b'two', b'three']
         Entry.register_response('LRANGE list 0 -1', l)
         self.assertEqual(self.rclient.lrange('list', 0, -1), l)
         self.assertEqual(len(Mocket._requests), 1)
-        self.assertEqual(Mocket.last_request().data, '*4\r\n$6\r\nLRANGE\r\n$4\r\nlist\r\n$1\r\n0\r\n$2\r\n-1\r\n')
+        self.assertEqual(Mocket.last_request().data, b'*4\r\n$6\r\nLRANGE\r\n$4\r\nlist\r\n$1\r\n0\r\n$2\r\n-1\r\n')
 
     @mocketize
     def test_err(self):
         Entry.register_response('INCRBY counter one', ERROR('ERR value is not an integer or out of range'))
         self.assertRaises(redis.ResponseError, self.rclient.incr, 'counter', 'one')
         self.assertEqual(len(Mocket._requests), 1)
-        self.assertEqual(Mocket.last_request().data, '*3\r\n$6\r\nINCRBY\r\n$7\r\ncounter\r\n$3\r\none\r\n')
+        self.assertEqual(Mocket.last_request().data, b'*3\r\n$6\r\nINCRBY\r\n$7\r\ncounter\r\n$3\r\none\r\n')

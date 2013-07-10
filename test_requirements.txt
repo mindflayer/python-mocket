@@ -1,6 +1,7 @@
-flake8>=1.7.0,<2.0
-pytest-cov>=1.4
+flake8
+pytest
+pytest-cov
 mock
 requests
-pytest
 redis
+
