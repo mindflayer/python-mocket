@@ -83,8 +83,8 @@ class Entry(MocketEntry):
 
         >>> Entry._parse_requestline('GET / HTTP/1.0') == ('GET', '/', '1.0')
         True
-        >>> Entry._parse_requestline('post /testurl htTP/1.1')
-        ('POST', '/testurl', '1.1')
+        >>> Entry._parse_requestline('post /testurl htTP/1.1') == ('POST', '/testurl', '1.1')
+        True
         >>> Entry._parse_requestline('Im not a RequestLine')
         Traceback (most recent call last):
             ...
