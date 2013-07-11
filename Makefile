@@ -20,3 +20,14 @@ test: install-test-requirements lint-python test-python
 
 safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
+
+publish:
+	python setup.py sdist upload
+
+clean:
+	rm -rf __pycache__
+	rm -rf dist
+	rm -rf *.egg-info
+
+.PHONY: publish clean
+
