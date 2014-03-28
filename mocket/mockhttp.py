@@ -22,19 +22,28 @@ class Request(BaseHTTPRequestHandler):
 class Response(object):
     def __init__(self, body='', status=200, headers=None):
         headers = headers or {}
-        self.body = encode_utf8(body)
+        file_object = False
+        try:
+            #  File Objects
+            self.body = body.read()
+            file_object = True
+        except AttributeError:
+            self.body = encode_utf8(body)
         self.status = status
         self.headers = {
             'Status': str(self.status),
             'Date': time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime()),
             'Server': 'Python/Mocket',
             'Connection': 'close',
-            'Content-Type': 'text/plain; charset=utf-8',
             'Content-Length': str(len(self.body)),
         }
         for k, v in headers.items():
             self.headers['-'.join([token.capitalize() for token in k.split('-')])] = v
-        self.data = self.get_data()
+        if not file_object:
+            self.data = self.get_data()
+            self.headers['Content-Type'] = 'text/plain; charset=utf-8'
+        else:
+            self.data = self.body
 
     def get_data(self):
         status_line = 'HTTP/1.1 {status_code} {status}'.format(status_code=self.status, status=STATUS[self.status])
