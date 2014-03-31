@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 import time
 from io import BytesIO
+import magic
 from .compat import BaseHTTPRequestHandler, urlsplit, parse_qs, encode_utf8, decode_utf8
 from .mocket import Mocket, MocketEntry
 STATUS = dict([(k, v[0]) for k, v in BaseHTTPRequestHandler.responses.items()])
@@ -22,19 +23,29 @@ class Request(BaseHTTPRequestHandler):
 class Response(object):
     def __init__(self, body='', status=200, headers=None):
         headers = headers or {}
-        self.body = encode_utf8(body)
+        is_file_object = False
+        try:
+            #  File Objects
+            self.body = body.read()
+            is_file_object = True
+        except AttributeError:
+            self.body = encode_utf8(body)
         self.status = status
         self.headers = {
             'Status': str(self.status),
             'Date': time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime()),
             'Server': 'Python/Mocket',
             'Connection': 'close',
-            'Content-Type': 'text/plain; charset=utf-8',
             'Content-Length': str(len(self.body)),
         }
+        if not is_file_object:
+            self.data = self.get_data()
+            self.headers['Content-Type'] = 'text/plain; charset=utf-8'
+        else:
+            self.data = self.body
+            self.headers['Content-Type'] = magic.from_buffer(self.data, mime=True)
         for k, v in headers.items():
             self.headers['-'.join([token.capitalize() for token in k.split('-')])] = v
-        self.data = self.get_data()
 
     def get_data(self):
         status_line = 'HTTP/1.1 {status_code} {status}'.format(status_code=self.status, status=STATUS[self.status])

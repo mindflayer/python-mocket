@@ -12,7 +12,7 @@ for m in ('multiprocessing', 'billiard'):
 
 dev_requires = []
 tests_require = open(os.path.join(os.path.dirname(__file__), 'test_requirements.txt')).read()
-install_requires = []
+install_requires = ['python-magic',]
 
 setup(
     name='mocket',
