@@ -126,12 +126,30 @@ class HttpEntryTestCase(TestCase):
         self.assertEqual(last_request.path, '/post')
         self.assertEqual(last_request.body, data)
         sent_headers = dict(last_request.headers)
-        self.assertEqualHeaders(sent_headers, {'accept': 'text/plain',
-'accept-encoding': 'identity',
-'content-length': '495',
-'content-type': 'multipart/form-data; boundary=xXXxXXyYYzzz',
-'host': 'httpbin.org',
-'user-agent': 'Mocket'})
+        self.assertEqualHeaders(
+            sent_headers,
+            {
+                'accept': 'text/plain',
+                'accept-encoding': 'identity',
+                'content-length': '495',
+                'content-type': 'multipart/form-data; boundary=xXXxXXyYYzzz',
+                'host': 'httpbin.org',
+                'user-agent': 'Mocket',
+            }
+        )
+
+    @mocketize
+    def test_file_object(self):
+        url = 'https://github.com/fluidicon.png'
+        file_obj = open('fluidicon.png')
+        Entry.single_register(Entry.GET, url, body=file_obj)
+        response = requests.get(url)
+        remote_content = response.content
+        local_content = file_obj.read()
+        self.assertEqual(remote_content, local_content)
+        self.assertEqual(len(remote_content), len(local_content))
+        self.assertEqual(int(response.headers['Content-Length']), len(local_content))
+        self.assertEqual(response.headers['Content-Type'], 'image/png')
 
     def assertEqualHeaders(self, first, second, msg=None):
         first = dict([(k.lower(), v) for k, v in first.items()])
