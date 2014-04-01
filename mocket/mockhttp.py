@@ -39,18 +39,17 @@ class Response(object):
             'Content-Length': str(len(self.body)),
         }
         if not is_file_object:
-            self.data = self.get_data()
             self.headers['Content-Type'] = 'text/plain; charset=utf-8'
         else:
-            self.data = self.body
-            self.headers['Content-Type'] = magic.from_buffer(self.data, mime=True)
+            self.headers['Content-Type'] = magic.from_buffer(self.body, mime=True)
         for k, v in headers.items():
             self.headers['-'.join([token.capitalize() for token in k.split('-')])] = v
+        self.data = self.get_protocol_data() + self.body
 
-    def get_data(self):
+    def get_protocol_data(self):
         status_line = 'HTTP/1.1 {status_code} {status}'.format(status_code=self.status, status=STATUS[self.status])
         header_lines = CRLF.join(['{0}: {1}'.format(k.capitalize(), v) for k, v in self.headers.items()])
-        return '{0}\r\n{1}\r\n\r\n{2}'.format(status_line, header_lines, decode_utf8(self.body)).encode('utf-8')
+        return '{0}\r\n{1}\r\n\r\n'.format(status_line, header_lines).encode('utf-8')
 
 
 class Entry(MocketEntry):
