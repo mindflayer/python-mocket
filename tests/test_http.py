@@ -140,16 +140,18 @@ class HttpEntryTestCase(TestCase):
 
     @mocketize
     def test_file_object(self):
-        url = 'https://github.com/fluidicon.png'
-        file_obj = open('fluidicon.png')
+        url = 'http://github.com/fluidicon.png'
+        filename = 'tests/fluidicon.png'
+        file_obj = open(filename, 'rb')
         Entry.single_register(Entry.GET, url, body=file_obj)
-        response = requests.get(url)
-        remote_content = response.content
-        local_content = file_obj.read()
+        r = requests.get(url)
+        remote_content = r.content
+        local_file_obj = open(filename, 'rb')
+        local_content = local_file_obj.read()
         self.assertEqual(remote_content, local_content)
         self.assertEqual(len(remote_content), len(local_content))
-        self.assertEqual(int(response.headers['Content-Length']), len(local_content))
-        self.assertEqual(response.headers['Content-Type'], 'image/png')
+        self.assertEqual(int(r.headers['Content-Length']), len(local_content))
+        self.assertEqual(r.headers['Content-Type'], 'image/png')
 
     def assertEqualHeaders(self, first, second, msg=None):
         first = dict([(k.lower(), v) for k, v in first.items()])
