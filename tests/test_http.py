@@ -151,7 +151,7 @@ class HttpEntryTestCase(TestCase):
         self.assertEqual(remote_content, local_content)
         self.assertEqual(len(remote_content), len(local_content))
         self.assertEqual(int(r.headers['Content-Length']), len(local_content))
-        self.assertEqual(r.headers['Content-Type'], b'image/png')
+        self.assertEqual(r.headers['Content-Type'], 'image/png')
 
     def assertEqualHeaders(self, first, second, msg=None):
         first = dict([(k.lower(), v) for k, v in first.items()])

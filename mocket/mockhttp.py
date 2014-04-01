@@ -41,7 +41,7 @@ class Response(object):
         if not is_file_object:
             self.headers['Content-Type'] = 'text/plain; charset=utf-8'
         else:
-            self.headers['Content-Type'] = magic.from_buffer(self.body, mime=True)
+            self.headers['Content-Type'] = decode_utf8(magic.from_buffer(self.body, mime=True))
         for k, v in headers.items():
             self.headers['-'.join([token.capitalize() for token in k.split('-')])] = v
         self.data = self.get_protocol_data() + self.body
