@@ -4,7 +4,7 @@ import functools
 import socket
 from collections import defaultdict
 from io import BytesIO
-from compat import encode_utf8, basestring, byte_type, text_type
+from .compat import encode_utf8, basestring, byte_type, text_type
 import collections
 
 __all__ = (
