@@ -63,6 +63,13 @@ class MocketTestCase(TestCase):
         Mocket.register(entry)
         self.assertEqual(Mocket.get_entry('localhost', 80, True), entry)
 
+    def test_getresponse(self):
+        entry = MocketEntry(('localhost', 8080), ['Show me.\r\n'])
+        self.assertEqual(entry.get_response(), 'Show me.\r\n')
+
+    def test_empty_getresponse(self):
+        entry = MocketEntry(('localhost', 8080), [])
+        self.assertEqual(entry.get_response(), '')
 
 class MocketizeTestCase(TestCase):
     def mocketize_setup(self):
