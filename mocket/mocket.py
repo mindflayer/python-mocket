@@ -81,9 +81,7 @@ class MocketSocket(object):
         self.fd.seek(0)
 
     def recv(self, buffersize, flags=None):
-        read = self.fd.readline(buffersize)
-        print 'RECV', '{!r}'.format(read)
-        return read
+        return self.fd.readline(buffersize)
 
     def true_sendall(self, data, *args, **kwargs):
         self.true_socket.connect(self._address)
