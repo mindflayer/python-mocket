@@ -27,9 +27,9 @@ true_create_connection = socket.create_connection
 true_gethostbyname = socket.gethostbyname
 true_gethostname = socket.gethostname
 true_getaddrinfo = socket.getaddrinfo
-gethostbyname = lambda host: host
+gethostbyname = lambda host: '127.0.0.1'
 gethostname = lambda: 'localhost'
-getaddrinfo = lambda host, port, **kwargs: [(2, 1, 6, '', (host, port))]
+getaddrinfo = lambda host, port, family=None, socktype=None, proto=None, flags=None: [(2, 1, 6, '', (host, port))]
 
 
 def create_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, sender_address=None):
@@ -79,6 +79,9 @@ class MocketSocket(object):
         self.fd.seek(0)
         self.fd.write(entry.get_response())
         self.fd.seek(0)
+
+    def recv(self, buffersize, flags=None):
+        return self.fd.readline(buffersize)
 
     def true_sendall(self, data, *args, **kwargs):
         self.true_socket.connect(self._address)

@@ -11,8 +11,8 @@ for m in ('multiprocessing', 'billiard'):
         pass
 
 dev_requires = []
+install_requires = open(os.path.join(os.path.dirname(__file__), 'requirements.txt')).read()
 tests_require = open(os.path.join(os.path.dirname(__file__), 'test_requirements.txt')).read()
-install_requires = ['python-magic',]
 
 setup(
     name='mocket',

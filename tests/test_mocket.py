@@ -29,7 +29,7 @@ class MocketTestCase(TestCase):
     def test_gethostbyname(self):
         host = socket.gethostbyname('localhost')
         Mocket.enable()
-        self.assertEqual(socket.gethostbyname('localhost'), 'localhost')
+        self.assertEqual(socket.gethostbyname('localhost'), '127.0.0.1')
         Mocket.disable()
         self.assertEqual(socket.gethostbyname('localhost'), host)
 
