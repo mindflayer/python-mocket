@@ -83,6 +83,9 @@ class MocketSocket(object):
     def recv(self, buffersize, flags=None):
         return self.fd.readline(buffersize)
 
+    def shutdown(self, flag):
+        return self.true_socket.shutdown(flag)
+
     def true_sendall(self, data, *args, **kwargs):
         self.true_socket.connect(self._address)
         self.true_socket.sendall(data, *args, **kwargs)
