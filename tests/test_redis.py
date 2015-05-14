@@ -141,6 +141,14 @@ class TrueRedisTestCase(TestCase):
     def test_err(self):
         self.assertRaises(redis.ResponseError, self.rclient.incr, 'counter', 'one')
 
+    @mocketize
+    def test_shutdown(self):
+        rc = redis.StrictRedis(host='127.1.1.1')
+        try:
+            rc.get('foo')
+        except redis.ConnectionError:
+            pass
+
 
 class RedisTestCase(TestCase):
     def setUp(self):
