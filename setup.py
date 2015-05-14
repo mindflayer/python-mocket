@@ -17,8 +17,8 @@ tests_require = open(os.path.join(os.path.dirname(__file__), 'test_requirements.
 setup(
     name='mocket',
     version='1.1.1',
-    author='Andrea de Marco',
-    author_email='<24erre@gmail.com>',
+    author='Andrea de Marco, Giorgio Salluzzo',
+    author_email='24erre@gmail.com, giorgio.salluzzo@gmail.com',
     url='https://github.com/mocketize/python-mocket',
     description='Socket Mock Framework',
     long_description=open('README.rst').read(),
@@ -37,6 +37,7 @@ setup(
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Software Development',
         'Topic :: Software Development :: Testing',
     ],
