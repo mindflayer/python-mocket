@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 import socket
 from unittest import TestCase
 from mocket.mocket import Mocket, mocketize, MocketEntry
+import redis
 
 
 class MocketTestCase(TestCase):
@@ -62,6 +63,14 @@ class MocketTestCase(TestCase):
         entry = MocketEntry(('localhost', 80), True)
         Mocket.register(entry)
         self.assertEqual(Mocket.get_entry('localhost', 80, True), entry)
+
+    @mocketize
+    def test_unmocked_redis(self):
+        rc = redis.StrictRedis(host='8.8.8.8')
+        try:
+            rc.get('foo')
+        except redis.ConnectionError:
+            pass
 
 
 class MocketizeTestCase(TestCase):

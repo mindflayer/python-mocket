@@ -47,12 +47,12 @@ class HttpEntryTestCase(TestCase):
         self.assertEqual(response.body, b'{"a": "\xe2\x82\xac"}')
         self.assertEqual(response.status, 200)
         self.assertEqual(response.headers, {
-            'Status': '200',
-            'Date': 'Tue, 30 Apr 2013 10:39:21 GMT',
-            'Connection': 'close',
-            'Server': 'Python/Mocket',
-            'Content-Length': '12',
-            'Content-Type': 'application/json',
+            u'Status': u'200',
+            u'Date': u'Tue, 30 Apr 2013 10:39:21 GMT',
+            u'Connection': u'close',
+            u'Server': u'Python/Mocket',
+            u'Content-Length': u'12',
+            u'Content-Type': u'application/json',
         })
 
     @mocketize
@@ -64,12 +64,12 @@ class HttpEntryTestCase(TestCase):
         self.assertEqual(resp.code, 200)
         self.assertEqual(resp.read(), b'test_body')
         self.assertEqualHeaders(dict(resp.headers), {
-            'Status': '200',
-            'Content-length': '9',
-            'Server': 'Python/Mocket',
-            'Connection': 'close',
-            'Date': 'Tue, 30 Apr 2013 10:39:21 GMT',
-            'Content-type': 'text/plain; charset=utf-8'
+            u'Status': u'200',
+            u'Content-length': u'9',
+            u'Server': u'Python/Mocket',
+            u'Connection': u'close',
+            u'Date': u'Tue, 30 Apr 2013 10:39:21 GMT',
+            u'Content-type': u'text/plain; charset=utf-8'
         })
         self.assertEqual(len(Mocket._requests), 1)
 
@@ -88,12 +88,12 @@ class HttpEntryTestCase(TestCase):
         self.assertEqual(response.code, 200)
         self.assertEqual(response.read(), b'{"a": "\xe2\x82\xac"}')
         self.assertEqualHeaders(dict(response.headers), {
-            'status': '200',
-            'content-length': '12',
-            'server': 'Python/Mocket',
-            'connection': 'close',
-            'date': 'Tue, 30 Apr 2013 10:39:21 GMT',
-            'content-type': 'application/json',
+            u'status': u'200',
+            u'content-length': u'12',
+            u'server': u'Python/Mocket',
+            u'connection': u'close',
+            u'date': u'Tue, 30 Apr 2013 10:39:21 GMT',
+            u'content-type': u'application/json',
         })
         self.assertEqual(len(Mocket._requests), 1)
 
@@ -135,6 +135,7 @@ class HttpEntryTestCase(TestCase):
                 'content-type': 'multipart/form-data; boundary=xXXxXXyYYzzz',
                 'host': 'httpbin.org',
                 'user-agent': 'Mocket',
+                'connection': 'keep-alive',
             }
         )
 
@@ -154,6 +155,6 @@ class HttpEntryTestCase(TestCase):
         self.assertEqual(r.headers['Content-Type'], 'image/png')
 
     def assertEqualHeaders(self, first, second, msg=None):
-        first = dict([(k.lower(), v) for k, v in first.items()])
-        second = dict([(k.lower(), v) for k, v in second.items()])
+        first = dict((k.lower(), v) for k, v in first.items())
+        second = dict((k.lower(), v) for k, v in second.items())
         self.assertEqual(first, second, msg)
