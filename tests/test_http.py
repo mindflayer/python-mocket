@@ -135,6 +135,7 @@ class HttpEntryTestCase(TestCase):
                 'content-type': 'multipart/form-data; boundary=xXXxXXyYYzzz',
                 'host': 'httpbin.org',
                 'user-agent': 'Mocket',
+                'connection': 'keep-alive',
             }
         )
 
@@ -154,6 +155,6 @@ class HttpEntryTestCase(TestCase):
         self.assertEqual(r.headers['Content-Type'], 'image/png')
 
     def assertEqualHeaders(self, first, second, msg=None):
-        first = dict([(k.lower(), v) for k, v in first.items()])
-        second = dict([(k.lower(), v) for k, v in second.items()])
+        first = dict((k.decode('utf8').lower(), v.decode('utf8')) for k, v in first.items())
+        second = dict((k.decode('utf8').lower(), v.decode('utf8')) for k, v in second.items())
         self.assertEqual(first, second, msg)
