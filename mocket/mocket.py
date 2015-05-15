@@ -98,6 +98,8 @@ class MocketSocket(object):
         self.true_socket.close()
 
     def __getattr__(self, name):
+        # useful when clients call methods on real
+        # socket we do not provide on the fake one
         return getattr(self.true_socket, name)
 
 
