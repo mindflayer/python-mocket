@@ -42,7 +42,6 @@ def create_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, sender_ad
 
 class MocketSocket(object):
     def __init__(self, family, type, proto=0):
-        self.setsockopt(family, type, proto)
         self.settimeout(socket._GLOBAL_DEFAULT_TIMEOUT)
         self.true_socket = true_socket(family, type, proto)
         self.fd = BytesIO()
@@ -51,8 +50,9 @@ class MocketSocket(object):
         self._connected = False
         self._buflen = 1024
 
-    def setsockopt(self, family, type, protocol):
-        pass
+    def setsockopt(self, level, optname, value):
+        if self.true_socket:
+            self.true_socket.setsockopt(level, optname, value)
 
     def settimeout(self, timeout):
         self.timeout = timeout
@@ -104,7 +104,6 @@ class MocketSocket(object):
             except socket.error:
                 break
         self.fd.seek(- written, 1)
-        #self.true_socket.close()
 
     def __getattr__(self, name):
         # useful when clients call methods on real
