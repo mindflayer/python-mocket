@@ -93,6 +93,7 @@ class RedisEntryTestCase(TestCase):
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_REDIS", False)')
 class TrueRedisTestCase(TestCase):
+    @mocketize
     def setUp(self):
         self.rclient = redis.StrictRedis()
         self.rclient.flushdb()
@@ -148,6 +149,13 @@ class TrueRedisTestCase(TestCase):
             rc.get('foo')
         except redis.ConnectionError:
             pass
+
+    @mocketize
+    def test_select_db(self):
+        r = redis.StrictRedis(db=1)
+        r.set('foo', 10)
+        foo = r.get('foo')
+        self.assertEqual(foo, b'10')
 
 
 class RedisTestCase(TestCase):

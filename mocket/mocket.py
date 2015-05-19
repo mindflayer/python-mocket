@@ -48,11 +48,11 @@ class MocketSocket(object):
         self.fd = BytesIO()
         self._closed = True
         self._sock = self
+        self._connected = False
+        self._buflen = 1024
 
     def setsockopt(self, family, type, protocol):
-        self.family = family
-        self.protocol = protocol
-        self.type = type
+        pass
 
     def settimeout(self, timeout):
         self.timeout = timeout
@@ -81,21 +81,30 @@ class MocketSocket(object):
         self.fd.seek(0)
 
     def recv(self, buffersize, flags=None):
-        return self.fd.readline(buffersize)
+        resp = self.fd.readline(buffersize)
+        return resp
+
+    def _connect(self):
+        if not self._connected:
+            self.true_socket.connect(self._address)
+            self._connected = True
 
     def true_sendall(self, data, *args, **kwargs):
-        self.true_socket.connect(self._address)
+        self._connect()
         self.true_socket.sendall(data, *args, **kwargs)
         recv = True
+        written = 0
         while recv:
             try:
-                recv = self.true_socket.recv(16)
-                self.true_socket.settimeout(0.0)
+                recv = self.true_socket.recv(self._buflen)
                 self.fd.write(recv)
-            except socket.error:
+                written += len(recv)
+                if len(recv) < self._buflen:
+                    break
+            except socket.error, e:
                 break
-        self.fd.seek(0)
-        self.true_socket.close()
+        self.fd.seek(- written, 1)
+        #self.true_socket.close()
 
     def __getattr__(self, name):
         # useful when clients call methods on real
