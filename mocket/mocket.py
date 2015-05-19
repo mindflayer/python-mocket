@@ -101,7 +101,7 @@ class MocketSocket(object):
                 written += len(recv)
                 if len(recv) < self._buflen:
                     break
-            except socket.error, e:
+            except socket.error:
                 break
         self.fd.seek(- written, 1)
         #self.true_socket.close()
