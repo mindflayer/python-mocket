@@ -95,13 +95,10 @@ class MocketSocket(object):
         recv = True
         written = 0
         while recv:
-            try:
-                recv = self.true_socket.recv(self._buflen)
-                self.fd.write(recv)
-                written += len(recv)
-                if len(recv) < self._buflen:
-                    break
-            except socket.error:
+            recv = self.true_socket.recv(self._buflen)
+            self.fd.write(recv)
+            written += len(recv)
+            if len(recv) < self._buflen:
                 break
         self.fd.seek(- written, 1)
 
