@@ -77,6 +77,14 @@ class Entry(MocketEntry):
         return super(Entry, self).collect(self._sent_data)
 
     def can_handle(self, data):
+        r"""
+        >>> e = Entry('http://www.github.com/?bar=foo&foobar', Entry.GET, (Response(b'<html/>'),))
+        >>> e.can_handle(b'GET /?bar=foo HTTP/1.1\r\nHost: github.com\r\nAccept-Encoding: gzip, deflate\r\nConnection: keep-alive\r\nUser-Agent: python-requests/2.7.0 CPython/3.4.3 Linux/3.19.0-16-generic\r\nAccept: */*\r\n\r\n')
+        False
+        >>> e = Entry('http://www.github.com/?bar=foo&foobar', Entry.GET, (Response(b'<html/>'),))
+        >>> e.can_handle(b'GET /?bar=foo&foobar HTTP/1.1\r\nHost: github.com\r\nAccept-Encoding: gzip, deflate\r\nConnection: keep-alive\r\nUser-Agent: python-requests/2.7.0 CPython/3.4.3 Linux/3.19.0-16-generic\r\nAccept: */*\r\n\r\n')
+        True
+        """
         try:
             requestline, _ = decode_utf8(data).split(CRLF, 1)
             method, path, version = self._parse_requestline(requestline)
@@ -84,7 +92,8 @@ class Entry(MocketEntry):
             Mocket.remove_last_request()
             return True
         uri = urlsplit(path)
-        return uri.path == self.path and parse_qs(uri.query) == parse_qs(self.query)
+        kw = dict(keep_blank_values=True)
+        return uri.path == self.path and parse_qs(uri.query, **kw) == parse_qs(self.query, **kw)
 
     @staticmethod
     def _parse_requestline(line):
