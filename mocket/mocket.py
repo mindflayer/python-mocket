@@ -183,7 +183,7 @@ class MocketEntry(object):
             lresponses.append(r)
         else:
             if not responses:
-                lresponses = [self.response_cls('')]
+                lresponses = [self.response_cls(encode_utf8(''))]
         self.responses = lresponses
 
     def can_handle(self, data):
