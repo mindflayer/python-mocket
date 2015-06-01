@@ -135,6 +135,7 @@ class HttpEntryTestCase(TestCase):
                 'content-type': 'multipart/form-data; boundary=xXXxXXyYYzzz',
                 'host': 'httpbin.org',
                 'user-agent': 'Mocket',
+                'connection': 'keep-alive',
             }
         )
 
