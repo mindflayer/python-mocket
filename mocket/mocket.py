@@ -4,7 +4,8 @@ import functools
 import socket
 from collections import defaultdict
 from io import BytesIO
-
+from .compat import encode_utf8, basestring, byte_type, text_type
+import collections
 
 __all__ = (
     'true_socket',
@@ -167,13 +168,33 @@ class Mocket(object):
 
 
 class MocketEntry(object):
+
+    class Response(byte_type):
+        @property
+        def data(self):
+            return self
+
     request_cls = str
-    response_cls = str
+    response_cls = Response
 
     def __init__(self, location, responses):
         self.location = location
-        self.responses = responses or (self.response_cls(),)
         self.response_index = 0
+
+        if not isinstance(responses, collections.Iterable) or isinstance(responses, basestring):
+            responses = [responses]
+
+        lresponses = []
+        for r in responses:
+            if not getattr(r, 'data', False):
+                if isinstance(r, text_type):
+                    r = encode_utf8(r)
+                r = self.response_cls(r)
+            lresponses.append(r)
+        else:
+            if not responses:
+                lresponses = [self.response_cls(encode_utf8(''))]
+        self.responses = lresponses
 
     def can_handle(self, data):
         return True

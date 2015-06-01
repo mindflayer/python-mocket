@@ -1,16 +1,19 @@
 import sys
 import shlex
+import six
+
 PY2 = sys.version_info[0] == 2
 if PY2:
     from BaseHTTPServer import BaseHTTPRequestHandler
     from urlparse import urlsplit, parse_qs
-    text_type = unicode
-    byte_type = str
+
 else:
     from http.server import BaseHTTPRequestHandler
     from urllib.parse import urlsplit, parse_qs
-    text_type = str
-    byte_type = bytes
+
+text_type = six.text_type
+byte_type = six.binary_type
+basestring = six.string_types
 
 
 def encode_utf8(s):

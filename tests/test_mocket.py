@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 import socket
 from unittest import TestCase
 from mocket.mocket import Mocket, mocketize, MocketEntry
+from mocket.compat import encode_utf8
 
 
 class MocketTestCase(TestCase):
@@ -63,6 +64,13 @@ class MocketTestCase(TestCase):
         Mocket.register(entry)
         self.assertEqual(Mocket.get_entry('localhost', 80, True), entry)
 
+    def test_getresponse(self):
+        entry = MocketEntry(('localhost', 8080), ['Show me.\r\n'])
+        self.assertEqual(entry.get_response(), encode_utf8('Show me.\r\n'))
+
+    def test_empty_getresponse(self):
+        entry = MocketEntry(('localhost', 8080), [])
+        self.assertEqual(entry.get_response(), encode_utf8(''))
 
 class MocketizeTestCase(TestCase):
     def mocketize_setup(self):
