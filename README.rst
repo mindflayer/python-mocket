@@ -26,11 +26,13 @@ Using pip::
 Quick example
 =============
 Let's create a new virtualenv with all we need::
+
     $ virtualenv example
     $ source example/bin/activate
     $ pip install pytest requests mocket
 
-As second step, we create an `example.py` file as the following one:: python
+As second step, we create an `example.py` file as the following one::
+
     from unittest import TestCase
     import json
     
@@ -62,6 +64,7 @@ As second step, we create an `example.py` file as the following one:: python
             self.assertEqual(response, response_to_mock)
 
 Let's fire our example test::
+
     $ py.test example.py::Example::test_json
 
 Video presentation
