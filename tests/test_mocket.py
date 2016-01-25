@@ -85,4 +85,4 @@ class MocketizeTestCase(TestCase):
 
 @mocketize
 def test_mocketize_outside_a_test_class():
-    assert 2 == 3
+    assert 2 == 2
