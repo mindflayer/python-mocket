@@ -84,5 +84,5 @@ class MocketizeTestCase(TestCase):
         self.assertEqual(socket.gethostname(), 'localhost')
 
 @mocketize
-def test_mocketize_outside_a_test_class()
+def test_mocketize_outside_a_test_class():
     assert 2 == 3
