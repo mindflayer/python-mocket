@@ -232,7 +232,10 @@ class Mocketizer(object):
     def wrap(test):
         @functools.wraps(test)
         def wrapper(*args, **kw):
-            with Mocketizer(args[0]):
+            instance = None
+            if args:
+                instance = args[0]
+            with Mocketizer(instance):
                 return test(*args, **kw)
         return wrapper
 mocketize = Mocketizer.wrap
