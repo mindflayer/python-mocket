@@ -93,7 +93,8 @@ class Entry(MocketEntry):
             return True
         uri = urlsplit(path)
         kw = dict(keep_blank_values=True)
-        return uri.path == self.path and parse_qs(uri.query, **kw) == parse_qs(self.query, **kw)
+        ch = uri.path == self.path and parse_qs(uri.query, **kw) == parse_qs(self.query, **kw) and method == self.method
+        return ch
 
     @staticmethod
     def _parse_requestline(line):
