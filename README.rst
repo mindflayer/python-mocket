@@ -66,7 +66,7 @@ As second step, we create an `example.py` file as the following one::
 
 Let's fire our example test::
 
-    $ py.test example.py::Example::test_json
+    $ py.test example.py
 
 Video presentation
 ==================
