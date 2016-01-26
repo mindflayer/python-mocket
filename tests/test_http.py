@@ -1,6 +1,7 @@
 # coding=utf-8
 from __future__ import unicode_literals
 import time
+import json
 import mock
 from . import urlopen, HTTPError
 import pytest
@@ -153,6 +154,25 @@ class HttpEntryTestCase(TestCase):
         self.assertEqual(len(remote_content), len(local_content))
         self.assertEqual(int(r.headers['Content-Length']), len(local_content))
         self.assertEqual(r.headers['Content-Type'], 'image/png')
+
+    @mocketize
+    def test_same_url_different_methods(self):
+        url = 'http://bit.ly/fakeurl'
+        response_to_mock = {
+            'body': 'this is my body value',
+            'method': None,
+        }
+        responses = []
+        methods = [Entry.PUT, Entry.GET, Entry.POST]
+
+        for m in methods:
+            response_to_mock['method'] = m
+            Entry.single_register(m, url, body=json.dumps(response_to_mock))
+        for m in methods:
+            responses.append(requests.request(m, url).json())
+
+        methods_from_responses = [r['method'] for r in responses]
+        self.assertEquals(methods, methods_from_responses)
 
     def assertEqualHeaders(self, first, second, msg=None):
         first = dict((k.lower(), v) for k, v in first.items())
