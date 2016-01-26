@@ -1,2 +1,3 @@
 python-magic
 six
+decorator

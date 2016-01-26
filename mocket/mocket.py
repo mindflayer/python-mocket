@@ -1,11 +1,11 @@
 # coding=utf-8
 from __future__ import unicode_literals
-import functools
 import socket
 from collections import defaultdict
 from io import BytesIO
 from .compat import encode_utf8, basestring, byte_type, text_type
 import collections
+import decorator
 
 __all__ = (
     'true_socket',
@@ -230,12 +230,11 @@ class Mocketizer(object):
 
     @staticmethod
     def wrap(test):
-        @functools.wraps(test)
-        def wrapper(*args, **kw):
+        def wrapper(test, *args, **kw):
             instance = None
             if args:
                 instance = args[0]
             with Mocketizer(instance):
                 return test(*args, **kw)
-        return wrapper
+        return decorator.decorator(wrapper, test)
 mocketize = Mocketizer.wrap

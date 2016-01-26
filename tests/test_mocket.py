@@ -3,6 +3,7 @@ import socket
 from unittest import TestCase
 from mocket.mocket import Mocket, mocketize, MocketEntry
 from mocket.compat import encode_utf8
+import pytest
 
 
 class MocketTestCase(TestCase):
@@ -86,3 +87,11 @@ class MocketizeTestCase(TestCase):
 @mocketize
 def test_mocketize_outside_a_test_class():
     assert 2 == 2
+
+@pytest.fixture
+def fixture():
+    return 2
+
+@mocketize
+def test_mocketize_with_fixture(fixture):
+    assert 2 == fixture
