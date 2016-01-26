@@ -29,7 +29,9 @@ Let's create a new virtualenv with all we need::
     $ source example/bin/activate
     $ pip install pytest requests mocket
 
-As second step, we create an `example.py` file as the following one::
+As second step, we create an `example.py` file as the following one:
+
+.. code-block:: python
 
     import json
  
