@@ -23,6 +23,10 @@ Using pip::
 
     $ pip install mocket
 
+Issues
+============
+When opening an **Issue**, please add few lines of code as failing test, or -better-, open its relative pull request adding this test to our test suite.
+
 Quick example
 =============
 Let's create a new virtualenv with all we need::
