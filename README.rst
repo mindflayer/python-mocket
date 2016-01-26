@@ -45,7 +45,7 @@ As second step, we create an `example.py` file as the following one::
             "integer": 1,
             "string": "asd",
             "boolean": False,
-    }
+        }
  
  
     @mocketize
