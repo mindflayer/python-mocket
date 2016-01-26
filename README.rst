@@ -8,12 +8,6 @@ mocket /mɔˈkɛt/
 .. image:: https://coveralls.io/repos/mocketize/python-mocket/badge.png?branch=master
     :target: https://coveralls.io/r/mocketize/python-mocket
 
-.. image:: https://pypip.in/v/mocket/badge.png
-   :target: https://crate.io/packages/mocket/
-
-.. image:: https://pypip.in/d/mocket/badge.png
-   :target: https://crate.io/packages/mocket/
-
 A socket mock framework
 -----------------------
 
