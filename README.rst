@@ -25,7 +25,7 @@ Using pip::
 
 Issues
 ============
-When opening an **Issue**, please add few lines of code as failing test, or -better-, open its relative pull request adding this test to our test suite.
+When opening an **Issue**, please add few lines of code as failing test, or -better- open its relative **Pull request** adding this test to our test suite.
 
 Quick example
 =============
