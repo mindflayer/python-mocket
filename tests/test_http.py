@@ -159,7 +159,7 @@ class HttpEntryTestCase(TestCase):
     def test_same_url_different_methods(self):
         url = 'http://bit.ly/fakeurl'
         response_to_mock = {
-            'body': 'this is my body value',
+            'content': 0,
             'method': None,
         }
         responses = []
@@ -168,11 +168,14 @@ class HttpEntryTestCase(TestCase):
         for m in methods:
             response_to_mock['method'] = m
             Entry.single_register(m, url, body=json.dumps(response_to_mock))
+            response_to_mock['content'] += 1
         for m in methods:
             responses.append(requests.request(m, url).json())
 
         methods_from_responses = [r['method'] for r in responses]
+        contents_from_responses = [r['content'] for r in responses]
         self.assertEquals(methods, methods_from_responses)
+        self.assertEquals(range(len(methods)), contents_from_responses)
 
     def assertEqualHeaders(self, first, second, msg=None):
         first = dict((k.lower(), v) for k, v in first.items())
