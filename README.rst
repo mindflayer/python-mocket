@@ -82,6 +82,8 @@ https://www.youtube.com/watch?v=-LvXbl5d02U
 
 .. image:: http://badge.kloud51.com/pypi/w/mocket.png
 
+.. image:: http://badge.kloud51.com/pypi/e/mocket.png
+
 .. image:: http://badge.kloud51.com/pypi/l/mocket.png
 
 .. image:: http://badge.kloud51.com/pypi/f/mocket.png
@@ -89,5 +91,3 @@ https://www.youtube.com/watch?v=-LvXbl5d02U
 .. image:: http://badge.kloud51.com/pypi/py_versions/mocket.png
 
 .. image:: http://badge.kloud51.com/pypi/s/mocket.png
-
-.. image:: http://badge.kloud51.com/pypi/e/mocket.png
