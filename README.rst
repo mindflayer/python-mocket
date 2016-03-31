@@ -3,7 +3,7 @@ mocket /mɔˈkɛt/
 ===============
 
 .. image:: https://api.travis-ci.org/mocketize/python-mocket.png?branch=master
-   :target: http://travis-ci.org/mocketize/python-mocket
+    :target: http://travis-ci.org/mocketize/python-mocket
 
 .. image:: https://coveralls.io/repos/mocketize/python-mocket/badge.png?branch=master
     :target: https://coveralls.io/r/mocketize/python-mocket
@@ -75,3 +75,19 @@ Video presentation
 EuroPython 2013, Florence
 
 https://www.youtube.com/watch?v=-LvXbl5d02U
+
+.. image:: http://badge.kloud51.com/pypi/v/mocket.png
+
+.. image:: http://badge.kloud51.com/pypi/d/mocket.png
+
+.. image:: http://badge.kloud51.com/pypi/w/mocket.png
+
+.. image:: http://badge.kloud51.com/pypi/l/mocket.png
+
+.. image:: http://badge.kloud51.com/pypi/f/mocket.png
+
+.. image:: http://badge.kloud51.com/pypi/py_versions/mocket.png
+
+.. image:: http://badge.kloud51.com/pypi/s/mocket.png
+
+.. image:: http://badge.kloud51.com/pypi/e/mocket.png
