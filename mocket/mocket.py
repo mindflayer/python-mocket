@@ -111,7 +111,12 @@ class MocketSocket(object):
             req = data.decode('utf-8')
             res = mem_record.getvalue().decode('utf-8')
             record[self._host][self._port] = dict(request=req, response=res)
-            f = tempfile.NamedTemporaryFile(mode='w+', dir='{}/report/'.format(os.getcwd()), delete=False)
+            d = 'recording/'
+            try:
+                os.mkdir(d)
+            except OSError:
+                pass
+            f = tempfile.NamedTemporaryFile(mode='w+', dir=d, delete=False)
             f.write(json.dumps(record))
             f.close()
         self.fd.write(mem_record.getvalue())
