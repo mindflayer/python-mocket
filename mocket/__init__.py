@@ -1,1 +1,1 @@
-from mocket import mocketize
+from mocket.mocket import mocketize
