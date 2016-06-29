@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages, os
+from io import open
 
 # Hack to prevent stupid "TypeError: 'NoneType' object is not callable" error
 # in multiprocessing/util.py _exit_function when running `python
@@ -21,7 +22,7 @@ setup(
     author_email='24erre@gmail.com, giorgio.salluzzo@gmail.com',
     url='https://github.com/mocketize/python-mocket',
     description='Socket Mock Framework',
-    long_description=open('README.rst').read(),
+    long_description=open('README.rst', encoding='utf-8').read(),
     packages=find_packages(exclude=('tests', )),
     install_requires=install_requires,
     extras_require={
