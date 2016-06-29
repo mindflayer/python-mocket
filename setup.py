@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages, os
+from io import open
 
 # Hack to prevent stupid "TypeError: 'NoneType' object is not callable" error
 # in multiprocessing/util.py _exit_function when running `python
