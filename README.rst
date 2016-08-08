@@ -14,7 +14,7 @@ Since we basically never documented the project, at least till now, we invite yo
  - HTTP mock at https://github.com/mocketize/python-mocket/blob/master/mocket/mockhttp.py
  - Redis mock at https://github.com/mocketize/python-mocket/blob/master/mocket/mockredis.py
 Please also have a look at our huge test suite:
- - Test module at https://github.com/mocketize/python-mocket/tree/master/tests
+ - Tests module at https://github.com/mocketize/python-mocket/tree/master/tests
 
 Installation
 ============
