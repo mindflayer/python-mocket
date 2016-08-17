@@ -185,6 +185,7 @@ class HttpEntryTestCase(TestCase):
             u = url.format(e)
             Entry.single_register(Entry.POST, u, body=str(e))
             request_body = urlencode({'key-{}'.format(e): 'value={}'.format(e)})
+            request_body = request_body.encode('utf-8')
             urlopen(u, request_body)
             last_request = Mocket.last_request()
             assert last_request.body == request_body
