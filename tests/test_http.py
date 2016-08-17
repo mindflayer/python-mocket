@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import time
 import json
 import mock
-from . import urlopen, HTTPError
+from . import urlopen, urlencode, HTTPError
 import pytest
 import requests
 from unittest import TestCase
@@ -176,6 +176,18 @@ class HttpEntryTestCase(TestCase):
         contents_from_responses = [r['content'] for r in responses]
         self.assertEquals(methods, methods_from_responses)
         self.assertEquals(list(range(len(methods))), contents_from_responses)
+
+    @mocketize
+    def test_request_bodies(self):
+        url = 'http://bit.ly/fakeurl/{}'
+
+        for e in range(5):
+            u = url.format(e)
+            Entry.single_register(Entry.POST, u, body=str(e))
+            request_body = urlencode({'key-{}'.format(e): 'value={}'.format(e)})
+            urlopen(u, request_body)
+            last_request = Mocket.last_request()
+            assert last_request.body == request_body
 
     def assertEqualHeaders(self, first, second, msg=None):
         first = dict((k.lower(), v) for k, v in first.items())
