@@ -179,12 +179,12 @@ class HttpEntryTestCase(TestCase):
 
     @mocketize
     def test_request_bodies(self):
-        url = 'http://bit.ly/fakeurl/{}'
+        url = 'http://bit.ly/fakeurl/{0}'
 
         for e in range(5):
             u = url.format(e)
             Entry.single_register(Entry.POST, u, body=str(e))
-            request_body = urlencode({'key-{}'.format(e): 'value={}'.format(e)})
+            request_body = urlencode({'key-{0}'.format(e): 'value={0}'.format(e)})
             urlopen(u, request_body.encode('utf-8'))
             last_request = Mocket.last_request()
             assert last_request.body == request_body
