@@ -1,4 +1,4 @@
-flake8
+flake8<3.0
 pep8
 pytest
 pytest-cov
