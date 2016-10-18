@@ -118,10 +118,10 @@ class Entry(MocketEntry):
         else:
             raise ValueError('Not a Request-Line')
 
-    @staticmethod
-    def register(method, uri, *responses):
-        Mocket.register(Entry(uri, method, responses))
+    @classmethod
+    def register(cls, method, uri, *responses):
+        Mocket.register(cls(uri, method, responses))
 
-    @staticmethod
-    def single_register(method, uri, body='', status=200, headers=None):
-        Entry.register(method, uri, Response(body=body, status=status, headers=headers))
+    @classmethod
+    def single_register(cls, method, uri, body='', status=200, headers=None):
+        cls.register(method, uri, Response(body=body, status=status, headers=headers))

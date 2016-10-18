@@ -60,15 +60,15 @@ class Entry(MocketEntry):
     def can_handle(self, data):
         return data.splitlines() == self.command
 
-    @staticmethod
-    def register(addr, command, *responses):
-        responses = [Entry.response_cls(r) for r in responses]
-        Mocket.register(Entry(addr, command, responses))
+    @classmethod
+    def register(cls, addr, command, *responses):
+        responses = [cls.response_cls(r) for r in responses]
+        Mocket.register(cls(addr, command, responses))
 
-    @staticmethod
-    def register_response(command, response, addr=None):
-        Entry.register(addr, command, response)
+    @classmethod
+    def register_response(cls, command, response, addr=None):
+        cls.register(addr, command, response)
 
-    @staticmethod
-    def register_responses(command, responses, addr=None):
-        Entry.register(addr, command, *responses)
+    @classmethod
+    def register_responses(cls, command, responses, addr=None):
+        cls.register(addr, command, *responses)
