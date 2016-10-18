@@ -17,7 +17,7 @@ tests_require = open(os.path.join(os.path.dirname(__file__), 'test_requirements.
 
 setup(
     name='mocket',
-    version='1.3.3',
+    version='1.3.4',
     author='Andrea de Marco, Giorgio Salluzzo',
     author_email='24erre@gmail.com, giorgio.salluzzo@gmail.com',
     url='https://github.com/mocketize/python-mocket',
