@@ -89,11 +89,12 @@ class Entry(MocketEntry):
             requestline, _ = decode_utf8(data).split(CRLF, 1)
             method, path, version = self._parse_requestline(requestline)
         except ValueError:
-            Mocket.remove_last_request()
-            return True
+            return self == Mocket._last_entry
         uri = urlsplit(path)
         kw = dict(keep_blank_values=True)
         ch = uri.path == self.path and parse_qs(uri.query, **kw) == parse_qs(self.query, **kw) and method == self.method
+        if ch:
+            Mocket._last_entry = self
         return ch
 
     @staticmethod
@@ -117,10 +118,10 @@ class Entry(MocketEntry):
         else:
             raise ValueError('Not a Request-Line')
 
-    @staticmethod
-    def register(method, uri, *responses):
-        Mocket.register(Entry(uri, method, responses))
+    @classmethod
+    def register(cls, method, uri, *responses):
+        Mocket.register(cls(uri, method, responses))
 
-    @staticmethod
-    def single_register(method, uri, body='', status=200, headers=None):
-        Entry.register(method, uri, Response(body=body, status=status, headers=headers))
+    @classmethod
+    def single_register(cls, method, uri, body='', status=200, headers=None):
+        cls.register(method, uri, Response(body=body, status=status, headers=headers))

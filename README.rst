@@ -10,6 +10,11 @@ mocket /mɔˈkɛt/
 
 A socket mock framework
 -----------------------
+Since we basically never documented the project, at least till now, we invite you to have a look at both the implementation of the two mocks we provide:
+ - HTTP mock at https://github.com/mocketize/python-mocket/blob/master/mocket/mockhttp.py
+ - Redis mock at https://github.com/mocketize/python-mocket/blob/master/mocket/mockredis.py
+Please also have a look at our huge test suite:
+ - Tests module at https://github.com/mocketize/python-mocket/tree/master/tests
 
 Installation
 ============
