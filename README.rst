@@ -40,7 +40,7 @@ As second step, we create an `example.py` file as the following one:
 
     import json
  
-    from mocket import mocketize
+    from mocket.mocket import mocketize
     from mocket.mockhttp import Entry
     import requests
     import pytest

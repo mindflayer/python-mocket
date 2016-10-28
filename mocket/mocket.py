@@ -3,9 +3,6 @@ from __future__ import unicode_literals
 import socket
 from collections import defaultdict
 from io import BytesIO
-import tempfile
-import json
-import os
 from .compat import encode_utf8, basestring, byte_type, text_type
 import collections
 import decorator
@@ -53,7 +50,6 @@ class MocketSocket(object):
         self._sock = self
         self._connected = False
         self._buflen = 1024
-        self._record_truesocket = True
 
     def setsockopt(self, level, optname, value):
         if self.true_socket:
@@ -99,39 +95,18 @@ class MocketSocket(object):
         self.true_socket.sendall(data, *args, **kwargs)
         recv = True
         written = 0
-        mem_record = BytesIO()
         while recv:
             recv = self.true_socket.recv(self._buflen)
-            mem_record.write(recv)
+            self.fd.write(recv)
             written += len(recv)
             if len(recv) < self._buflen:
                 break
-        if self._record_truesocket:
-            record = defaultdict(dict)
-            req = data.decode('utf-8')
-            res = mem_record.getvalue().decode('utf-8')
-            record[self._host][self._port] = dict(request=req, response=res)
-            d = 'recording/'
-            try:
-                os.mkdir(d)
-            except OSError:
-                pass
-            f = tempfile.NamedTemporaryFile(mode='w+', dir=d, delete=False)
-            f.write(json.dumps(record))
-            f.close()
-        self.fd.write(mem_record.getvalue())
         self.fd.seek(- written, 1)
 
     def __getattr__(self, name):
         # useful when clients call methods on real
         # socket we do not provide on the fake one
         return getattr(self.true_socket, name)
-
-
-class RecordingMocketSocket(MocketSocket):
-    def __init__(self, *args, **kwargs):
-        super(RecordingMocketSocket, self).__init__(*args, **kwargs)
-        self._record_truesocket = True
 
 
 class Mocket(object):
@@ -170,11 +145,8 @@ class Mocket(object):
             del cls._requests[-1]
 
     @staticmethod
-    def enable(record_truesocket=False):
-        if record_truesocket:
-            socket.socket = socket.__dict__['socket'] = RecordingMocketSocket
-        else:
-            socket.socket = socket.__dict__['socket'] = MocketSocket
+    def enable():
+        socket.socket = socket.__dict__['socket'] = MocketSocket
         socket._socketobject = socket.__dict__['_socketobject'] = MocketSocket
         socket.SocketType = socket.__dict__['SocketType'] = MocketSocket
         socket.create_connection = socket.__dict__['create_connection'] = create_connection
@@ -239,12 +211,11 @@ class MocketEntry(object):
 
 
 class Mocketizer(object):
-    def __init__(self, instance, record_truesocket=False):
+    def __init__(self, instance):
         self.instance = instance
-        self.record_truesocket = record_truesocket
 
     def __enter__(self):
-        Mocket.enable(record_truesocket=self.record_truesocket)
+        Mocket.enable()
         self.check_and_call('mocketize_setup')
 
     def __exit__(self, type, value, tb):
@@ -258,12 +229,12 @@ class Mocketizer(object):
             method()
 
     @staticmethod
-    def wrap(test, record_truesocket=False):
+    def wrap(test):
         def wrapper(test, *args, **kw):
             instance = None
             if args:
                 instance = args[0]
-            with Mocketizer(instance, record_truesocket):
+            with Mocketizer(instance):
                 return test(*args, **kw)
         return decorator.decorator(wrapper, test)
 mocketize = Mocketizer.wrap

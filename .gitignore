@@ -1,5 +1,4 @@
-*venv*/
-.cache/
+venv*/
 .DS_Store
 *.pyc
 *$py.class

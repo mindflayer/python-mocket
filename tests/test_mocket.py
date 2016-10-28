@@ -1,8 +1,7 @@
 from __future__ import unicode_literals
 import socket
 from unittest import TestCase
-from mocket import mocketize
-from mocket.mocket import Mocket, MocketEntry
+from mocket.mocket import Mocket, mocketize, MocketEntry
 from mocket.compat import encode_utf8
 import pytest
 
