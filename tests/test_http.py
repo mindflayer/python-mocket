@@ -4,9 +4,11 @@ import time
 import json
 import mock
 from . import urlopen, urlencode, HTTPError
+
 import pytest
 import requests
 from unittest import TestCase
+
 from mocket.mockhttp import Entry, Response
 from mocket.mocket import Mocket, mocketize
 

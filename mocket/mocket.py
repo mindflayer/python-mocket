@@ -1,11 +1,12 @@
 # coding=utf-8
 from __future__ import unicode_literals
 import socket
-from collections import defaultdict
-from io import BytesIO
-from .compat import encode_utf8, basestring, byte_type, text_type
 import collections
+from io import BytesIO
+
 import decorator
+
+from .compat import encode_utf8, basestring, byte_type, text_type
 
 __all__ = (
     'true_socket',
@@ -50,6 +51,7 @@ class MocketSocket(object):
         self._sock = self
         self._connected = False
         self._buflen = 1024
+        self._entry = None
 
     def setsockopt(self, level, optname, value):
         if self.true_socket:
@@ -72,8 +74,11 @@ class MocketSocket(object):
         self._bufsize = bufsize
         return self.fd
 
+    def get_entry(self, data):
+        return Mocket.get_entry(self._host, self._port, data)
+
     def sendall(self, data, *args, **kwargs):
-        entry = Mocket.get_entry(self._host, self._port, data)
+        entry = self.get_entry(data)
         if not entry:
             return self.true_sendall(data, *args, **kwargs)
         entry.collect(data)
@@ -103,6 +108,14 @@ class MocketSocket(object):
                 break
         self.fd.seek(- written, 1)
 
+    def send(self, data, *args, **kwargs):
+        entry = self.get_entry(data)
+        if entry:
+            if self._entry != entry:
+                self.sendall(data, *args, **kwargs)
+        self._entry = entry
+        return len(data)
+
     def __getattr__(self, name):
         # useful when clients call methods on real
         # socket we do not provide on the fake one
@@ -110,7 +123,7 @@ class MocketSocket(object):
 
 
 class Mocket(object):
-    _entries = defaultdict(list)
+    _entries = collections.defaultdict(list)
     _requests = []
 
     @classmethod
@@ -131,7 +144,7 @@ class Mocket(object):
 
     @classmethod
     def reset(cls):
-        cls._entries = defaultdict(list)
+        cls._entries = collections.defaultdict(list)
         cls._requests = []
 
     @classmethod
