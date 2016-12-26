@@ -14,7 +14,7 @@ lint-python:
 	flake8 --exit-zero --ignore=E501,E731 --exclude=.git,compat.py mocket
 	@echo ""
 
-develop: install-dev-requirements install-test-requirements
+develop: install-test-requirements install-dev-requirements
 
 test: install-test-requirements lint-python test-python
 
