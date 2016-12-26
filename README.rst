@@ -2,19 +2,19 @@
 mocket /mɔˈkɛt/
 ===============
 
-.. image:: https://api.travis-ci.org/mocketize/python-mocket.png?branch=master
-    :target: http://travis-ci.org/mocketize/python-mocket
+.. image:: https://api.travis-ci.org/mindflayer/python-mocket.png?branch=master
+    :target: http://travis-ci.org/mindflayer/python-mocket
 
-.. image:: https://coveralls.io/repos/mocketize/python-mocket/badge.png?branch=master
-    :target: https://coveralls.io/r/mocketize/python-mocket
+.. image:: https://coveralls.io/repos/mindflayer/python-mocket/badge.png?branch=master
+    :target: https://coveralls.io/r/mindflayer/python-mocket
 
 A socket mock framework
 -----------------------
 Since we basically never documented the project, at least till now, we invite you to have a look at both the implementation of the two mocks we provide:
- - HTTP mock at https://github.com/mocketize/python-mocket/blob/master/mocket/mockhttp.py
- - Redis mock at https://github.com/mocketize/python-mocket/blob/master/mocket/mockredis.py
+ - HTTP mock at https://github.com/mindflayer/python-mocket/blob/master/mocket/mockhttp.py
+ - Redis mock at https://github.com/mindflayer/python-mocket/blob/master/mocket/mockredis.py
 Please also have a look at our huge test suite:
- - Tests module at https://github.com/mocketize/python-mocket/tree/master/tests
+ - Tests module at https://github.com/mindflayer/python-mocket/tree/master/tests
 
 Installation
 ============
