@@ -3,6 +3,6 @@ pep8
 pytest
 pytest-cov
 mock
-requests
+requests[security]
 redis
 gevent
