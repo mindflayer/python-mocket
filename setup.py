@@ -20,7 +20,7 @@ setup(
     version='1.4.0',
     author='Andrea de Marco, Giorgio Salluzzo',
     author_email='24erre@gmail.com, giorgio.salluzzo@gmail.com',
-    url='https://github.com/mocketize/python-mocket',
+    url='https://github.com/mindflayer/python-mocket',
     description='Socket Mock Framework',
     long_description=open('README.rst', encoding='utf-8').read(),
     packages=find_packages(exclude=('tests', )),
