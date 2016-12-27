@@ -2,7 +2,7 @@ install-dev-requirements:
 	pip install -q -e .
 
 install-test-requirements:
-	PYTHONWARNINGS="ignore" pip install -q -r test_requirements.txt
+	pip install -q -r test_requirements.txt
 
 test-python:
 	@echo "Running Python tests"

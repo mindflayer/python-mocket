@@ -11,7 +11,7 @@ python:
   - "pypy"
   # - "pypy3"
 install:
-  - make develop
+  - PYTHONWARNINGS="ignore" make develop
 script:
   - make test
 after_success:
