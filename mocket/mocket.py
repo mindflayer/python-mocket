@@ -14,9 +14,6 @@ __all__ = (
     'true_gethostbyname',
     'true_gethostname',
     'true_getaddrinfo',
-    'gethostbyname',
-    'gethostname',
-    'getaddrinfo',
     'create_connection',
     'MocketSocket',
     'Mocket',
@@ -29,9 +26,6 @@ true_create_connection = socket.create_connection
 true_gethostbyname = socket.gethostbyname
 true_gethostname = socket.gethostname
 true_getaddrinfo = socket.getaddrinfo
-gethostbyname = lambda host: '127.0.0.1'
-gethostname = lambda: 'localhost'
-getaddrinfo = lambda host, port, family=None, socktype=None, proto=None, flags=None: [(2, 1, 6, '', (host, port))]
 
 
 def create_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, sender_address=None):
@@ -163,10 +157,11 @@ class Mocket(object):
         socket._socketobject = socket.__dict__['_socketobject'] = MocketSocket
         socket.SocketType = socket.__dict__['SocketType'] = MocketSocket
         socket.create_connection = socket.__dict__['create_connection'] = create_connection
-        socket.gethostname = socket.__dict__['gethostname'] = gethostname
-        socket.gethostbyname = socket.__dict__['gethostbyname'] = gethostbyname
-        socket.getaddrinfo = socket.__dict__['getaddrinfo'] = getaddrinfo
-        socket.inet_aton = socket.__dict__['inet_aton'] = gethostbyname
+        socket.gethostname = socket.__dict__['gethostname'] = lambda: 'localhost'
+        socket.gethostbyname = socket.__dict__['gethostbyname'] = lambda host: '127.0.0.1'
+        socket.getaddrinfo = socket.__dict__['getaddrinfo'] = \
+            lambda host, port, family=None, socktype=None, proto=None, flags=None: [(2, 1, 6, '', (host, port))]
+        socket.inet_aton = socket.__dict__['inet_aton'] = socket.gethostbyname
 
     @staticmethod
     def disable():

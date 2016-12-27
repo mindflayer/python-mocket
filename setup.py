@@ -23,7 +23,7 @@ setup(
     url='https://github.com/mindflayer/python-mocket',
     description='Socket Mock Framework',
     long_description=open('README.rst', encoding='utf-8').read(),
-    packages=find_packages(exclude=('tests', )),
+    packages=find_packages(exclude=('tests', 'tests35')),
     install_requires=install_requires,
     extras_require={
         'tests': tests_require,
