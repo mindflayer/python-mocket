@@ -9,7 +9,7 @@ python:
   - "3.5"
   - "3.6-dev"
   - "pypy"
-  # - "pypy3"
+  - "pypy3"
 install:
   - PYTHONWARNINGS="ignore" make develop
 script:
