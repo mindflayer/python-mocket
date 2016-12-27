@@ -3,7 +3,5 @@ pep8
 pytest
 pytest-cov
 mock
-urllib3[secure]
 requests
 redis
-gevent
