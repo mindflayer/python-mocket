@@ -15,7 +15,7 @@ def runtests(args=None):
     python35 = False
 
     # gevent not available on Python 2.6
-    if major >= 2 and minor > 6:
+    if major > 2 or (major == 2 and minor > 6):
 
         python27 = True
 
