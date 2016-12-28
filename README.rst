@@ -5,8 +5,9 @@ mocket /mɔˈkɛt/
 .. image:: https://api.travis-ci.org/mindflayer/python-mocket.png?branch=master
     :target: http://travis-ci.org/mindflayer/python-mocket
 
-.. image:: https://coveralls.io/repos/mindflayer/python-mocket/badge.png?branch=master
-    :target: https://coveralls.io/r/mindflayer/python-mocket
+.. image:: https://coveralls.io/repos/github/mindflayer/python-mocket/badge.svg?branch=master
+    :target: https://coveralls.io/github/mindflayer/python-mocket?branch=master
+
 
 A socket mock framework
 -----------------------
