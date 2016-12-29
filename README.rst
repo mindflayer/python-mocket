@@ -58,7 +58,7 @@ As second step, we create an `example.py` file as the following one:
  
     @mocketize
     def test_json(response):
-        url_to_mock = 'http://testme.org/json'
+        url_to_mock = 'https://testme.org/json'
  
         Entry.single_register(
             Entry.GET,
