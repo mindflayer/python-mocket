@@ -1,6 +1,8 @@
 # coding=utf-8
 from __future__ import unicode_literals
+from datetime import datetime, timedelta
 import socket
+import ssl
 import collections
 from io import BytesIO
 
@@ -26,40 +28,122 @@ true_create_connection = socket.create_connection
 true_gethostbyname = socket.gethostbyname
 true_gethostname = socket.gethostname
 true_getaddrinfo = socket.getaddrinfo
+true_ssl_wrap_socket = ssl.wrap_socket
+true_ssl_socket = ssl.SSLSocket
+try:
+    true_ssl_context = ssl.SSLContext
+except AttributeError:
+    # Python 2.6
+    true_ssl_context = None
 
 
-def create_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, sender_address=None):
+class SuperFakeSSLContext(object):
+    """ For Python 3.6 """
+    class FakeSetter(object):
+        def __set__(self, *args):
+            pass
+    options = FakeSetter()
+    verify_mode = FakeSetter()
+
+
+class FakeSSLContext(SuperFakeSSLContext):
+    def __init__(self, sock=None, server_hostname=None, **kwargs):
+        self.sock = sock
+        self.sock._host = server_hostname
+
+    @staticmethod
+    def fake_wrap_socket(sock, *args, **kwargs):
+        return sock
+
+    def __getattr__(self, name):
+        return getattr(self.sock, name)
+
+
+def create_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None):
     s = MocketSocket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
     if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
         s.settimeout(timeout)
+    # if source_address:
+    #     s.bind(source_address)
     s.connect(address)
     return s
 
 
 class MocketSocket(object):
-    def __init__(self, family, type, proto=0):
+    family = None
+    type = None
+    proto = None
+    _host = None
+
+    def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0):
         self.settimeout(socket._GLOBAL_DEFAULT_TIMEOUT)
         self.true_socket = true_socket(family, type, proto)
         self.fd = BytesIO()
         self._closed = True
-        self._sock = self
         self._connected = False
         self._buflen = 1024
         self._entry = None
+        self.family = family
+        self.type = type
+        self.proto = proto
 
-    def setsockopt(self, level, optname, value):
+    def gettimeout(self):
+        return self.timeout
+
+    def setsockopt(self, family, type, proto):
+        self.family = family
+        self.type = type
+        self.proto = proto
+
         if self.true_socket:
-            self.true_socket.setsockopt(level, optname, value)
+            self.true_socket.setsockopt(family, type, proto)
 
     def settimeout(self, timeout):
-        self.timeout = timeout
+        try:
+            self.timeout = timeout
+        except AttributeError:
+            pass
+
+    def getpeername(self):
+        return self._address
+
+    def getpeercert(self, *args, **kwargs):
+        if not self._host:
+            self._host, _ = self._address
+        now = datetime.now()
+        shift = now + timedelta(days=30 * 12)
+        return {
+            'notAfter': shift.strftime('%b %d %H:%M:%S GMT'),
+            'subjectAltName': (
+                ('DNS', '*%s' % self._host),
+                ('DNS', self._host),
+                ('DNS', '*'),
+            ),
+            'subject': (
+                (
+                    ('organizationName', '*.%s' % self._host),
+                ),
+                (
+                    ('organizationalUnitName',
+                     'Domain Control Validated'),
+                ),
+                (
+                    ('commonName', '*.%s' % self._host),
+                ),
+            ),
+        }
+
+    def fileno(self):
+        if self.true_socket:
+            return self.true_socket.fileno()
+        return self.fd.fileno()
 
     def connect(self, address):
-        self._address = (self._host, self._port) = address
+        self._address = self._host, self._port = address
         self._closed = False
 
     def close(self):
-        if not self._closed:
+        if self.true_socket and self._connected:
             self.true_socket.close()
         self._closed = True
 
@@ -162,6 +246,9 @@ class Mocket(object):
         socket.getaddrinfo = socket.__dict__['getaddrinfo'] = \
             lambda host, port, family=None, socktype=None, proto=None, flags=None: [(2, 1, 6, '', (host, port))]
         socket.inet_aton = socket.__dict__['inet_aton'] = socket.gethostbyname
+        ssl.wrap_socket = ssl.__dict__['wrap_socket'] = FakeSSLContext.fake_wrap_socket
+        ssl.SSLSocket = ssl.__dict__['SSLSocket'] = MocketSocket
+        ssl.SSLContext = ssl.__dict__['SSLSocket'] = FakeSSLContext
 
     @staticmethod
     def disable():
@@ -173,6 +260,9 @@ class Mocket(object):
         socket.gethostbyname = socket.__dict__['gethostbyname'] = true_gethostbyname
         socket.getaddrinfo = socket.__dict__['getaddrinfo'] = true_getaddrinfo
         socket.inet_aton = socket.__dict__['inet_aton'] = true_gethostbyname
+        ssl.wrap_socket = ssl.__dict__['SSLSocket'] = true_ssl_wrap_socket
+        ssl.SSLSocket = ssl.__dict__['wrap_socket'] = true_ssl_socket
+        ssl.SSLContext = ssl.__dict__['SSLSocket'] = true_ssl_context
 
 
 class MocketEntry(object):
