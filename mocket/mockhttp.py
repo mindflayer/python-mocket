@@ -65,7 +65,14 @@ class Entry(MocketEntry):
 
     def __init__(self, uri, method, responses):
         uri = urlsplit(uri)
-        super(Entry, self).__init__((uri.hostname, uri.port or 80), responses)
+
+        if not uri.port:
+            if uri.scheme == 'https':
+                port = 443
+            else:
+                port = 80
+
+        super(Entry, self).__init__((uri.hostname, uri.port or port), responses)
         self.schema = uri.scheme
         self.path = uri.path
         self.query = uri.query
