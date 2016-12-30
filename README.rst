@@ -16,10 +16,12 @@ A socket mock framework
 *for all kinds of socket 'animals', web-clients included - with gevent/asyncio/SSL support*
 *******************************************************************************************
 
-Since we basically never documented the project, at least till now, we invite you to have a look at both the implementation of the two mocks we provide:
- - HTTP mock at https://github.com/mindflayer/python-mocket/blob/master/mocket/mockhttp.py
- - Redis mock at https://github.com/mindflayer/python-mocket/blob/master/mocket/mockredis.py
-Please also have a look at our huge test suite:
+The starting point to understand how to use Mocket is the following example:
+ - https://github.com/mindflayer/mocketoy
+Next step, you are invited to have a look at both the implementation of the two mocks we provide:
+ - HTTP mock - https://github.com/mindflayer/python-mocket/blob/master/mocket/mockhttp.py
+ - Redis mock - https://github.com/mindflayer/python-mocket/blob/master/mocket/mockredis.py
+Please also have a look at the huge test suite:
  - Tests module at https://github.com/mindflayer/python-mocket/tree/master/tests
 
 Installation
