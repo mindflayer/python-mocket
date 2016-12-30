@@ -39,20 +39,25 @@ except AttributeError:
 
 class SuperFakeSSLContext(object):
     """ For Python 3.6 """
-    class FakeSetter(object):
+    class FakeSetter(int):
         def __set__(self, *args):
             pass
     options = FakeSetter()
-    verify_mode = FakeSetter()
+    verify_mode = FakeSetter(ssl.CERT_OPTIONAL)
 
 
 class FakeSSLContext(SuperFakeSSLContext):
-    def __init__(self, sock=None, server_hostname=None, **kwargs):
-        self.sock = sock
-        self.sock._host = server_hostname
+    def __init__(self, sock=None, server_hostname=None, *args, **kwargs):
+        if isinstance(sock, MocketSocket):
+            self.sock = sock
+            self.sock._host = server_hostname
 
     @staticmethod
-    def fake_wrap_socket(sock, *args, **kwargs):
+    def load_default_certs(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def wrap_socket(sock, *args, **kwargs):
         return sock
 
     def __getattr__(self, name):
@@ -246,7 +251,7 @@ class Mocket(object):
         socket.getaddrinfo = socket.__dict__['getaddrinfo'] = \
             lambda host, port, family=None, socktype=None, proto=None, flags=None: [(2, 1, 6, '', (host, port))]
         socket.inet_aton = socket.__dict__['inet_aton'] = socket.gethostbyname
-        ssl.wrap_socket = ssl.__dict__['wrap_socket'] = FakeSSLContext.fake_wrap_socket
+        ssl.wrap_socket = ssl.__dict__['wrap_socket'] = FakeSSLContext.wrap_socket
         ssl.SSLSocket = ssl.__dict__['SSLSocket'] = MocketSocket
         ssl.SSLContext = ssl.__dict__['SSLSocket'] = FakeSSLContext
 

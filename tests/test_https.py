@@ -1,7 +1,9 @@
 import json
+from . import urlopen
 
 from mocket.mocket import mocketize
 from mocket.mockhttp import Entry
+
 import requests
 import pytest
 
@@ -27,6 +29,7 @@ def test_json(response):
     )
 
     mocked_response = requests.get(url_to_mock).json()
-
     assert response == mocked_response
 
+    mocked_response = json.loads(urlopen(url_to_mock).read().decode('utf-8'))
+    assert response == mocked_response
