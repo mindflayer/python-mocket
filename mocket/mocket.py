@@ -16,6 +16,8 @@ __all__ = (
     'true_gethostbyname',
     'true_gethostname',
     'true_getaddrinfo',
+    'true_ssl_wrap_socket',
+    'true_ssl_socket',
     'create_connection',
     'MocketSocket',
     'Mocket',
@@ -341,3 +343,4 @@ class Mocketizer(object):
                 return test(*args, **kw)
         return decorator.decorator(wrapper, test)
 mocketize = Mocketizer.wrap
+
