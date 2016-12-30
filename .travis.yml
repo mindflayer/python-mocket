@@ -15,5 +15,5 @@ install:
 script:
   - make test
 after_success:
-  - pip install -q --use-mirrors python-coveralls
+  - pip install -q python-coveralls
   - coveralls
