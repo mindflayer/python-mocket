@@ -47,9 +47,10 @@ class SuperFakeSSLContext(object):
 
 
 class FakeSSLContext(SuperFakeSSLContext):
-    def __init__(self, sock=None, server_hostname=None, **kwargs):
-        self.sock = sock
-        self.sock._host = server_hostname
+    def __init__(self, sock=None, server_hostname=None, *args, **kwargs):
+        if isinstance(sock, MocketSocket):
+            self.sock = sock
+            self.sock._host = server_hostname
 
     @staticmethod
     def load_default_certs(*args, **kwargs):
