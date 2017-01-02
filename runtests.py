@@ -28,7 +28,7 @@ def runtests(args=None):
         pip.main(['install', 'aiohttp'])
 
     if not any(a for a in args[1:] if not a.startswith('-')):
-        args.append('tests')
+        args.append('tests/main')
         args.append('mocket')
 
         if python27:

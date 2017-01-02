@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import time
 import json
 import mock
-from . import urlopen, urlencode, HTTPError
+from tests import urlopen, urlencode, HTTPError
 
 import pytest
 import requests

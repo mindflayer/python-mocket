@@ -1,11 +1,11 @@
 import json
-from . import urlopen
-
-from mocket.mocket import mocketize
-from mocket.mockhttp import Entry
 
 import requests
 import pytest
+
+from mocket.mocket import mocketize
+from mocket.mockhttp import Entry
+from tests import urlopen
 
 
 @pytest.fixture
