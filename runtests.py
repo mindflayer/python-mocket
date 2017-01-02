@@ -32,10 +32,10 @@ def runtests(args=None):
         args.append('mocket')
 
         if python27:
-            args.append('tests27')
+            args.append('tests/tests27')
 
         if python35:
-            args.append('tests35')
+            args.append('tests/tests35')
 
     sys.exit(pytest.main(args))
 
