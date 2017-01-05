@@ -175,7 +175,7 @@ class MocketSocket(object):
         resp = self.fd.readline(buffersize)
         return resp
 
-    def _connect(self):
+    def _connect(self):  # pragma: no cover
         if not self._connected:
             self.true_socket.connect(self._address)
             self._connected = True
@@ -193,7 +193,7 @@ class MocketSocket(object):
                 break
         self.fd.seek(- written, 1)
 
-    def send(self, data, *args, **kwargs):
+    def send(self, data, *args, **kwargs):  # pragma: no cover
         entry = self.get_entry(data)
         if entry:
             if self._entry != entry:

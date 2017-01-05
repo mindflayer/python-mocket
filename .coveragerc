@@ -9,4 +9,6 @@ exclude_lines =
     pragma: no cover
     def __repr__
     raise NotImplementedError
+    except AttributeError
+    except ImportError
     if __name__ == .__main__.:
