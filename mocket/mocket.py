@@ -204,7 +204,7 @@ class MocketSocket(object):
     def __getattr__(self, name):
         # useful when clients call methods on real
         # socket we do not provide on the fake one
-        return getattr(self.true_socket, name)
+        return getattr(self.true_socket, name)  # pragma: no cover
 
 
 class Mocket(object):
