@@ -17,13 +17,13 @@ tests_require = open(os.path.join(os.path.dirname(__file__), 'test_requirements.
 
 setup(
     name='mocket',
-    version='1.5.1',
+    version='1.5.2',
     # author='Andrea de Marco, Giorgio Salluzzo',
     author='Giorgio Salluzzo',
     # author_email='24erre@gmail.com, giorgio.salluzzo@gmail.com',
     author_email='giorgio.salluzzo@gmail.com',
     url='https://github.com/mindflayer/python-mocket',
-    description='Socket Mock Framework',
+    description='Socket Mock Framework - for all kinds of socket animals, web-clients included - with gevent/asyncio/SSL support',
     long_description=open('README.rst', encoding='utf-8').read(),
     packages=find_packages(exclude=('tests', 'tests35')),
     install_requires=install_requires,
