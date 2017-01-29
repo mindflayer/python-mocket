@@ -100,6 +100,7 @@ Example:
 .. code-block:: python
 
     import pook
+    from mocket.plugins.mocket_pook import MocketEngine
     
     pook.activate()
 
