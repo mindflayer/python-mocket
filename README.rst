@@ -87,6 +87,47 @@ Let's fire our example test::
 
     $ py.test example.py
 
+Works well with others
+=======================
+Using *Mocket* as pook_ engine::
+
+    $ pip install mocket[pook]
+
+.. _pook: https://pypi.python.org/pypi/pook
+
+Example:
+
+.. code-block:: python
+
+    import pook
+    
+    pook.activate()
+
+    pook.set_mock_engine(MocketEngine)
+
+    url = 'http://twitter.com/api/1/foobar'
+    status = 404
+    response_json = {'error': 'foo'}
+
+    mock = pook.get(
+        url,
+        headers={'content-type': 'application/json'},
+        reply=status,
+        response_json=response_json,
+    )
+    mock.persist()
+
+    requests.get(url)
+    assert mock.calls == 1
+
+    resp = requests.get(url)
+    assert resp.status_code == status
+    assert resp.json() == response_json
+    assert mock.calls == 2
+
+    pook.disable()
+
+
 Video presentation
 ==================
 EuroPython 2013, Florence

@@ -343,4 +343,3 @@ class Mocketizer(object):
                 return test(*args, **kw)
         return decorator.decorator(wrapper, test)
 mocketize = Mocketizer.wrap
-
