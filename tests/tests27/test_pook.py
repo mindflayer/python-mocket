@@ -1,6 +1,6 @@
 import requests
 
-from mocket.plugins.mocket_pook import MocketEngine
+from mocket.plugins.pook import MocketEngine
 
 
 def test_pook_engine():
