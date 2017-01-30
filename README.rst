@@ -8,6 +8,9 @@ mocket /mɔˈkɛt/
 .. image:: https://coveralls.io/repos/github/mindflayer/python-mocket/badge.svg?branch=master
     :target: https://coveralls.io/github/mindflayer/python-mocket?branch=master
 
+.. image:: https://codeclimate.com/github/mindflayer/python-mocket/badges/gpa.svg
+   :target: https://codeclimate.com/github/mindflayer/python-mocket
+   :alt: Code Climate
 
 A socket mock framework
 -------------------------
