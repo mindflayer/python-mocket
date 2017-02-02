@@ -20,10 +20,16 @@ tests_requires = open(os.path.join(os.path.dirname(__file__), 'test_requirements
 pook_requires = ['pook>=0.1.13']
 
 exclude_packages = ['tests', 'tests35', 'mocket.plugins.pook']
-# pook does not support Python 2.6
+
 if major > 2 or (major == 2 and minor > 6):
+    # pook does not support Python 2.6
     exclude = exclude_packages[:-1]
     tests_requires += pook_requires
+    # last flake8 version
+    tests_requires.append('flake8')
+else:
+    # flake8 version >=3 does not support Python 2.6
+    tests_requires.append('flake8<3.0')
 
 setup(
     name='mocket',
