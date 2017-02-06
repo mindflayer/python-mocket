@@ -41,8 +41,8 @@ Issues
 ============
 When opening an **Issue**, please add few lines of code as failing test, or -better- open its relative **Pull request** adding this test to our test suite.
 
-Quick example
-=============
+Quick example of its HTTP mock
+==============================
 Let's create a new virtualenv with all we need::
 
     $ virtualenv example
