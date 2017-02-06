@@ -18,7 +18,7 @@ A socket mock framework
 
 How to use it
 =============
-The starting point to understand how to use *Mocket* is the following example:
+The starting point to understand how to use *Mocket* to write a custom mock is the following example:
 
 - https://github.com/mindflayer/mocketoy
 
