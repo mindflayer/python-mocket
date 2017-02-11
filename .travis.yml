@@ -7,10 +7,13 @@ python:
   - "3.3"
   - "3.4"
   - "3.5"
+  - "3.6"
+  - "pypy"
+  # - "pypy3"
 install:
   - make develop
 script:
   - make test
 after_success:
-  - pip install -q --use-mirrors python-coveralls
+  - pip install -q python-coveralls
   - coveralls

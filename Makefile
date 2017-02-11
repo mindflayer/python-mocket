@@ -2,7 +2,7 @@ install-dev-requirements:
 	pip install -q -e .
 
 install-test-requirements:
-	pip install -q -r test_requirements.txt
+	pip install -q -e .[tests]
 
 test-python:
 	@echo "Running Python tests"
@@ -14,7 +14,7 @@ lint-python:
 	flake8 --exit-zero --ignore=E501 --exclude=.git,compat.py mocket
 	@echo ""
 
-develop: install-dev-requirements install-test-requirements
+develop: install-test-requirements install-dev-requirements
 
 test: install-test-requirements lint-python test-python
 
@@ -25,7 +25,7 @@ publish:
 	python setup.py sdist upload
 
 clean:
-	rm -rf __pycache__
+	find . -type d -name __pycache__ -exec rm -rf {} \;
 	rm -rf dist
 	rm -rf *.egg-info
 
