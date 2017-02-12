@@ -1,8 +1,11 @@
 # coding=utf-8
 from __future__ import unicode_literals
+import os
+import io
 import time
 import json
 import mock
+import tempfile
 from tests import urlopen, urlencode, HTTPError
 
 import pytest
@@ -12,19 +15,35 @@ from unittest import TestCase
 from mocket.mockhttp import Entry, Response
 from mocket.mocket import Mocket, mocketize
 
+os.environ["MOCKET-RECORDING"] = tempfile.mkdtemp()
+
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
 class TrueHttpEntryTestCase(TestCase):
-    @mocketize
+    @mocketize(record_truesocket=False)
     def test_truesendall(self):
         resp = urlopen('http://httpbin.org/ip')
         self.assertEqual(resp.code, 200)
         resp = requests.get('http://httpbin.org/ip')
         self.assertEqual(resp.status_code, 200)
 
-    @mocketize
+    @mocketize(record_truesocket=True)
+    def test_truesendall_with_recording(self):
+        resp = urlopen('http://httpbin.org/ip')
+        self.assertEqual(resp.code, 200)
+        resp = requests.get('http://httpbin.org/ip')
+        self.assertEqual(resp.status_code, 200)
+        resp = urlopen('http://httpbin.org/ip')
+        self.assertEqual(resp.code, 200)
+        resp = requests.get('http://httpbin.org/ip')
+        self.assertEqual(resp.status_code, 200)
+        with io.open(os.path.join(os.getenv("MOCKET-RECORDING"), Mocket.get_namespace() + '.json')) as f:
+            responses = json.load(f)
+        assert len(responses['httpbin.org']['80'].keys()) == 2
+
+    @mocketize(record_truesocket=False)
     def test_wrongpath_truesendall(self):
-        Entry.register(Entry.GET, 'http://httpbin.org/user.agent', Response())
+        Entry.register(Entry.GET, 'http://httpbin.org/user.agent', Response(status=404))
         response = urlopen('http://httpbin.org/ip')
         self.assertEqual(response.code, 200)
 

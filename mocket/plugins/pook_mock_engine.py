@@ -5,7 +5,6 @@ try:  # pook not available on Python 2.6
     from mocket.mocket import Mocket
     from mocket.mockhttp import Entry, Response
 
-
     class MocketPookEntry(Entry):
         pook_request = None
         pook_engine = None
@@ -23,7 +22,6 @@ try:  # pook not available on Python 2.6
             Mocket.register(entry)
             return entry
 
-
     class MocketInterceptor(BaseInterceptor):
         def activate(self):
             Mocket.disable()
@@ -31,7 +29,6 @@ try:  # pook not available on Python 2.6
 
         def disable(self):
             Mocket.disable()
-
 
     class MocketEngine(MockEngine):
 

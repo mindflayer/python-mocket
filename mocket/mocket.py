@@ -1,17 +1,25 @@
 # coding=utf-8
 from __future__ import unicode_literals
 import socket
-import tempfile
 import json
 import os
 import ssl
+import io
 import collections
-from io import BytesIO
+import hashlib
 from datetime import datetime, timedelta
-from collections import defaultdict
+
 import decorator
 
-from .compat import encode_utf8, basestring, byte_type, text_type
+from .compat import (
+    encode_utf8,
+    decode_utf8,
+    basestring,
+    byte_type,
+    text_type,
+    FileNotFoundError,
+    encoding,
+)
 
 __all__ = (
     'true_socket',
@@ -70,7 +78,7 @@ class FakeSSLContext(SuperFakeSSLContext):
 
 
 def create_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None):
-    s = MocketSocket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
     if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
         s.settimeout(timeout)
     # if source_address:
@@ -88,7 +96,7 @@ class MocketSocket(object):
     def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0):
         self.settimeout(socket._GLOBAL_DEFAULT_TIMEOUT)
         self.true_socket = true_socket(family, type, proto)
-        self.fd = BytesIO()
+        self.fd = io.BytesIO()
         self._closed = True
         self._connected = False
         self._buflen = 1024
@@ -96,7 +104,7 @@ class MocketSocket(object):
         self.family = family
         self.type = type
         self.proto = proto
-        self._record_truesocket = True
+        self._record_truesocket = False
 
     def gettimeout(self):
         return self.timeout
@@ -185,31 +193,55 @@ class MocketSocket(object):
             self._connected = True
 
     def true_sendall(self, data, *args, **kwargs):
-        self._connect()
-        self.true_socket.sendall(data, *args, **kwargs)
-        recv = True
-        written = 0
-        mem_record = BytesIO()
-        while recv:
-            recv = self.true_socket.recv(self._buflen)
-            mem_record.write(recv)
-            written += len(recv)
-            if len(recv) < self._buflen:
-                break
-        if self._record_truesocket:
-            record = defaultdict(dict)
-            req = data.decode('utf-8')
-            res = mem_record.getvalue().decode('utf-8')
-            record[self._host][self._port] = dict(request=req, response=res)
-            d = 'recording/'
-            try:
-                os.mkdir(d)
-            except OSError:
-                pass
-            f = tempfile.NamedTemporaryFile(mode='w+', dir=d, delete=False)
-            f.write(json.dumps(record))
-            f.close()
-        self.fd.write(mem_record.getvalue())
+        req = decode_utf8(data)
+        # make request unique again
+        req_signature = hashlib.md5(encode_utf8(''.join(sorted(req.split('\r\n'))))).hexdigest()
+        # port should be always a string
+        port = text_type(self._port)
+
+        dest = os.getenv("MOCKET-RECORDING", 'mocket-recording')
+        path = os.path.join(dest, Mocket.get_namespace() + '.json')
+        try:
+            os.mkdir(dest)
+        except OSError:
+            pass
+
+        # check if there's already a recorded session dumped to a JSON file
+        try:
+            with io.open(path) as f:
+                responses = json.load(f)
+        # if not, create a new dictionary
+        except FileNotFoundError:
+            responses = {self._host: {port: {}}}
+
+        # try to get the response from the dictionary
+        try:
+            encoded_response = encode_utf8(responses[self._host][port][req_signature]['response'])
+            written = len(encoded_response)
+        # if not available, call the real sendall
+        except KeyError:
+            self._connect()
+            self.true_socket.sendall(data, *args, **kwargs)
+            written, r = 0, io.BytesIO()
+            while True:
+                recv = self.true_socket.recv(self._buflen)
+                r.write(recv)
+                written += len(recv)
+                if len(recv) < self._buflen:
+                    break
+
+            # update the dictionary with the response obtained
+            encoded_response = r.getvalue()
+            responses[self._host][port][req_signature] = dict(request=req, response=decode_utf8(encoded_response))
+
+            # dump the resulting dictionary to a JSON file
+            if self._record_truesocket:
+                with io.open(path, mode='w', encoding=encoding) as f:
+                    f.write(decode_utf8(json.dumps(responses)))
+
+        # write the response to the mocket socket
+        self.fd.write(encoded_response)
+        # flush the mocket socket
         self.fd.seek(- written, 1)
 
     def send(self, data, *args, **kwargs):  # pragma: no cover
@@ -235,6 +267,7 @@ class RecordingMocketSocket(MocketSocket):
 class Mocket(object):
     _entries = collections.defaultdict(list)
     _requests = []
+    _namespace = text_type(id(_entries))
 
     @classmethod
     def register(cls, *entries):
@@ -268,13 +301,20 @@ class Mocket(object):
             del cls._requests[-1]
 
     @staticmethod
-    def enable(record_truesocket=False):
+    def enable(namespace=None, record_truesocket=True):
+        if namespace:
+            Mocket._namespace = namespace
         if record_truesocket:
             socket.socket = socket.__dict__['socket'] = RecordingMocketSocket
+            socket._socketobject = socket.__dict__['_socketobject'] = RecordingMocketSocket
+            socket.SocketType = socket.__dict__['SocketType'] = RecordingMocketSocket
+            ssl.SSLSocket = ssl.__dict__['SSLSocket'] = RecordingMocketSocket
         else:
             socket.socket = socket.__dict__['socket'] = MocketSocket
-        socket._socketobject = socket.__dict__['_socketobject'] = MocketSocket
-        socket.SocketType = socket.__dict__['SocketType'] = MocketSocket
+            socket._socketobject = socket.__dict__['_socketobject'] = MocketSocket
+            socket.SocketType = socket.__dict__['SocketType'] = MocketSocket
+            ssl.SSLSocket = ssl.__dict__['SSLSocket'] = MocketSocket
+
         socket.create_connection = socket.__dict__['create_connection'] = create_connection
         socket.gethostname = socket.__dict__['gethostname'] = lambda: 'localhost'
         socket.gethostbyname = socket.__dict__['gethostbyname'] = lambda host: '127.0.0.1'
@@ -282,7 +322,6 @@ class Mocket(object):
             lambda host, port, family=None, socktype=None, proto=None, flags=None: [(2, 1, 6, '', (host, port))]
         socket.inet_aton = socket.__dict__['inet_aton'] = socket.gethostbyname
         ssl.wrap_socket = ssl.__dict__['wrap_socket'] = FakeSSLContext.wrap_socket
-        ssl.SSLSocket = ssl.__dict__['SSLSocket'] = MocketSocket
         ssl.SSLContext = ssl.__dict__['SSLSocket'] = FakeSSLContext
 
     @staticmethod
@@ -298,6 +337,10 @@ class Mocket(object):
         ssl.wrap_socket = ssl.__dict__['SSLSocket'] = true_ssl_wrap_socket
         ssl.SSLSocket = ssl.__dict__['wrap_socket'] = true_ssl_socket
         ssl.SSLContext = ssl.__dict__['SSLSocket'] = true_ssl_context
+
+    @classmethod
+    def get_namespace(cls):
+        return cls._namespace
 
 
 class MocketEntry(object):
@@ -344,12 +387,13 @@ class MocketEntry(object):
 
 
 class Mocketizer(object):
-    def __init__(self, instance, record_truesocket=False):
+    def __init__(self, instance, namespace=None, record_truesocket=True):
         self.instance = instance
         self.record_truesocket = record_truesocket
+        self.namespace = namespace or text_type(id(self))
 
     def __enter__(self):
-        Mocket.enable(record_truesocket=self.record_truesocket)
+        Mocket.enable(namespace=self.namespace, record_truesocket=self.record_truesocket)
         self.check_and_call('mocketize_setup')
 
     def __exit__(self, type, value, tb):
@@ -363,12 +407,12 @@ class Mocketizer(object):
             method()
 
     @staticmethod
-    def wrap(test, record_truesocket=False):
-        def wrapper(test, *args, **kw):
-            instance = None
-            if args:
-                instance = args[0]
-            with Mocketizer(instance, record_truesocket):
-                return test(*args, **kw)
+    def wrap(test=None, record_truesocket=True):
+        def wrapper(t, *args, **kw):
+            instance = args[0] if args else None
+            namespace = '.'.join((instance.__class__.__module__, instance.__class__.__name__, t.__name__))
+            with Mocketizer(instance, namespace=namespace, record_truesocket=record_truesocket):
+                t(*args, **kw)
+            return wrapper
         return decorator.decorator(wrapper, test)
 mocketize = Mocketizer.wrap
