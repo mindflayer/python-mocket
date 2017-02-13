@@ -132,11 +132,13 @@ Example:
     pook.disable()
 
 
-Video presentation
-==================
+First appearance
+================
 EuroPython 2013, Florence
 
-https://www.youtube.com/watch?v=-LvXbl5d02U
+- Video: https://www.youtube.com/watch?v=-LvXbl5d02U
+- Slides: https://prezi.com/tmuiaugamsti/mocket/
+- Slides as PDF: https://ep2013.europython.eu/media/conference/slides/mocket-a-socket-mock-framework.pdf
 
 .. image:: http://badge.kloud51.com/pypi/v/mocket.png
 
