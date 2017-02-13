@@ -1,21 +1,24 @@
+import os
 import sys
 import shlex
+
 import six
 
 PY2 = sys.version_info[0] == 2
 if PY2:
     from BaseHTTPServer import BaseHTTPRequestHandler
     from urlparse import urlsplit, parse_qs
-
+    FileNotFoundError = IOError
 else:
     from http.server import BaseHTTPRequestHandler
     from urllib.parse import urlsplit, parse_qs
+    FileNotFoundError = FileNotFoundError
 
 text_type = six.text_type
 byte_type = six.binary_type
 basestring = six.string_types
 
-encoding = 'utf-8'
+encoding = os.getenv("MOCKET-ENCODING", 'utf-8')
 
 
 def encode_utf8(s):

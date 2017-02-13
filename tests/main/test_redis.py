@@ -93,7 +93,7 @@ class RedisEntryTestCase(TestCase):
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_REDIS", False)')
 class TrueRedisTestCase(TestCase):
-    @mocketize
+    @mocketize(record_truesocket=False)
     def setUp(self):
         self.rclient = redis.StrictRedis()
         self.rclient.flushdb()
@@ -101,48 +101,48 @@ class TrueRedisTestCase(TestCase):
     def mocketize_teardown(self):
         self.assertEqual(len(Mocket._requests), 0)
 
-    @mocketize
+    @mocketize(record_truesocket=False)
     def test_set(self):
         self.assertTrue(self.rclient.set('mocket', 'is awesome!'))
 
-    @mocketize
+    @mocketize(record_truesocket=False)
     def test_incr(self):
         self.assertEqual(self.rclient.incr('counter'), 1)
         self.assertEqual(self.rclient.incr('counter'), 2)
         self.assertEqual(self.rclient.incr('counter'), 3)
 
-    @mocketize
+    @mocketize(record_truesocket=False)
     def test_get(self):
         self.rclient.set('mocket', 'is awesome!')
         self.assertEqual(self.rclient.get('mocket'), b'is awesome!')
 
-    @mocketize
+    @mocketize(record_truesocket=False)
     def test_get_utf8(self):
         self.rclient.set('snowman', '☃')
         self.assertEqual(self.rclient.get('snowman'), b'\xe2\x98\x83')
 
-    @mocketize
+    @mocketize(record_truesocket=False)
     def test_get_unicode(self):
         self.rclient.set('snowman', u'\u2603')
         self.assertEqual(self.rclient.get('snowman'), b'\xe2\x98\x83')
 
-    @mocketize
+    @mocketize(record_truesocket=False)
     def test_hm(self):
         h = {b'f1': b'one', b'f2': b'two'}
         self.assertTrue(self.rclient.hmset('hash', h))
         self.assertEqual(self.rclient.hgetall('hash'), h)
 
-    @mocketize
+    @mocketize(record_truesocket=False)
     def test_lrange(self):
         l = [b'one', b'two', b'three']
         self.rclient.rpush('list', *l)
         self.assertEqual(self.rclient.lrange('list', 0, -1), l)
 
-    @mocketize
+    @mocketize(record_truesocket=False)
     def test_err(self):
         self.assertRaises(redis.ResponseError, self.rclient.incr, 'counter', 'one')
 
-    @mocketize
+    @mocketize(record_truesocket=False)
     def test_shutdown(self):
         rc = redis.StrictRedis(host='127.1.1.1')
         try:
@@ -150,7 +150,7 @@ class TrueRedisTestCase(TestCase):
         except redis.ConnectionError:
             pass
 
-    @mocketize
+    @mocketize(record_truesocket=False)
     def test_select_db(self):
         r = redis.StrictRedis(db=1)
         r.set('foo', 10)
