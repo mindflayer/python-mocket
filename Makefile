@@ -1,8 +1,8 @@
 install-dev-requirements:
-	pip install -q -e .
+	pip install -U -q -e .
 
 install-test-requirements:
-	pip install -q -e .[tests]
+	pip install -U -q -e .[tests]
 
 test-python:
 	@echo "Running Python tests"
