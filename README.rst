@@ -2,7 +2,7 @@
 mocket /mɔˈkɛt/
 ===============
 
-.. image:: https://api.travis-ci.org/mindflayer/python-mocket.png?branch=master
+.. image:: https://api.travis-ci.org/mindflayer/python-mocket.svg?branch=master
     :target: http://travis-ci.org/mindflayer/python-mocket
 
 .. image:: https://coveralls.io/repos/github/mindflayer/python-mocket/badge.svg?branch=master
@@ -140,18 +140,18 @@ EuroPython 2013, Florence
 - Slides: https://prezi.com/tmuiaugamsti/mocket/
 - Slides as PDF: https://ep2013.europython.eu/media/conference/slides/mocket-a-socket-mock-framework.pdf
 
-.. image:: http://badge.kloud51.com/pypi/v/mocket.png
+.. image:: http://badge.kloud51.com/pypi/v/mocket.svg
 
-.. image:: http://badge.kloud51.com/pypi/d/mocket.png
+.. image:: http://badge.kloud51.com/pypi/d/mocket.svg
 
-.. image:: http://badge.kloud51.com/pypi/w/mocket.png
+.. image:: http://badge.kloud51.com/pypi/w/mocket.svg
 
-.. image:: http://badge.kloud51.com/pypi/e/mocket.png
+.. image:: http://badge.kloud51.com/pypi/e/mocket.svg
 
-.. image:: http://badge.kloud51.com/pypi/l/mocket.png
+.. image:: http://badge.kloud51.com/pypi/l/mocket.svg
 
-.. image:: http://badge.kloud51.com/pypi/f/mocket.png
+.. image:: http://badge.kloud51.com/pypi/f/mocket.svg
 
-.. image:: http://badge.kloud51.com/pypi/py_versions/mocket.png
+.. image:: http://badge.kloud51.com/pypi/py_versions/mocket.svg
 
-.. image:: http://badge.kloud51.com/pypi/s/mocket.png
+.. image:: http://badge.kloud51.com/pypi/s/mocket.svg
