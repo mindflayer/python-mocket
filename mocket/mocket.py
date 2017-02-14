@@ -7,6 +7,7 @@ import ssl
 import io
 import collections
 import hashlib
+import zlib
 from datetime import datetime, timedelta
 
 import decorator
@@ -199,7 +200,7 @@ class MocketSocket(object):
         # port should be always a string
         port = text_type(self._port)
 
-        dest = os.getenv("MOCKET-RECORDING", 'mocket-recording')
+        dest = os.getenv("MOCKET_RECORDING", 'mocket-recording')
         path = os.path.join(dest, Mocket.get_namespace() + '.json')
         try:
             os.mkdir(dest)
@@ -216,8 +217,17 @@ class MocketSocket(object):
 
         # try to get the response from the dictionary
         try:
-            encoded_response = encode_utf8(responses[self._host][port][req_signature]['response'])
+            lines = responses[self._host][port][req_signature]['response']
+            gzip = responses[self._host][port][req_signature]['gzip']
+            r_lines = []
+            for line_no, line in enumerate(lines):
+                line = encode_utf8(line)
+                if line_no + 1 in gzip:
+                    line = zlib.compress(line)
+                r_lines.append(encode_utf8(line))
+            encoded_response = b'\r\n'.join(r_lines)
             written = len(encoded_response)
+
         # if not available, call the real sendall
         except KeyError:
             self._connect()
@@ -230,9 +240,21 @@ class MocketSocket(object):
                 if len(recv) < self._buflen:
                     break
 
+            responses[self._host][port][req_signature] = dict(request=req)
+            lines = responses[self._host][port][req_signature]['response'] = []
+            gzip = responses[self._host][port][req_signature]['gzip'] = []
+
             # update the dictionary with the response obtained
             encoded_response = r.getvalue()
-            responses[self._host][port][req_signature] = dict(request=req, response=decode_utf8(encoded_response))
+
+            for line_no, line in enumerate(encoded_response.split(b'\r\n')):
+                try:
+                    line = decode_utf8(line)
+                except UnicodeDecodeError:
+                    line = decode_utf8(zlib.decompress(line, 16 + zlib.MAX_WBITS))
+                    gzip.append(line_no + 1)
+
+                lines.append(line)
 
             # dump the resulting dictionary to a JSON file
             if self._record_truesocket:
