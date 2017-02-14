@@ -18,7 +18,7 @@ text_type = six.text_type
 byte_type = six.binary_type
 basestring = six.string_types
 
-encoding = os.getenv("MOCKET-ENCODING", 'utf-8')
+encoding = os.getenv("MOCKET_ENCODING", 'utf-8')
 
 
 def encode_utf8(s):

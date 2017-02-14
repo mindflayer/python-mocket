@@ -27,13 +27,11 @@ class TrueHttpEntryTestCase(TestCase):
 
     @mocketize(record_truesocket=True)
     def test_truesendall_with_recording(self):
-        os.environ["MOCKET-RECORDING"] = tempfile.mkdtemp()
-        d = os.getenv("MOCKET-RECORDING")
+        os.environ["MOCKET_RECORDING"] = tempfile.mkdtemp()
+        d = os.getenv("MOCKET_RECORDING")
 
-        resp = urlopen('http://httpbin.org/ip')
-        self.assertEqual(resp.code, 200)
-        resp = requests.get('http://httpbin.org/ip')
-        self.assertEqual(resp.status_code, 200)
+        urlopen('http://httpbin.org/ip')
+        requests.get('http://httpbin.org/ip')
         resp = urlopen('http://httpbin.org/ip')
         self.assertEqual(resp.code, 200)
         resp = requests.get('http://httpbin.org/ip')
@@ -44,6 +42,21 @@ class TrueHttpEntryTestCase(TestCase):
             responses = json.load(f)
 
         assert len(responses['httpbin.org']['80'].keys()) == 2
+
+    # @mocketize(record_truesocket=True)
+    # def test_truesendall_with_gzip_recording(self):
+    #     os.environ["MOCKET_RECORDING"] = tempfile.mkdtemp()
+    #     d = os.getenv("MOCKET_RECORDING")
+    #
+    #     requests.get('http://httpbin.org/gzip')
+    #     resp = requests.get('http://httpbin.org/gzip')
+    #     self.assertEqual(resp.status_code, 200)
+    #
+    #     dump_filename = os.path.join(d, Mocket.get_namespace() + '.json')
+    #     with io.open(dump_filename) as f:
+    #         responses = json.load(f)
+    #
+    #     assert len(responses['httpbin.org']['80'].keys()) == 1
 
     @mocketize(record_truesocket=False)
     def test_wrongpath_truesendall(self):
