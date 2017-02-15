@@ -8,6 +8,7 @@ import io
 import collections
 import hashlib
 import zlib
+import gzip
 from datetime import datetime, timedelta
 
 import decorator
@@ -20,6 +21,7 @@ from .compat import (
     text_type,
     FileNotFoundError,
     encoding,
+    JSONDecodeError,
 )
 
 __all__ = (
@@ -105,7 +107,7 @@ class MocketSocket(object):
         self.family = family
         self.type = type
         self.proto = proto
-        self._record_truesocket = False
+        self._truesocket_recording_dir = None
 
     def gettimeout(self):
         return self.timeout
@@ -200,31 +202,37 @@ class MocketSocket(object):
         # port should be always a string
         port = text_type(self._port)
 
-        dest = os.getenv("MOCKET_RECORDING", 'mocket-recording')
-        path = os.path.join(dest, Mocket.get_namespace() + '.json')
-        try:
-            os.mkdir(dest)
-        except OSError:
-            pass
+        responses = {self._host: {port: {}}}
+        if Mocket.get_truesocket_recording_dir():
+            path = os.path.join(
+                Mocket.get_truesocket_recording_dir(),
+                Mocket.get_namespace() + '.json',
+            )
+            # check if there's already a recorded session dumped to a JSON file
+            try:
+                with io.open(path) as f:
+                    responses = json.load(f)
+            # if not, create a new dictionary
+            except (FileNotFoundError, JSONDecodeError, KeyError):
+                pass
 
-        # check if there's already a recorded session dumped to a JSON file
-        try:
-            with io.open(path) as f:
-                responses = json.load(f)
-        # if not, create a new dictionary
-        except FileNotFoundError:
-            responses = {self._host: {port: {}}}
+        response_dict = responses[self._host][port]
 
         # try to get the response from the dictionary
         try:
-            lines = responses[self._host][port][req_signature]['response']
-            gzip = responses[self._host][port][req_signature]['gzip']
+            lines = response_dict[req_signature]['response']
+            gzipped_lines = response_dict[req_signature]['gzip']
             r_lines = []
             for line_no, line in enumerate(lines):
                 line = encode_utf8(line)
-                if line_no + 1 in gzip:
-                    line = zlib.compress(line)
-                r_lines.append(encode_utf8(line))
+                if line_no + 1 in gzipped_lines:
+                    gzip_buffer = io.BytesIO()
+                    gzip_file = gzip.GzipFile(mode='wb', fileobj=gzip_buffer)
+                    gzip_file.write(line)
+                    gzip_file.close()
+                    line = gzip_buffer.getvalue()
+                    # line = zlib.compress(line)
+                r_lines.append(line)
             encoded_response = b'\r\n'.join(r_lines)
             written = len(encoded_response)
 
@@ -240,9 +248,9 @@ class MocketSocket(object):
                 if len(recv) < self._buflen:
                     break
 
-            responses[self._host][port][req_signature] = dict(request=req)
-            lines = responses[self._host][port][req_signature]['response'] = []
-            gzip = responses[self._host][port][req_signature]['gzip'] = []
+            response_dict[req_signature] = dict(request=req)
+            lines = response_dict[req_signature]['response'] = []
+            gzipped_lines = response_dict[req_signature]['gzip'] = []
 
             # update the dictionary with the response obtained
             encoded_response = r.getvalue()
@@ -252,12 +260,12 @@ class MocketSocket(object):
                     line = decode_utf8(line)
                 except UnicodeDecodeError:
                     line = decode_utf8(zlib.decompress(line, 16 + zlib.MAX_WBITS))
-                    gzip.append(line_no + 1)
+                    gzipped_lines.append(line_no + 1)
 
                 lines.append(line)
 
             # dump the resulting dictionary to a JSON file
-            if self._record_truesocket:
+            if self._truesocket_recording_dir:
                 with io.open(path, mode='w', encoding=encoding) as f:
                     f.write(decode_utf8(json.dumps(responses)))
 
@@ -283,13 +291,14 @@ class MocketSocket(object):
 class RecordingMocketSocket(MocketSocket):
     def __init__(self, *args, **kwargs):
         super(RecordingMocketSocket, self).__init__(*args, **kwargs)
-        self._record_truesocket = True
+        self._truesocket_recording_dir = True
 
 
 class Mocket(object):
     _entries = collections.defaultdict(list)
     _requests = []
     _namespace = text_type(id(_entries))
+    _truesocket_recording_dir = None
 
     @classmethod
     def register(cls, *entries):
@@ -323,10 +332,14 @@ class Mocket(object):
             del cls._requests[-1]
 
     @staticmethod
-    def enable(namespace=None, record_truesocket=True):
+    def enable(namespace=None, truesocket_recording_dir=None):
         if namespace:
             Mocket._namespace = namespace
-        if record_truesocket:
+        if truesocket_recording_dir:
+            # JSON dumps will be saved here
+            assert os.path.isdir(truesocket_recording_dir)
+            Mocket._truesocket_recording_dir = truesocket_recording_dir
+
             socket.socket = socket.__dict__['socket'] = RecordingMocketSocket
             socket._socketobject = socket.__dict__['_socketobject'] = RecordingMocketSocket
             socket.SocketType = socket.__dict__['SocketType'] = RecordingMocketSocket
@@ -363,6 +376,10 @@ class Mocket(object):
     @classmethod
     def get_namespace(cls):
         return cls._namespace
+
+    @classmethod
+    def get_truesocket_recording_dir(cls):
+        return cls._truesocket_recording_dir
 
 
 class MocketEntry(object):
@@ -409,13 +426,13 @@ class MocketEntry(object):
 
 
 class Mocketizer(object):
-    def __init__(self, instance, namespace=None, record_truesocket=True):
+    def __init__(self, instance, namespace=None, truesocket_recording_dir=None):
         self.instance = instance
-        self.record_truesocket = record_truesocket
+        self.truesocket_recording_dir = truesocket_recording_dir
         self.namespace = namespace or text_type(id(self))
 
     def __enter__(self):
-        Mocket.enable(namespace=self.namespace, record_truesocket=self.record_truesocket)
+        Mocket.enable(namespace=self.namespace, truesocket_recording_dir=self.truesocket_recording_dir)
         self.check_and_call('mocketize_setup')
 
     def __exit__(self, type, value, tb):
@@ -429,11 +446,11 @@ class Mocketizer(object):
             method()
 
     @staticmethod
-    def wrap(test=None, record_truesocket=True):
+    def wrap(test=None, truesocket_recording_dir=None):
         def wrapper(t, *args, **kw):
             instance = args[0] if args else None
             namespace = '.'.join((instance.__class__.__module__, instance.__class__.__name__, t.__name__))
-            with Mocketizer(instance, namespace=namespace, record_truesocket=record_truesocket):
+            with Mocketizer(instance, namespace=namespace, truesocket_recording_dir=truesocket_recording_dir):
                 t(*args, **kw)
             return wrapper
         return decorator.decorator(wrapper, test)

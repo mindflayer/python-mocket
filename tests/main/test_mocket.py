@@ -74,6 +74,7 @@ class MocketTestCase(TestCase):
         entry = MocketEntry(('localhost', 8080), [])
         self.assertEqual(entry.get_response(), encode_utf8(''))
 
+
 class MocketizeTestCase(TestCase):
     def mocketize_setup(self):
         pass
@@ -85,13 +86,16 @@ class MocketizeTestCase(TestCase):
     def test_gethostname(self):
         self.assertEqual(socket.gethostname(), 'localhost')
 
+
 @mocketize
 def test_mocketize_outside_a_test_class():
     assert 2 == 2
 
+
 @pytest.fixture
 def fixture():
     return 2
+
 
 @mocketize
 def test_mocketize_with_fixture(fixture):

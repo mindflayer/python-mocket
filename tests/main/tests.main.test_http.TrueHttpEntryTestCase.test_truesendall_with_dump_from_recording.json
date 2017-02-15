@@ -1,0 +1,16 @@
+{
+	"httpbin.org": {
+		"80": {
+			"eaa1896a5d6eed6d4dd83a6696efc485": {
+				"gzip": [],
+				"request": "GET /ip HTTP/1.1\r\nHost: httpbin.org\r\nConnection: keep-alive\r\nAccept-Encoding: gzip, deflate\r\nAccept: */*\r\nuser-agent: Fake-User-Agent\r\n\r\n",
+				"response": ["HTTP/1.1 200 OK", "Server: nginx", "Date: Wed, 15 Feb 2017 13:28:10 GMT", "Content-Type: application/json", "Content-Length: 33", "Connection: keep-alive", "Access-Control-Allow-Origin: *", "Access-Control-Allow-Credentials: true", "", "{\n  \"origin\": \"185.27.157.132\"\n}\n"]
+			},
+			"31ae71d6074aa0e73fb4feb91f28546a": {
+				"gzip": [11],
+				"request": "GET /gzip HTTP/1.1\r\nHost: httpbin.org\r\nConnection: keep-alive\r\nAccept-Encoding: gzip, deflate\r\nAccept: */*\r\nuser-agent: Fake-User-Agent\r\n\r\n",
+				"response": ["HTTP/1.1 200 OK", "Server: nginx", "Date: Wed, 15 Feb 2017 13:28:10 GMT", "Content-Type: application/json", "Content-Length: 172", "Connection: keep-alive", "Content-Encoding: gzip", "Access-Control-Allow-Origin: *", "Access-Control-Allow-Credentials: true", "", "{\n  \"gzipped\": true, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n    \"Accept-Encoding\": \"gzip, deflate\", \n    \"Host\": \"httpbin.org\", \n    \"User-Agent\": \"Fake-User-Agent\"\n  }, \n  \"method\": \"GET\", \n  \"origin\": \"185.27.157.132\"\n}\n"]
+			}
+		}
+	}
+}
