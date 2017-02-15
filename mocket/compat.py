@@ -14,6 +14,11 @@ else:
     from urllib.parse import urlsplit, parse_qs
     FileNotFoundError = FileNotFoundError
 
+try:
+    from json.decoder import JSONDecodeError
+except ImportError:
+    JSONDecodeError = ValueError
+
 text_type = six.text_type
 byte_type = six.binary_type
 basestring = six.string_types

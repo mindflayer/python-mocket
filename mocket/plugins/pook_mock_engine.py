@@ -1,4 +1,5 @@
-try:  # pook not available on Python 2.6
+# pook not available on Python 2.6
+try:  # pragma no cover
     from pook.engine import MockEngine
     from pook.interceptors.base import BaseInterceptor
 
