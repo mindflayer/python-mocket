@@ -1,6 +1,7 @@
 # coding=utf-8
 from __future__ import unicode_literals
 from itertools import chain
+
 from .compat import text_type, byte_type, encode_utf8, decode_utf8, shsplit
 from .mocket import MocketEntry, Mocket
 
@@ -42,6 +43,8 @@ class Redisizer(byte_type):
     @staticmethod
     def error(description):
         return Redisizer.command(description, _type='-')
+
+
 OK = Redisizer.command('OK')
 QUEUED = Redisizer.command('QUEUED')
 ERROR = Redisizer.error

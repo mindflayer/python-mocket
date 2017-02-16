@@ -11,8 +11,8 @@ from unittest import TestCase
 import pytest
 import requests
 
+from mocket import Mocket, mocketize
 from mocket.mockhttp import Entry, Response
-from mocket.mocket import Mocket, mocketize
 from tests import urlopen, urlencode, HTTPError
 
 
@@ -47,7 +47,7 @@ class TrueHttpEntryTestCase(TestCase):
         with io.open(dump_filename) as f:
             responses = json.load(f)
 
-        assert len(responses['httpbin.org']['80'].keys()) == 2
+        self.assertEqual(len(responses['httpbin.org']['80'].keys()), 2)
 
     @mocketize(truesocket_recording_dir=recording_directory)
     def test_truesendall_with_gzip_recording(self):
@@ -78,7 +78,7 @@ class TrueHttpEntryTestCase(TestCase):
         with io.open(dump_filename) as f:
             responses = json.load(f)
 
-        assert len(responses['httpbin.org']['80'].keys()) == 2
+        self.assertEqual(len(responses['httpbin.org']['80'].keys()), 2)
 
     @mocketize
     def test_wrongpath_truesendall(self):

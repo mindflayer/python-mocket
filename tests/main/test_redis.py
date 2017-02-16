@@ -1,9 +1,11 @@
 # coding=utf-8
 from __future__ import unicode_literals
+from unittest import TestCase
+
 import pytest
 import redis
-from unittest import TestCase
-from mocket.mocket import mocketize, Mocket
+
+from mocket import mocketize, Mocket
 from mocket.mockredis import Entry, OK, ERROR, Redisizer
 
 

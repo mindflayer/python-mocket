@@ -3,9 +3,13 @@ from __future__ import unicode_literals
 import re
 import time
 from io import BytesIO
+
 import magic
+
 from .compat import BaseHTTPRequestHandler, urlsplit, parse_qs, encode_utf8, decode_utf8
 from .mocket import Mocket, MocketEntry
+
+
 STATUS = dict([(k, v[0]) for k, v in BaseHTTPRequestHandler.responses.items()])
 CRLF = '\r\n'
 

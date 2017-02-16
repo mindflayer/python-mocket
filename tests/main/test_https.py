@@ -1,9 +1,12 @@
+import os
+import io
 import json
+import tempfile
 
 import requests
 import pytest
 
-from mocket.mocket import mocketize
+from mocket import mocketize, Mocket
 from mocket.mockhttp import Entry
 from tests import urlopen
 
@@ -33,3 +36,24 @@ def test_json(response):
 
     mocked_response = json.loads(urlopen(url_to_mock).read().decode('utf-8'))
     assert response == mocked_response
+
+
+recording_directory = tempfile.mkdtemp()
+
+
+@mocketize(truesocket_recording_dir=recording_directory)
+def test_truesendall_with_recording_https():
+    url = 'https://httpbin.org/ip'
+
+    requests.get(url)
+    resp = requests.get(url)
+    assert resp.status_code == 200
+
+    dump_filename = os.path.join(
+        Mocket.get_truesocket_recording_dir(),
+        Mocket.get_namespace() + '.json',
+    )
+    with io.open(dump_filename) as f:
+        responses = json.load(f)
+
+    assert len(responses['httpbin.org']['443'].keys()) == 1
