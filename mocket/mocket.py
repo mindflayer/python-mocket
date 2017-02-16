@@ -67,6 +67,18 @@ class FakeSSLContext(SuperFakeSSLContext):
         if isinstance(sock, MocketSocket):
             self.sock = sock
             self.sock._host = server_hostname
+            if true_ssl_context:
+                self.sock.true_socket = true_ssl_socket(
+                    sock=self.sock.true_socket,
+                    server_hostname=server_hostname,
+                    _context=true_ssl_context(
+                        protocol=ssl.PROTOCOL_SSLv23,
+                    )
+                )
+            else:  # Python 2.
+                self.sock.true_socket = true_ssl_socket(
+                    sock=self.sock.true_socket,
+                )
 
     @staticmethod
     def load_default_certs(*args, **kwargs):
@@ -192,6 +204,7 @@ class MocketSocket(object):
 
     def _connect(self):  # pragma: no cover
         if not self._connected:
+            print(self.true_socket)
             self.true_socket.connect(self._address)
             self._connected = True
 
@@ -211,7 +224,7 @@ class MocketSocket(object):
             # check if there's already a recorded session dumped to a JSON file
             try:
                 with io.open(path) as f:
-                    responses = json.load(f)
+                    responses.update(json.load(f))
             # if not, create a new dictionary
             except (FileNotFoundError, JSONDecodeError, KeyError):
                 pass
@@ -454,4 +467,6 @@ class Mocketizer(object):
                 t(*args, **kw)
             return wrapper
         return decorator.decorator(wrapper, test)
+
+
 mocketize = Mocketizer.wrap
