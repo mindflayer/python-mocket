@@ -211,7 +211,7 @@ class MocketSocket(object):
             # check if there's already a recorded session dumped to a JSON file
             try:
                 with io.open(path) as f:
-                    responses = json.load(f)
+                    responses.update(json.load(f))
             # if not, create a new dictionary
             except (FileNotFoundError, JSONDecodeError, KeyError):
                 pass
