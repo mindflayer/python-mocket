@@ -66,6 +66,23 @@ class TrueHttpEntryTestCase(TestCase):
 
         assert len(responses['httpbin.org']['80'].keys()) == 1
 
+    @mocketize(truesocket_recording_dir=recording_directory)
+    def test_truesendall_with_chunk_recording(self):
+        url = 'http://httpbin.org/range/2048?chunk_size=256'
+
+        requests.get(url)
+        resp = requests.get(url)
+        self.assertEqual(resp.status_code, 200)
+
+        dump_filename = os.path.join(
+            Mocket.get_truesocket_recording_dir(),
+            Mocket.get_namespace() + '.json',
+        )
+        with io.open(dump_filename) as f:
+            responses = json.load(f)
+
+        assert len(responses['httpbin.org']['80'].keys()) == 1
+
     @mocketize(truesocket_recording_dir=os.path.dirname(__file__))
     def test_truesendall_with_dump_from_recording(self):
         requests.get('http://httpbin.org/ip', headers={"user-agent": "Fake-User-Agent"})
