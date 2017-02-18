@@ -7,7 +7,6 @@ import ssl
 import io
 import collections
 import hashlib
-import zlib
 import gzip
 from datetime import datetime, timedelta
 
@@ -199,12 +198,10 @@ class MocketSocket(object):
         self.fd.seek(0)
 
     def recv(self, buffersize, flags=None):
-        resp = self.fd.readline(buffersize)
-        return resp
+        return self.fd.readline(buffersize)
 
     def _connect(self):  # pragma: no cover
         if not self._connected:
-            print(self.true_socket)
             self.true_socket.connect(self._address)
             self._connected = True
 
@@ -215,7 +212,9 @@ class MocketSocket(object):
         # port should be always a string
         port = text_type(self._port)
 
-        responses = {self._host: {port: {}}}
+        # prepare responses dictionary
+        responses = dict()
+
         if Mocket.get_truesocket_recording_dir():
             path = os.path.join(
                 Mocket.get_truesocket_recording_dir(),
@@ -224,27 +223,35 @@ class MocketSocket(object):
             # check if there's already a recorded session dumped to a JSON file
             try:
                 with io.open(path) as f:
-                    responses.update(json.load(f))
+                    responses = json.load(f)
             # if not, create a new dictionary
-            except (FileNotFoundError, JSONDecodeError, KeyError):
+            except (FileNotFoundError, JSONDecodeError):
                 pass
 
-        response_dict = responses[self._host][port]
+        try:
+            response_dict = responses[self._host][port][req_signature]
+        except KeyError:
+            # preventing next KeyError exceptions
+            responses.setdefault(self._host, dict())
+            responses[self._host].setdefault(port, dict())
+            responses[self._host][port].setdefault(req_signature, dict())
+            response_dict = responses[self._host][port][req_signature]
 
         # try to get the response from the dictionary
         try:
-            lines = response_dict[req_signature]['response']
-            gzipped_lines = response_dict[req_signature]['gzip']
+            lines = response_dict['response']
+            gzipped_lines = response_dict['gzip']
             r_lines = []
             for line_no, line in enumerate(lines):
                 line = encode_utf8(line)
                 if line_no + 1 in gzipped_lines:
                     gzip_buffer = io.BytesIO()
                     gzip_file = gzip.GzipFile(mode='wb', fileobj=gzip_buffer)
-                    gzip_file.write(line)
-                    gzip_file.close()
+                    try:
+                        gzip_file.write(line)
+                    finally:
+                        gzip_file.close()
                     line = gzip_buffer.getvalue()
-                    # line = zlib.compress(line)
                 r_lines.append(line)
             encoded_response = b'\r\n'.join(r_lines)
             written = len(encoded_response)
@@ -261,9 +268,9 @@ class MocketSocket(object):
                 if len(recv) < self._buflen:
                     break
 
-            response_dict[req_signature] = dict(request=req)
-            lines = response_dict[req_signature]['response'] = []
-            gzipped_lines = response_dict[req_signature]['gzip'] = []
+            response_dict['request'] = req
+            lines = response_dict['response'] = []
+            gzipped_lines = response_dict['gzip'] = []
 
             # update the dictionary with the response obtained
             encoded_response = r.getvalue()
@@ -272,7 +279,12 @@ class MocketSocket(object):
                 try:
                     line = decode_utf8(line)
                 except UnicodeDecodeError:
-                    line = decode_utf8(zlib.decompress(line, 16 + zlib.MAX_WBITS))
+                    f = gzip.GzipFile(mode='rb', fileobj=io.BytesIO(line))
+                    try:
+                        line = f.read(len(line))
+                    finally:
+                        f.close()
+                    line = decode_utf8(line)
                     gzipped_lines.append(line_no + 1)
 
                 lines.append(line)
@@ -280,7 +292,7 @@ class MocketSocket(object):
             # dump the resulting dictionary to a JSON file
             if self._truesocket_recording_dir:
                 with io.open(path, mode='w', encoding=encoding) as f:
-                    f.write(decode_utf8(json.dumps(responses)))
+                    f.write(decode_utf8(json.dumps(responses, indent=4, sort_keys=True)))
 
         # write the response to the mocket socket
         self.fd.write(encoded_response)
