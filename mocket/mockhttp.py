@@ -6,7 +6,7 @@ from io import BytesIO
 
 import magic
 
-from .compat import BaseHTTPRequestHandler, urlsplit, parse_qs, encode_utf8, decode_utf8
+from .compat import BaseHTTPRequestHandler, urlsplit, parse_qs, encode_to_bytes, decode_from_bytes
 from .mocket import Mocket, MocketEntry
 
 
@@ -16,8 +16,8 @@ CRLF = '\r\n'
 
 class Request(BaseHTTPRequestHandler):
     def __init__(self, data):
-        _, self.body = decode_utf8(data).split('\r\n\r\n', 1)
-        self.rfile = BytesIO(encode_utf8(data))
+        _, self.body = decode_from_bytes(data).split('\r\n\r\n', 1)
+        self.rfile = BytesIO(encode_to_bytes(data))
         self.raw_requestline = self.rfile.readline()
         self.error_code = self.error_message = None
         self.parse_request()
@@ -33,7 +33,7 @@ class Response(object):
             self.body = body.read()
             is_file_object = True
         except AttributeError:
-            self.body = encode_utf8(body)
+            self.body = encode_to_bytes(body)
         self.status = status
         self.headers = {
             'Status': str(self.status),
@@ -45,7 +45,7 @@ class Response(object):
         if not is_file_object:
             self.headers['Content-Type'] = 'text/plain; charset=utf-8'
         else:
-            self.headers['Content-Type'] = decode_utf8(magic.from_buffer(self.body, mime=True))
+            self.headers['Content-Type'] = decode_from_bytes(magic.from_buffer(self.body, mime=True))
         for k, v in headers.items():
             self.headers['-'.join([token.capitalize() for token in k.split('-')])] = v
         self.data = self.get_protocol_data() + self.body
@@ -97,7 +97,7 @@ class Entry(MocketEntry):
         True
         """
         try:
-            requestline, _ = decode_utf8(data).split(CRLF, 1)
+            requestline, _ = decode_from_bytes(data).split(CRLF, 1)
             method, path, version = self._parse_requestline(requestline)
         except ValueError:
             return self == Mocket._last_entry

@@ -26,21 +26,21 @@ basestring = six.string_types
 encoding = os.getenv("MOCKET_ENCODING", 'utf-8')
 
 
-def encode_utf8(s):
+def encode_to_bytes(s, charset=encoding):
     if isinstance(s, text_type):
-        s = s.encode(encoding)
+        s = s.encode(charset)
     return byte_type(s)
 
 
-def decode_utf8(s):
+def decode_from_bytes(s, charset=encoding):
     if isinstance(s, byte_type):
-        s = s.decode(encoding)
+        s = s.decode(charset)
     return text_type(s)
 
 
 def shsplit(s):
     if PY2:
-        s = encode_utf8(s)
+        s = encode_to_bytes(s)
     else:
-        s = decode_utf8(s)
+        s = decode_from_bytes(s)
     return shlex.split(s)

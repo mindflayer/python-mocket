@@ -33,7 +33,7 @@ else:
 
 setup(
     name='mocket',
-    version='1.7.4',
+    version='1.7.5',
     # author='Andrea de Marco, Giorgio Salluzzo',
     author='Giorgio Salluzzo',
     # author_email='24erre@gmail.com, giorgio.salluzzo@gmail.com',
