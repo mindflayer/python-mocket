@@ -244,7 +244,7 @@ class MocketSocket(object):
         # try to get the response from the dictionary
         try:
             try:
-                encoded_response = hexdump.restore(response_dict['response'])
+                encoded_response = hexdump.dehex(response_dict['response'])
             except TypeError:  # pragma: no cover
                 # Python 2
                 encoded_response = hexdump.restore(encode_to_bytes(response_dict['response']))

@@ -39,6 +39,7 @@ class TrueHttpEntryTestCase(TestCase):
         self.assertEqual(resp.code, 200)
         resp = requests.get(url)
         self.assertEqual(resp.status_code, 200)
+        assert 'origin' in resp.json()
 
         dump_filename = os.path.join(
             Mocket.get_truesocket_recording_dir(),
