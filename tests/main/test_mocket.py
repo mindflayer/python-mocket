@@ -5,7 +5,7 @@ from unittest import TestCase
 import pytest
 
 from mocket import Mocket, mocketize, MocketEntry
-from mocket.compat import encode_utf8
+from mocket.compat import encode_to_bytes
 
 
 class MocketTestCase(TestCase):
@@ -69,11 +69,11 @@ class MocketTestCase(TestCase):
 
     def test_getresponse(self):
         entry = MocketEntry(('localhost', 8080), ['Show me.\r\n'])
-        self.assertEqual(entry.get_response(), encode_utf8('Show me.\r\n'))
+        self.assertEqual(entry.get_response(), encode_to_bytes('Show me.\r\n'))
 
     def test_empty_getresponse(self):
         entry = MocketEntry(('localhost', 8080), [])
-        self.assertEqual(entry.get_response(), encode_utf8(''))
+        self.assertEqual(entry.get_response(), encode_to_bytes(''))
 
 
 class MocketizeTestCase(TestCase):

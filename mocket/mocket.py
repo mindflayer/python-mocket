@@ -7,19 +7,19 @@ import ssl
 import io
 import collections
 import hashlib
-import gzip
+import select
 from datetime import datetime, timedelta
 
 import decorator
+import hexdump
 
 from .compat import (
-    encode_utf8,
-    decode_utf8,
+    encode_to_bytes,
+    decode_from_bytes,
     basestring,
     byte_type,
     text_type,
     FileNotFoundError,
-    encoding,
     JSONDecodeError,
 )
 
@@ -113,7 +113,7 @@ class MocketSocket(object):
         self.fd = io.BytesIO()
         self._closed = True
         self._connected = False
-        self._buflen = 1024
+        self._buflen = 65536
         self._entry = None
         self.family = family
         self.type = type
@@ -210,9 +210,9 @@ class MocketSocket(object):
             self._connected = True
 
     def true_sendall(self, data, *args, **kwargs):
-        req = decode_utf8(data)
+        req = decode_from_bytes(data)
         # make request unique again
-        req_signature = hashlib.md5(encode_utf8(''.join(sorted(req.split('\r\n'))))).hexdigest()
+        req_signature = hashlib.md5(encode_to_bytes(''.join(sorted(req.split('\r\n'))))).hexdigest()
         # port should be always a string
         port = text_type(self._port)
 
@@ -243,58 +243,33 @@ class MocketSocket(object):
 
         # try to get the response from the dictionary
         try:
-            lines = response_dict['response']
-            gzipped_lines = response_dict['gzip']
-            r_lines = []
-            for line_no, line in enumerate(lines):
-                line = encode_utf8(line)
-                if line_no + 1 in gzipped_lines:
-                    gzip_buffer = io.BytesIO()
-                    gzip_file = gzip.GzipFile(mode='wb', fileobj=gzip_buffer)
-                    try:
-                        gzip_file.write(line)
-                    finally:
-                        gzip_file.close()
-                    line = gzip_buffer.getvalue()
-                r_lines.append(line)
-            encoded_response = b'\r\n'.join(r_lines)
-
+            try:
+                encoded_response = hexdump.restore(response_dict['response'])
+            except TypeError:  # pragma: no cover
+                # Python 2
+                encoded_response = hexdump.restore(encode_to_bytes(response_dict['response']))
         # if not available, call the real sendall
         except KeyError:
             self._connect()
             self.true_socket.sendall(data, *args, **kwargs)
-            r = io.BytesIO()
-            while True:
+            encoded_response = b''
+            # https://github.com/kennethreitz/requests/blob/master/tests/testserver/server.py#L13
+            while select.select([self.true_socket], [], [], 0.5)[0]:
                 recv = self.true_socket.recv(self._buflen)
-                if r.write(recv) < self._buflen:
+                if recv:
+                    encoded_response += recv
+                else:
                     break
-
-            encoded_response = r.getvalue()
 
             # dump the resulting dictionary to a JSON file
             if Mocket.get_truesocket_recording_dir():
+
+                # update the dictionary with request and response lines
                 response_dict['request'] = req
-                lines = response_dict['response'] = []
-                gzipped_lines = response_dict['gzip'] = []
+                response_dict['response'] = hexdump.dump(encoded_response)
 
-                # update the dictionary with the response obtained
-                for line_no, line in enumerate(encoded_response.split(b'\r\n')):
-
-                    try:
-                        line = decode_utf8(line)
-                    except UnicodeDecodeError:
-                        f = gzip.GzipFile(mode='rb', fileobj=io.BytesIO(line))
-                        try:
-                            line = f.read(len(line))
-                        finally:
-                            f.close()
-                        line = decode_utf8(line)
-                        gzipped_lines.append(line_no + 1)
-
-                    lines.append(line)
-
-                with io.open(path, mode='w', encoding=encoding) as f:
-                    f.write(decode_utf8(json.dumps(responses, indent=4, sort_keys=True)))
+                with io.open(path, mode='w') as f:
+                    f.write(decode_from_bytes(json.dumps(responses, indent=4, sort_keys=True)))
 
         # response back to .sendall() which writes it to the mocket socket and flush the BytesIO
         return encoded_response
@@ -416,12 +391,12 @@ class MocketEntry(object):
         for r in responses:
             if not getattr(r, 'data', False):
                 if isinstance(r, text_type):
-                    r = encode_utf8(r)
+                    r = encode_to_bytes(r)
                 r = self.response_cls(r)
             lresponses.append(r)
         else:
             if not responses:
-                lresponses = [self.response_cls(encode_utf8(''))]
+                lresponses = [self.response_cls(encode_to_bytes(''))]
         self.responses = lresponses
 
     def can_handle(self, data):

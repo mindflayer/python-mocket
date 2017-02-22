@@ -68,7 +68,7 @@ class TrueHttpEntryTestCase(TestCase):
 
     @mocketize(truesocket_recording_dir=recording_directory)
     def test_truesendall_with_chunk_recording(self):
-        url = 'http://httpbin.org/range/2048?chunk_size=256'
+        url = 'http://httpbin.org/range/70000?chunk_size=65536'
 
         requests.get(url)
         resp = requests.get(url)

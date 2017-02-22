@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 from itertools import chain
 
-from .compat import text_type, byte_type, encode_utf8, decode_utf8, shsplit
+from .compat import text_type, byte_type, encode_to_bytes, decode_from_bytes, shsplit
 from .mocket import MocketEntry, Mocket
 
 
@@ -19,7 +19,7 @@ class Response(object):
 class Redisizer(byte_type):
     @staticmethod
     def tokens(iterable):
-        iterable = [encode_utf8(x) for x in iterable]
+        iterable = [encode_to_bytes(x) for x in iterable]
         return ['*{0}'.format(len(iterable)).encode('utf-8')] + list(chain(*zip(['${0}'.format(len(x)).encode('utf-8') for x in iterable], iterable)))
 
     @staticmethod
@@ -27,7 +27,7 @@ class Redisizer(byte_type):
         if isinstance(data, Redisizer):
             return data
         if isinstance(data, byte_type):
-            data = decode_utf8(data)
+            data = decode_from_bytes(data)
         CONVERSION = {
             dict: lambda x: b'\r\n'.join(Redisizer.tokens(list(chain(*tuple(x.items()))))),
             int: lambda x: ':{0}'.format(x).encode('utf-8'),
