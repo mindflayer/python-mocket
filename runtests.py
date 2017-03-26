@@ -14,6 +14,10 @@ def runtests(args=None):
     python27 = False
     python35 = False
 
+    # old version of OpenSSL will fail without it
+    if major == 2 and minor == 6:
+        pip.main(['install', 'requests[security]'])
+
     # gevent not available on Python 2.6
     if major > 2 or (major == 2 and minor > 6):
 
