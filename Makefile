@@ -25,6 +25,7 @@ safetest:
 
 publish:
 	python setup.py sdist upload
+	pip install anaconda-client
 	anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
 
 clean:

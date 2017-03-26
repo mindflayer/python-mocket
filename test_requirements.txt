@@ -4,4 +4,3 @@ pytest-cov
 mock
 requests
 redis
-anaconda-client
