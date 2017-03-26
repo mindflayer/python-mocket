@@ -34,15 +34,8 @@ try:  # pragma no cover
     class MocketEngine(MockEngine):
 
         def __init__(self, engine):
-            # Store plugins engine
-            self.engine = engine
-            # Store HTTP client interceptors
-            self.interceptors = []
-            # Self-register MocketInterceptor
-            self.add_interceptor(MocketInterceptor)
-
-        def activate(self):
-            for mock in self.engine.mocks:
+            def mocket_mock_fun(*args, **kwargs):
+                mock = self.pook_mock_fun(*args, **kwargs)
 
                 request = mock._request
                 method = request.method
@@ -57,7 +50,18 @@ try:  # pragma no cover
                 entry.pook_engine = self.engine
                 entry.pook_request = request
 
-            super(MocketEngine, self).activate()
+                return mock
+
+            # Store plugins engine
+            self.engine = engine
+            # Store HTTP client interceptors
+            self.interceptors = []
+            # Self-register MocketInterceptor
+            self.add_interceptor(MocketInterceptor)
+
+            # mocking pook.mock()
+            self.pook_mock_fun = self.engine.mock
+            self.engine.mock = mocket_mock_fun
 
 except ImportError:
     pass
