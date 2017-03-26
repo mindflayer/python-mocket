@@ -4,3 +4,4 @@ pytest-cov
 mock
 requests
 redis
+gevent
