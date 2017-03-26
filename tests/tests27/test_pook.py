@@ -1,14 +1,14 @@
 import requests
+import pook
 
 from mocket.plugins.pook_mock_engine import MocketEngine
 
 
+pook.set_mock_engine(MocketEngine)
+
+
+@pook.on
 def test_pook_engine():
-    import pook
-
-    pook.activate()
-
-    pook.set_mock_engine(MocketEngine)
 
     url = 'http://twitter.com/api/1/foobar'
     status = 404
