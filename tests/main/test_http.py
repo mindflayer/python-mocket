@@ -267,6 +267,13 @@ class HttpEntryTestCase(TestCase):
             last_request = Mocket.last_request()
             assert last_request.body == request_body
 
+    @mocketize
+    def test_http_basic_auth(self):
+        url = 'http://httpbin.org/hidden-basic-auth/hellouser/hellopassword'
+        # Entry.single_register(Entry.GET, url, body='Hello Auth', status=200)
+
+        requests.get(url, auth=('hellouser', 'hellopassword'))
+
     def assertEqualHeaders(self, first, second, msg=None):
         first = dict((k.lower(), v) for k, v in first.items())
         second = dict((k.lower(), v) for k, v in second.items())
