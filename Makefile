@@ -29,9 +29,9 @@ publish:
 	anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
 
 clean:
-	find . -type d -name __pycache__ -exec rm -rf {} \;
 	rm -rf dist
 	rm -rf *.egg-info
+	find . -type d -name __pycache__ -exec rm -rf {} \;
 
 .PHONY: publish clean
 
