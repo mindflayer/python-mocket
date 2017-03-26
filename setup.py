@@ -3,9 +3,9 @@ from io import open
 
 from setuptools import setup, find_packages, os
 
-import mocket
 
 major, minor = sys.version_info[:2]
+
 
 # Hack to prevent stupid "TypeError: 'NoneType' object is not callable" error
 # in multiprocessing/util.py _exit_function when running `python
@@ -19,9 +19,10 @@ for m in ('multiprocessing', 'billiard'):
 
 install_requires = open(os.path.join(os.path.dirname(__file__), 'requirements.txt')).readlines()
 tests_requires = open(os.path.join(os.path.dirname(__file__), 'test_requirements.txt')).readlines()
-pook_requires = ['pook>=0.1.13']
 
+pook_requires = ['pook>=0.2.1']
 exclude_packages = ['tests', 'tests35', 'mocket.plugins.pook']
+
 
 if major > 2 or (major == 2 and minor > 6):
     # pook does not support Python 2.6
@@ -33,9 +34,23 @@ else:
     # flake8 version >=3 does not support Python 2.6
     tests_requires.append('flake8<3.0')
 
+
+def read_version(package):
+    init_path = os.path.join(package, '__init__.py')
+    with open(init_path, 'r') as fd:
+        for line in fd:
+            if line.startswith('__version__ = '):
+                return line.split()[-1].strip().strip("'")
+
+package_name = 'mocket'
+
+# Get package current version
+version = read_version(package_name)
+
+
 setup(
-    name='mocket',
-    version=mocket.__version__,
+    name=package_name,
+    version=read_version(package_name),
     # author='Andrea de Marco, Giorgio Salluzzo',
     author='Giorgio Salluzzo',
     # author_email='24erre@gmail.com, giorgio.salluzzo@gmail.com',
