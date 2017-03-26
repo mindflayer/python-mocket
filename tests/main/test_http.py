@@ -19,8 +19,15 @@ from tests import urlopen, urlencode, HTTPError
 recording_directory = tempfile.mkdtemp()
 
 
+class HttpTestCase(TestCase):
+    def assertEqualHeaders(self, first, second, msg=None):
+        first = dict((k.lower(), v) for k, v in first.items())
+        second = dict((k.lower(), v) for k, v in second.items())
+        self.assertEqual(first, second, msg)
+
+
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
-class TrueHttpEntryTestCase(TestCase):
+class TrueHttpEntryTestCase(HttpTestCase):
     @mocketize
     def test_truesendall(self):
         url = 'http://httpbin.org/ip'
@@ -105,7 +112,7 @@ class TrueHttpEntryTestCase(TestCase):
         self.assertEqual(response.code, 200)
 
 
-class HttpEntryTestCase(TestCase):
+class HttpEntryTestCase(HttpTestCase):
     def test_register(self):
         with mock.patch('time.gmtime') as tt:
             tt.return_value = time.struct_time((2013, 4, 30, 10, 39, 21, 1, 120, 0))
@@ -267,14 +274,9 @@ class HttpEntryTestCase(TestCase):
             last_request = Mocket.last_request()
             assert last_request.body == request_body
 
-    @mocketize
-    def test_http_basic_auth(self):
-        url = 'http://httpbin.org/hidden-basic-auth/hellouser/hellopassword'
-        # Entry.single_register(Entry.GET, url, body='Hello Auth', status=200)
-
-        requests.get(url, auth=('hellouser', 'hellopassword'))
-
-    def assertEqualHeaders(self, first, second, msg=None):
-        first = dict((k.lower(), v) for k, v in first.items())
-        second = dict((k.lower(), v) for k, v in second.items())
-        self.assertEqual(first, second, msg)
+    # @mocketize
+    # def test_http_basic_auth(self):
+    #     url = 'http://httpbin.org/hidden-basic-auth/hellouser/hellopassword'
+    #     # Entry.single_register(Entry.GET, url, body='Hello Auth', status=200)
+    #
+    #     requests.get(url, auth=('hellouser', 'hellopassword'))
