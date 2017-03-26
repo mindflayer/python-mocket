@@ -3,6 +3,8 @@ from io import open
 
 from setuptools import setup, find_packages, os
 
+import mocket
+
 major, minor = sys.version_info[:2]
 
 # Hack to prevent stupid "TypeError: 'NoneType' object is not callable" error
@@ -33,7 +35,7 @@ else:
 
 setup(
     name='mocket',
-    version='1.7.6',
+    version=mocket.__version__,
     # author='Andrea de Marco, Giorgio Salluzzo',
     author='Giorgio Salluzzo',
     # author_email='24erre@gmail.com, giorgio.salluzzo@gmail.com',

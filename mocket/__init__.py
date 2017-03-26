@@ -6,3 +6,5 @@ except ImportError:
     from mocket.mocket import mocketize, Mocket, MocketEntry
 
 __all__ = (mocketize, Mocket, MocketEntry)
+
+__version__ = '1.7.6'

@@ -1,3 +1,5 @@
+#!/usr/bin/make -f
+
 install-dev-requirements:
 	pip install -U -q -e .
 
@@ -23,6 +25,7 @@ safetest:
 
 publish:
 	python setup.py sdist upload
+	anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} \;
