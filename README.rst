@@ -104,10 +104,10 @@ Example:
 
     import pook
     from mocket.plugins.pook_mock_engine import MocketEngine
-    
-    pook.activate()
 
     pook.set_mock_engine(MocketEngine)
+
+    pook.on()
 
     url = 'http://twitter.com/api/1/foobar'
     status = 404
@@ -128,9 +128,6 @@ Example:
     assert resp.status_code == status
     assert resp.json() == response_json
     assert mock.calls == 2
-
-    pook.disable()
-
 
 First appearance
 ================

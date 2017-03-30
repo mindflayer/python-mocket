@@ -1,67 +1,65 @@
-# pook not available on Python 2.6
-try:  # pragma no cover
-    from pook.engine import MockEngine
-    from pook.interceptors.base import BaseInterceptor
+from pook.engine import MockEngine
+from pook.interceptors.base import BaseInterceptor
 
-    from mocket.mocket import Mocket
-    from mocket.mockhttp import Entry, Response
+from mocket.mocket import Mocket
+from mocket.mockhttp import Entry, Response
 
-    class MocketPookEntry(Entry):
-        pook_request = None
-        pook_engine = None
 
-        def can_handle(self, data):
-            can_handle = super(MocketPookEntry, self).can_handle(data)
+class MocketPookEntry(Entry):
+    pook_request = None
+    pook_engine = None
 
-            if can_handle:
-                self.pook_engine.match(self.pook_request)
-            return can_handle
+    def can_handle(self, data):
+        can_handle = super(MocketPookEntry, self).can_handle(data)
 
-        @classmethod
-        def single_register(cls, method, uri, body='', status=200, headers=None):
-            entry = cls(uri, method, Response(body=body, status=status, headers=headers))
-            Mocket.register(entry)
-            return entry
+        if can_handle:
+            self.pook_engine.match(self.pook_request)
+        return can_handle
 
-    class MocketInterceptor(BaseInterceptor):
-        def activate(self):
-            Mocket.disable()
-            Mocket.enable()
+    @classmethod
+    def single_register(cls, method, uri, body='', status=200, headers=None):
+        entry = cls(uri, method, Response(body=body, status=status, headers=headers))
+        Mocket.register(entry)
+        return entry
 
-        def disable(self):
-            Mocket.disable()
 
-    class MocketEngine(MockEngine):
+class MocketInterceptor(BaseInterceptor):
+    def activate(self):
+        Mocket.disable()
+        Mocket.enable()
 
-        def __init__(self, engine):
-            def mocket_mock_fun(*args, **kwargs):
-                mock = self.pook_mock_fun(*args, **kwargs)
+    def disable(self):
+        Mocket.disable()
 
-                request = mock._request
-                method = request.method
-                url = request.rawurl
 
-                response = mock._response
-                body = response._body
-                status = response._status
-                headers = response._headers
+class MocketEngine(MockEngine):
 
-                entry = MocketPookEntry.single_register(method, url, body, status, headers)
-                entry.pook_engine = self.engine
-                entry.pook_request = request
+    def __init__(self, engine):
+        def mocket_mock_fun(*args, **kwargs):
+            mock = self.pook_mock_fun(*args, **kwargs)
 
-                return mock
+            request = mock._request
+            method = request.method
+            url = request.rawurl
 
-            # Store plugins engine
-            self.engine = engine
-            # Store HTTP client interceptors
-            self.interceptors = []
-            # Self-register MocketInterceptor
-            self.add_interceptor(MocketInterceptor)
+            response = mock._response
+            body = response._body
+            status = response._status
+            headers = response._headers
 
-            # mocking pook.mock()
-            self.pook_mock_fun = self.engine.mock
-            self.engine.mock = mocket_mock_fun
+            entry = MocketPookEntry.single_register(method, url, body, status, headers)
+            entry.pook_engine = self.engine
+            entry.pook_request = request
 
-except ImportError:
-    pass
+            return mock
+
+        # Store plugins engine
+        self.engine = engine
+        # Store HTTP client interceptors
+        self.interceptors = []
+        # Self-register MocketInterceptor
+        self.add_interceptor(MocketInterceptor)
+
+        # mocking pook.mock()
+        self.pook_mock_fun = self.engine.mock
+        self.engine.mock = mocket_mock_fun
