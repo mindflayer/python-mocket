@@ -199,6 +199,7 @@ class MocketSocket(object):
 
         self.fd.seek(0)
         self.fd.write(response)
+        self.fd.truncate()
         self.fd.seek(0)
 
     def recv(self, buffersize, flags=None):
