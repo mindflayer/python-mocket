@@ -76,7 +76,7 @@ class MocketTestCase(TestCase):
         self.assertEqual(entry.get_response(), encode_to_bytes(''))
         
     @mocketize
-    def test_foo(self):
+    def test_subsequent_recv_requests_have_correct_length(self):
         Mocket.register(
             MocketEntry(
                 ('localhost', 80),
