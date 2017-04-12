@@ -344,7 +344,6 @@ class Mocket(object):
         socket.gethostbyname = socket.__dict__['gethostbyname'] = lambda host: '127.0.0.1'
         socket.getaddrinfo = socket.__dict__['getaddrinfo'] = \
             lambda host, port, family=None, socktype=None, proto=None, flags=None: [(2, 1, 6, '', (host, port))]
-        socket.inet_aton = socket.__dict__['inet_aton'] = socket.gethostbyname
         ssl.wrap_socket = ssl.__dict__['wrap_socket'] = FakeSSLContext.wrap_socket
         ssl.SSLContext = ssl.__dict__['SSLSocket'] = FakeSSLContext
 
