@@ -356,7 +356,6 @@ class Mocket(object):
         socket.gethostname = socket.__dict__['gethostname'] = true_gethostname
         socket.gethostbyname = socket.__dict__['gethostbyname'] = true_gethostbyname
         socket.getaddrinfo = socket.__dict__['getaddrinfo'] = true_getaddrinfo
-        socket.inet_aton = socket.__dict__['inet_aton'] = true_gethostbyname
         ssl.wrap_socket = ssl.__dict__['SSLSocket'] = true_ssl_wrap_socket
         ssl.SSLSocket = ssl.__dict__['wrap_socket'] = true_ssl_socket
         ssl.SSLContext = ssl.__dict__['SSLSocket'] = true_ssl_context
