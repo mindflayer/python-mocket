@@ -5,8 +5,6 @@ from unittest import TestCase
 from mocket.mocket import mocketize
 from mocket.mockhttp import Entry
 
-loop = asyncio.get_event_loop()
-
 
 class AioHttpEntryTestCase(TestCase):
     @mocketize
@@ -18,10 +16,13 @@ class AioHttpEntryTestCase(TestCase):
 
         async def main(l):
             async with aiohttp.ClientSession(loop=l) as session:
-                get_response = await session.get(url)
-                post_response = await session.post(url, data=body*6)
-                assert get_response.status == 404
-                assert post_response.status == 201
-                assert await get_response.text() == body
-                assert await post_response.text() == body*2
+                async with session.get(url) as get_response:
+                    assert get_response.status == 404
+                    assert await get_response.text() == body
+
+                async with session.post(url, data=body*6) as post_response:
+                    assert post_response.status == 201
+                    assert await post_response.text() == body*2
+
+        loop = asyncio.get_event_loop()
         loop.run_until_complete(main(loop))

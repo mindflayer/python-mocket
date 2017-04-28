@@ -62,7 +62,9 @@ class SuperFakeSSLContext(object):
 
 
 class FakeSSLContext(SuperFakeSSLContext):
-    def __init__(self, sock=None, server_hostname=None, *args, **kwargs):
+    sock = None
+
+    def __init__(self, sock=None, server_hostname=None, _context=None, *args, **kwargs):
         if isinstance(sock, MocketSocket):
             self.sock = sock
             self.sock._host = server_hostname
@@ -78,6 +80,8 @@ class FakeSSLContext(SuperFakeSSLContext):
                 self.sock.true_socket = true_ssl_socket(
                     sock=self.sock.true_socket,
                 )
+        elif isinstance(sock, int) and true_ssl_context:
+            self.context = true_ssl_context(sock)
 
     @staticmethod
     def load_default_certs(*args, **kwargs):
@@ -86,6 +90,13 @@ class FakeSSLContext(SuperFakeSSLContext):
     @staticmethod
     def wrap_socket(sock, *args, **kwargs):
         return sock
+
+    def wrap_bio(self, incoming, outcoming, *args, **kwargs):
+        # FIXME: fake SSLObject implementation
+        ssl_obj = MocketSocket()
+        ssl_obj._host = kwargs['server_hostname']
+        # ssl_obj.fd = outcoming
+        return ssl_obj
 
     def __getattr__(self, name):
         return getattr(self.sock, name)
@@ -106,6 +117,8 @@ class MocketSocket(object):
     type = None
     proto = None
     _host = None
+    cipher = lambda s: ("ADH", "AES256", "SHA")
+    compression = lambda s: ssl.OP_NO_COMPRESSION
 
     def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0):
         self.settimeout(socket._GLOBAL_DEFAULT_TIMEOUT)
@@ -119,6 +132,14 @@ class MocketSocket(object):
         self.type = type
         self.proto = proto
         self._truesocket_recording_dir = None
+
+    def __unicode__(self):
+        return str(self)
+
+    def __str__(self):
+        return "({})(family={} type={} protocol={})".format(
+            self.__class__.__name__, self.family, self.type, self.proto
+        )
 
     def gettimeout(self):
         return self.timeout
@@ -136,6 +157,9 @@ class MocketSocket(object):
             self.timeout = timeout
         except AttributeError:
             pass
+
+    def do_handshake(self):
+        pass
 
     def getpeername(self):
         return self._address
@@ -175,10 +199,10 @@ class MocketSocket(object):
         self._address = self._host, self._port = address
         self._closed = False
 
-    def close(self):
-        if self.true_socket and self._connected:
-            self.true_socket.close()
-        self._closed = True
+    # def close(self):
+    #     if self.true_socket and self._connected:
+    #         self.true_socket.close()
+    #     self._closed = True
 
     def makefile(self, mode='r', bufsize=-1):
         self._mode = mode
@@ -203,7 +227,7 @@ class MocketSocket(object):
         self.fd.seek(0)
 
     def recv(self, buffersize, flags=None):
-        return self.fd.readline(buffersize)
+        return self.fd.read(buffersize)
 
     def _connect(self):  # pragma: no cover
         if not self._connected:
