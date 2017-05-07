@@ -5,6 +5,7 @@ import json
 import os
 import ssl
 import io
+import tempfile
 import collections
 import hashlib
 import select
@@ -91,6 +92,9 @@ class FakeSSLContext(SuperFakeSSLContext):
     def wrap_socket(sock, *args, **kwargs):
         return sock
 
+    def unwrap(self):
+        return self.sock
+
     def wrap_bio(self, incoming, outcoming, *args, **kwargs):
         # FIXME: fake SSLObject implementation
         ssl_obj = MocketSocket()
@@ -116,7 +120,9 @@ class MocketSocket(object):
     family = None
     type = None
     proto = None
-    _host = None
+    _host = '127.0.0.1'
+    _port = 80
+    _address = None
     cipher = lambda s: ("ADH", "AES256", "SHA")
     compression = lambda s: ssl.OP_NO_COMPRESSION
 
@@ -128,9 +134,9 @@ class MocketSocket(object):
         self._connected = False
         self._buflen = 65536
         self._entry = None
-        self.family = family
-        self.type = type
-        self.proto = proto
+        self.family = int(family)
+        self.type = int(type)
+        self.proto = int(proto)
         self._truesocket_recording_dir = None
 
     def __unicode__(self):
@@ -164,6 +170,12 @@ class MocketSocket(object):
     def getpeername(self):
         return self._address
 
+    def setblocking(self, block):
+        self.settimeout(None) if block else self.settimeout(0.0)
+
+    def getsockname(self):
+        return socket.gethostbyname(self._address[0]), self._address[1]
+
     def getpeercert(self, *args, **kwargs):
         if not self._host:
             self._host, _ = self._address
@@ -191,9 +203,11 @@ class MocketSocket(object):
         }
 
     def fileno(self):
-        if self.true_socket:
-            return self.true_socket.fileno()
-        return self.fd.fileno()
+        try:
+            return self.fd.fileno()
+        except OSError:
+            self.fd = tempfile.TemporaryFile()
+            return self.fd.fileno()
 
     def connect(self, address):
         self._address = self._host, self._port = address
@@ -298,6 +312,9 @@ class MocketSocket(object):
 
         # response back to .sendall() which writes it to the mocket socket and flush the BytesIO
         return encoded_response
+
+    def write(self, *args, **kwargs):
+        return self.send(*args, **kwargs)
 
     def send(self, data, *args, **kwargs):  # pragma: no cover
         entry = self.get_entry(data)
