@@ -27,8 +27,8 @@ def runtests(args=None):
         if python35:
             args.append('tests/tests35')
 
-    # sys.exit(pytest.main(['tests/tests35/test_http_aiohttp.py::AioHttpEntryTestCase::test_session']))
-    sys.exit(pytest.main(args))
+    sys.exit(pytest.main(['tests/tests35/test_http_aiohttp.py::AioHttpEntryTestCase::test_session']))
+    # sys.exit(pytest.main(args))
 
 
 if __name__ == '__main__':

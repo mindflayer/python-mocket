@@ -5,7 +5,6 @@ import json
 import os
 import ssl
 import io
-import tempfile
 import collections
 import hashlib
 import select
@@ -14,6 +13,9 @@ from datetime import datetime, timedelta
 import decorator
 import hexdump
 
+from .utils import (
+    create_sock_pair,
+)
 from .compat import (
     encode_to_bytes,
     decode_from_bytes,
@@ -92,9 +94,6 @@ class FakeSSLContext(SuperFakeSSLContext):
     def wrap_socket(sock, *args, **kwargs):
         return sock
 
-    def unwrap(self):
-        return self.sock
-
     def wrap_bio(self, incoming, outcoming, *args, **kwargs):
         # FIXME: fake SSLObject implementation
         ssl_obj = MocketSocket()
@@ -125,12 +124,15 @@ class MocketSocket(object):
     _address = None
     cipher = lambda s: ("ADH", "AES256", "SHA")
     compression = lambda s: ssl.OP_NO_COMPRESSION
+    _mode = None
+    _bufsize = None
+    _fileno = None
+    _fd = None
 
-    def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0):
+    def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, detach=None):
         self.settimeout(socket._GLOBAL_DEFAULT_TIMEOUT)
         self.true_socket = true_socket(family, type, proto)
         self.fd = io.BytesIO()
-        self._closed = True
         self._connected = False
         self._buflen = 65536
         self._entry = None
@@ -138,6 +140,7 @@ class MocketSocket(object):
         self.type = int(type)
         self.proto = int(proto)
         self._truesocket_recording_dir = None
+        print(self)
 
     def __unicode__(self):
         return str(self)
@@ -202,16 +205,20 @@ class MocketSocket(object):
             ),
         }
 
+    def unwrap(self):
+        return self
+
     def fileno(self):
-        try:
-            return self.fd.fileno()
-        except OSError:
-            self.fd = tempfile.TemporaryFile()
-            return self.fd.fileno()
+        if not self._fileno:
+            w, self._fd = create_sock_pair(true_socket, socket)
+            w.send(b'asd')
+            w.close()
+            self._fileno = self._fd.fileno()
+            print(self._fileno)
+        return self._fileno
 
     def connect(self, address):
         self._address = self._host, self._port = address
-        self._closed = False
 
     # def close(self):
     #     if self.true_socket and self._connected:
@@ -325,6 +332,7 @@ class MocketSocket(object):
         return len(data)
 
     def __getattr__(self, name):
+        print('name->', name)
         # useful when clients call methods on real
         # socket we do not provide on the fake one
         return getattr(self.true_socket, name)  # pragma: no cover
