@@ -6,17 +6,6 @@ from setuptools import setup, find_packages, os
 
 major, minor = sys.version_info[:2]
 
-
-# Hack to prevent stupid "TypeError: 'NoneType' object is not callable" error
-# in multiprocessing/util.py _exit_function when running `python
-# setup.py test` (see
-# http://www.eby-sarna.com/pipermail/peak/2010-May/003357.html)
-for m in ('multiprocessing', 'billiard'):
-    try:
-        __import__(m)
-    except ImportError:
-        pass
-
 install_requires = open(os.path.join(os.path.dirname(__file__), 'requirements.txt')).readlines()
 tests_requires = open(os.path.join(os.path.dirname(__file__), 'test_requirements.txt')).readlines()
 

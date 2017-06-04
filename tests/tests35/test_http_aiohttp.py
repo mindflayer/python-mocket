@@ -9,7 +9,7 @@ from mocket.mockhttp import Entry
 class AioHttpEntryTestCase(TestCase):
     @mocketize
     def test_session(self):
-        url = 'https://httpbin.org/ip'
+        url = 'http://httpbin.org/ip'
         body = "asd" * 100
         Entry.single_register(Entry.GET, url, body=body, status=404)
         Entry.single_register(Entry.POST, url, body=body*2, status=201)

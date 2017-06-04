@@ -14,7 +14,7 @@ import decorator
 import hexdump
 
 from .utils import (
-    create_sock_pair,
+    MocketSocketCore,
 )
 from .compat import (
     encode_to_bytes,
@@ -126,13 +126,11 @@ class MocketSocket(object):
     compression = lambda s: ssl.OP_NO_COMPRESSION
     _mode = None
     _bufsize = None
-    _fileno = None
-    _fd = None
 
     def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, detach=None):
         self.settimeout(socket._GLOBAL_DEFAULT_TIMEOUT)
         self.true_socket = true_socket(family, type, proto)
-        self.fd = io.BytesIO()
+        self.fd = MocketSocketCore()
         self._connected = False
         self._buflen = 65536
         self._entry = None
@@ -140,7 +138,6 @@ class MocketSocket(object):
         self.type = int(type)
         self.proto = int(proto)
         self._truesocket_recording_dir = None
-        print(self)
 
     def __unicode__(self):
         return str(self)
@@ -208,14 +205,13 @@ class MocketSocket(object):
     def unwrap(self):
         return self
 
+    def write(self, c):
+        return len(c)
+
     def fileno(self):
-        if not self._fileno:
-            w, self._fd = create_sock_pair(true_socket, socket)
-            w.send(b'asd')
-            w.close()
-            self._fileno = self._fd.fileno()
-            print(self._fileno)
-        return self._fileno
+        if not self.fd.r_fd:
+            self.fd.r_fd, self.fd.w_fd = os.pipe()
+        return self.fd.r_fd
 
     def connect(self, address):
         self._address = self._host, self._port = address
@@ -320,9 +316,6 @@ class MocketSocket(object):
         # response back to .sendall() which writes it to the mocket socket and flush the BytesIO
         return encoded_response
 
-    def write(self, *args, **kwargs):
-        return self.send(*args, **kwargs)
-
     def send(self, data, *args, **kwargs):  # pragma: no cover
         entry = self.get_entry(data)
         if entry:
@@ -332,7 +325,6 @@ class MocketSocket(object):
         return len(data)
 
     def __getattr__(self, name):
-        print('name->', name)
         # useful when clients call methods on real
         # socket we do not provide on the fake one
         return getattr(self.true_socket, name)  # pragma: no cover
