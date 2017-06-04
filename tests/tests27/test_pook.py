@@ -30,4 +30,3 @@ def test_pook_engine():
     assert resp.json() == response_json
     assert mock.calls == 2
 
-    pook.disable()

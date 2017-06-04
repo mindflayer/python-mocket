@@ -13,6 +13,9 @@ from datetime import datetime, timedelta
 import decorator
 import hexdump
 
+from .utils import (
+    MocketSocketCore,
+)
 from .compat import (
     encode_to_bytes,
     decode_from_bytes,
@@ -62,7 +65,9 @@ class SuperFakeSSLContext(object):
 
 
 class FakeSSLContext(SuperFakeSSLContext):
-    def __init__(self, sock=None, server_hostname=None, *args, **kwargs):
+    sock = None
+
+    def __init__(self, sock=None, server_hostname=None, _context=None, *args, **kwargs):
         if isinstance(sock, MocketSocket):
             self.sock = sock
             self.sock._host = server_hostname
@@ -78,6 +83,8 @@ class FakeSSLContext(SuperFakeSSLContext):
                 self.sock.true_socket = true_ssl_socket(
                     sock=self.sock.true_socket,
                 )
+        elif isinstance(sock, int) and true_ssl_context:
+            self.context = true_ssl_context(sock)
 
     @staticmethod
     def load_default_certs(*args, **kwargs):
@@ -86,6 +93,13 @@ class FakeSSLContext(SuperFakeSSLContext):
     @staticmethod
     def wrap_socket(sock, *args, **kwargs):
         return sock
+
+    def wrap_bio(self, incoming, outcoming, *args, **kwargs):
+        # FIXME: fake SSLObject implementation
+        ssl_obj = MocketSocket()
+        ssl_obj._host = kwargs['server_hostname']
+        # ssl_obj.fd = outcoming
+        return ssl_obj
 
     def __getattr__(self, name):
         return getattr(self.sock, name)
@@ -105,20 +119,33 @@ class MocketSocket(object):
     family = None
     type = None
     proto = None
-    _host = None
+    _host = '127.0.0.1'
+    _port = 80
+    _address = None
+    cipher = lambda s: ("ADH", "AES256", "SHA")
+    compression = lambda s: ssl.OP_NO_COMPRESSION
+    _mode = None
+    _bufsize = None
 
-    def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0):
+    def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, detach=None):
         self.settimeout(socket._GLOBAL_DEFAULT_TIMEOUT)
         self.true_socket = true_socket(family, type, proto)
-        self.fd = io.BytesIO()
-        self._closed = True
+        self.fd = MocketSocketCore()
         self._connected = False
         self._buflen = 65536
         self._entry = None
-        self.family = family
-        self.type = type
-        self.proto = proto
+        self.family = int(family)
+        self.type = int(type)
+        self.proto = int(proto)
         self._truesocket_recording_dir = None
+
+    def __unicode__(self):
+        return str(self)
+
+    def __str__(self):
+        return "({})(family={} type={} protocol={})".format(
+            self.__class__.__name__, self.family, self.type, self.proto
+        )
 
     def gettimeout(self):
         return self.timeout
@@ -137,8 +164,17 @@ class MocketSocket(object):
         except AttributeError:
             pass
 
+    def do_handshake(self):
+        pass
+
     def getpeername(self):
         return self._address
+
+    def setblocking(self, block):
+        self.settimeout(None) if block else self.settimeout(0.0)
+
+    def getsockname(self):
+        return socket.gethostbyname(self._address[0]), self._address[1]
 
     def getpeercert(self, *args, **kwargs):
         if not self._host:
@@ -166,19 +202,24 @@ class MocketSocket(object):
             ),
         }
 
+    def unwrap(self):
+        return self
+
+    def write(self, c):
+        return len(c)
+
     def fileno(self):
-        if self.true_socket:
-            return self.true_socket.fileno()
-        return self.fd.fileno()
+        if not self.fd.r_fd:
+            self.fd.r_fd, self.fd.w_fd = os.pipe()
+        return self.fd.r_fd
 
     def connect(self, address):
         self._address = self._host, self._port = address
-        self._closed = False
 
-    def close(self):
-        if self.true_socket and self._connected:
-            self.true_socket.close()
-        self._closed = True
+    # def close(self):
+    #     if self.true_socket and self._connected:
+    #         self.true_socket.close()
+    #     self._closed = True
 
     def makefile(self, mode='r', bufsize=-1):
         self._mode = mode
@@ -203,7 +244,7 @@ class MocketSocket(object):
         self.fd.seek(0)
 
     def recv(self, buffersize, flags=None):
-        return self.fd.readline(buffersize)
+        return self.fd.read(buffersize)
 
     def _connect(self):  # pragma: no cover
         if not self._connected:
