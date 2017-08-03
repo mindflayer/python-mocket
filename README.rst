@@ -12,6 +12,10 @@ mocket /mɔˈkɛt/
    :target: https://codeclimate.com/github/mindflayer/python-mocket
    :alt: Code Climate
 
+.. image:: https://requires.io/github/mindflayer/python-mocket/requirements.svg?branch=master
+     :target: https://requires.io/github/mindflayer/python-mocket/requirements/?branch=master
+     :alt: Requirements Status
+
 A socket mock framework
 -------------------------
     for all kinds of socket *animals*, web-clients included - with gevent/asyncio/SSL support
