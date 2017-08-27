@@ -12,6 +12,10 @@ mocket /mɔˈkɛt/
    :target: https://codeclimate.com/github/mindflayer/python-mocket
    :alt: Code Climate
 
+.. image:: https://requires.io/github/mindflayer/python-mocket/requirements.svg?branch=master
+     :target: https://requires.io/github/mindflayer/python-mocket/requirements/?branch=master
+     :alt: Requirements Status
+
 A socket mock framework
 -------------------------
     for all kinds of socket *animals*, web-clients included - with gevent/asyncio/SSL support
@@ -136,19 +140,3 @@ EuroPython 2013, Florence
 - Video: https://www.youtube.com/watch?v=-LvXbl5d02U
 - Slides: https://prezi.com/tmuiaugamsti/mocket/
 - Slides as PDF: https://ep2013.europython.eu/media/conference/slides/mocket-a-socket-mock-framework.pdf
-
-.. image:: http://badge.kloud51.com/pypi/v/mocket.svg
-
-.. image:: http://badge.kloud51.com/pypi/d/mocket.svg
-
-.. image:: http://badge.kloud51.com/pypi/w/mocket.svg
-
-.. image:: http://badge.kloud51.com/pypi/e/mocket.svg
-
-.. image:: http://badge.kloud51.com/pypi/l/mocket.svg
-
-.. image:: http://badge.kloud51.com/pypi/f/mocket.svg
-
-.. image:: http://badge.kloud51.com/pypi/py_versions/mocket.svg
-
-.. image:: http://badge.kloud51.com/pypi/s/mocket.svg
