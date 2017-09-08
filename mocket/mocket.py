@@ -94,7 +94,6 @@ class FakeSSLContext(SuperFakeSSLContext):
         return sock
 
     def wrap_bio(self, incoming, outcoming, *args, **kwargs):
-        # FIXME: fake SSLObject implementation
         ssl_obj = MocketSocket()
         ssl_obj._host = kwargs['server_hostname']
         return ssl_obj
