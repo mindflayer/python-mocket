@@ -57,13 +57,18 @@ class Response(object):
 
 
 class Entry(MocketEntry):
-    GET = 'GET'
-    PUT = 'PUT'
-    POST = 'POST'
+    CONNECT = 'CONNECT'
     DELETE = 'DELETE'
+    GET = 'GET'
     HEAD = 'HEAD'
+    OPTIONS = 'OPTIONS'
     PATCH = 'PATCH'
-    METHODS = (GET, PUT, POST, DELETE, HEAD, PATCH)
+    POST = 'POST'
+    PUT = 'PUT'
+    TRACE = 'TRACE'
+
+    METHODS = (CONNECT, DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, TRACE)
+
     request_cls = Request
     response_cls = Response
 
