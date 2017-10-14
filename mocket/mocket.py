@@ -34,6 +34,8 @@ __all__ = (
     'true_getaddrinfo',
     'true_ssl_wrap_socket',
     'true_ssl_socket',
+    'true_ssl_context',
+    'true_inet_pton',
     'create_connection',
     'MocketSocket',
     'Mocket',
@@ -48,11 +50,8 @@ true_gethostname = socket.gethostname
 true_getaddrinfo = socket.getaddrinfo
 true_ssl_wrap_socket = ssl.wrap_socket
 true_ssl_socket = ssl.SSLSocket
-try:
-    true_ssl_context = ssl.SSLContext
-except AttributeError:
-    # Python 2.6
-    true_ssl_context = None
+true_ssl_context = ssl.SSLContext
+true_inet_pton = socket.inet_pton
 
 
 class SuperFakeSSLContext(object):
@@ -95,10 +94,8 @@ class FakeSSLContext(SuperFakeSSLContext):
         return sock
 
     def wrap_bio(self, incoming, outcoming, *args, **kwargs):
-        # FIXME: fake SSLObject implementation
         ssl_obj = MocketSocket()
         ssl_obj._host = kwargs['server_hostname']
-        # ssl_obj.fd = outcoming
         return ssl_obj
 
     def __getattr__(self, name):
@@ -119,8 +116,8 @@ class MocketSocket(object):
     family = None
     type = None
     proto = None
-    _host = '127.0.0.1'
-    _port = 80
+    _host = None
+    _port = None
     _address = None
     cipher = lambda s: ("ADH", "AES256", "SHA")
     compression = lambda s: ssl.OP_NO_COMPRESSION
@@ -177,8 +174,9 @@ class MocketSocket(object):
         return socket.gethostbyname(self._address[0]), self._address[1]
 
     def getpeercert(self, *args, **kwargs):
-        if not self._host:
-            self._host, _ = self._address
+        if not (self._host and self._port):
+            self._address = self._host, self._port = Mocket._address
+
         now = datetime.now()
         shift = now + timedelta(days=30 * 12)
         return {
@@ -205,21 +203,16 @@ class MocketSocket(object):
     def unwrap(self):
         return self
 
-    def write(self, c):
-        return len(c)
+    def write(self, data):
+        return self.send(encode_to_bytes(data))
 
     def fileno(self):
-        if not self.fd.r_fd:
-            self.fd.r_fd, self.fd.w_fd = os.pipe()
-        return self.fd.r_fd
+        Mocket.r_fd, Mocket.w_fd = os.pipe()
+        return Mocket.r_fd
 
     def connect(self, address):
         self._address = self._host, self._port = address
-
-    # def close(self):
-    #     if self.true_socket and self._connected:
-    #         self.true_socket.close()
-    #     self._closed = True
+        Mocket._address = address
 
     def makefile(self, mode='r', bufsize=-1):
         self._mode = mode
@@ -243,12 +236,17 @@ class MocketSocket(object):
         self.fd.truncate()
         self.fd.seek(0)
 
+    def read(self, buffersize):
+        return self.fd.read(buffersize)
+
     def recv(self, buffersize, flags=None):
+        if Mocket.r_fd and Mocket.w_fd:
+            return os.read(Mocket.r_fd, buffersize)
         return self.fd.read(buffersize)
 
     def _connect(self):  # pragma: no cover
         if not self._connected:
-            self.true_socket.connect(self._address)
+            self.true_socket.connect(Mocket._address)
             self._connected = True
 
     def true_sendall(self, data, *args, **kwargs):
@@ -318,15 +316,17 @@ class MocketSocket(object):
 
     def send(self, data, *args, **kwargs):  # pragma: no cover
         entry = self.get_entry(data)
-        if entry:
-            if self._entry != entry:
-                self.sendall(data, *args, **kwargs)
+        if entry and self._entry != entry:
+            self.sendall(data, *args, **kwargs)
         self._entry = entry
         return len(data)
 
+    # def __getattribute__(self, name):
+    #     return super(MocketSocket, self).__getattribute__(name)
+
     def __getattr__(self, name):
-        # useful when clients call methods on real
-        # socket we do not provide on the fake one
+        """ Useful when clients call methods on real
+        socket we do not provide on the fake one. """
         return getattr(self.true_socket, name)  # pragma: no cover
 
 
@@ -335,6 +335,8 @@ class Mocket(object):
     _requests = []
     _namespace = text_type(id(_entries))
     _truesocket_recording_dir = None
+    r_fd = None
+    w_fd = None
 
     @classmethod
     def register(cls, *entries):
@@ -387,6 +389,10 @@ class Mocket(object):
             lambda host, port, family=None, socktype=None, proto=None, flags=None: [(2, 1, 6, '', (host, port))]
         ssl.wrap_socket = ssl.__dict__['wrap_socket'] = FakeSSLContext.wrap_socket
         ssl.SSLContext = ssl.__dict__['SSLSocket'] = FakeSSLContext
+        socket.inet_pton = socket.__dict__['inet_pton'] = lambda family, ip: byte_type(
+            '\x7f\x00\x00\x01',
+            'utf-8'
+        )
 
     @staticmethod
     def disable():
@@ -400,6 +406,7 @@ class Mocket(object):
         ssl.wrap_socket = ssl.__dict__['SSLSocket'] = true_ssl_wrap_socket
         ssl.SSLSocket = ssl.__dict__['wrap_socket'] = true_ssl_socket
         ssl.SSLContext = ssl.__dict__['SSLSocket'] = true_ssl_context
+        socket.inet_pton = socket.__dict__['inet_pton'] = true_inet_pton
 
     @classmethod
     def get_namespace(cls):

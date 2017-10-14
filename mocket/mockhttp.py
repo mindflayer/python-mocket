@@ -57,13 +57,18 @@ class Response(object):
 
 
 class Entry(MocketEntry):
-    GET = 'GET'
-    PUT = 'PUT'
-    POST = 'POST'
+    CONNECT = 'CONNECT'
     DELETE = 'DELETE'
+    GET = 'GET'
     HEAD = 'HEAD'
+    OPTIONS = 'OPTIONS'
     PATCH = 'PATCH'
-    METHODS = (GET, PUT, POST, DELETE, HEAD, PATCH)
+    POST = 'POST'
+    PUT = 'PUT'
+    TRACE = 'TRACE'
+
+    METHODS = (CONNECT, DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, TRACE)
+
     request_cls = Request
     response_cls = Response
 
@@ -100,7 +105,10 @@ class Entry(MocketEntry):
             requestline, _ = decode_from_bytes(data).split(CRLF, 1)
             method, path, version = self._parse_requestline(requestline)
         except ValueError:
-            return self == Mocket._last_entry
+            try:
+                return self == Mocket._last_entry
+            except AttributeError:
+                return False
         uri = urlsplit(path)
         kw = dict(keep_blank_values=True)
         ch = uri.path == self.path and parse_qs(uri.query, **kw) == parse_qs(self.query, **kw) and method == self.method
