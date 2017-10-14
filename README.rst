@@ -22,6 +22,11 @@ A socket mock framework
 
 How to use it
 =============
+Read these two blog posts if you want to have a big picture of what *Mocket* is capable of:
+
+- https://medium.com/p/mocket-is-alive-and-is-fighting-with-us-b2810d52597a
+- https://hackernoon.com/make-development-great-again-faab769d264e
+
 The starting point to understand how to use *Mocket* to write a custom mock is the following example:
 
 - https://github.com/mindflayer/mocketoy
