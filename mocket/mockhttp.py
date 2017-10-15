@@ -6,7 +6,13 @@ from io import BytesIO
 
 import magic
 
-from .compat import BaseHTTPRequestHandler, urlsplit, parse_qs, encode_to_bytes, decode_from_bytes
+from .compat import (
+    BaseHTTPRequestHandler,
+    urlsplit,
+    parse_qs,
+    encode_to_bytes,
+    decode_from_bytes,
+)
 from .mocket import Mocket, MocketEntry
 
 
@@ -91,7 +97,7 @@ class Entry(MocketEntry):
     request_cls = Request
     response_cls = Response
 
-    def __init__(self, uri, method, responses, match_querystring):
+    def __init__(self, uri, method, responses, match_querystring=True):
         uri = urlsplit(uri)
 
         if not uri.port:
@@ -163,7 +169,11 @@ class Entry(MocketEntry):
             raise ValueError('Not a Request-Line')
 
     @classmethod
-    def register(cls, method, uri, *responses, match_querystring=True):
+    def register(cls, method, uri, *responses, match_querystring=True, add_trailing_slash=True):
+
+        if add_trailing_slash and not urlsplit(uri).path:
+            uri += '/'
+
         Mocket.register(cls(uri, method, responses, match_querystring=match_querystring))
 
     @classmethod

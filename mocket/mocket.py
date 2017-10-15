@@ -451,7 +451,6 @@ class MocketEntry(object):
 
     def collect(self, data):
         req = self.request_cls(data)
-        print(req)
         Mocket.collect(req)
 
     def get_response(self):
