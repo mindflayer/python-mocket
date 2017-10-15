@@ -40,9 +40,7 @@ version = read_version(package_name)
 setup(
     name=package_name,
     version=read_version(package_name),
-    # author='Andrea de Marco, Giorgio Salluzzo',
     author='Giorgio Salluzzo',
-    # author_email='24erre@gmail.com, giorgio.salluzzo@gmail.com',
     author_email='giorgio.salluzzo@gmail.com',
     url='https://github.com/mindflayer/python-mocket',
     description='Socket Mock Framework - for all kinds of socket animals, web-clients included - \
