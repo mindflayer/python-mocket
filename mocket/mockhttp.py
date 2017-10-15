@@ -12,6 +12,7 @@ from .compat import (
     parse_qs,
     encode_to_bytes,
     decode_from_bytes,
+    unquote_utf8,
 )
 from .mocket import Mocket, MocketEntry
 
@@ -28,7 +29,7 @@ class Request(BaseHTTPRequestHandler):
         self.error_code = self.error_message = None
         self.parse_request()
         self.method = self.command
-        self.querystring = parse_qs(urlsplit(self.path).query, keep_blank_values=True)
+        self.querystring = parse_qs(unquote_utf8(urlsplit(self.path).query), keep_blank_values=True)
 
     def __str__(self):
         return "{} - {} - {}".format(self.method, self.path, self.headers)
