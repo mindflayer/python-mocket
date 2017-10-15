@@ -224,6 +224,7 @@ class HttpEntryTestCase(HttpTestCase):
                 'connection': 'keep-alive',
             }
         )
+        self.assertEqual(len(Mocket._requests), 1)
 
     @mocketize
     def test_file_object(self):
