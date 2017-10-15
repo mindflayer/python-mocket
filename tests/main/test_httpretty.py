@@ -27,14 +27,10 @@
 
 from __future__ import unicode_literals
 
-import os
-import re
-import json
 import requests
 from sure import expect
 
 from mocket.plugins.httpretty import HTTPretty, httprettified
-from mocket.plugins.httpretty.core import decode_utf8
 
 
 @httprettified
