@@ -23,6 +23,9 @@ class Request(BaseHTTPRequestHandler):
         self.parse_request()
         self.method = self.command
 
+    def __str__(self):
+        return "{} - {} - {}".format(self.method, self.path, self.headers)
+
 
 class Response(object):
     def __init__(self, body='', status=200, headers=None):
@@ -90,7 +93,7 @@ class Entry(MocketEntry):
 
     def collect(self, data):
         self._sent_data += data
-        return super(Entry, self).collect(self._sent_data)
+        super(Entry, self).collect(self._sent_data)
 
     def can_handle(self, data):
         r"""
@@ -106,7 +109,10 @@ class Entry(MocketEntry):
             method, path, version = self._parse_requestline(requestline)
         except ValueError:
             try:
-                return self == Mocket._last_entry
+                same_entry = self == Mocket._last_entry
+                if same_entry:
+                    Mocket.remove_last_request()
+                return same_entry
             except AttributeError:
                 return False
         uri = urlsplit(path)
