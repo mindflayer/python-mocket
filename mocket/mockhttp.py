@@ -6,7 +6,14 @@ from io import BytesIO
 
 import magic
 
-from .compat import BaseHTTPRequestHandler, urlsplit, parse_qs, encode_to_bytes, decode_from_bytes
+from .compat import (
+    BaseHTTPRequestHandler,
+    urlsplit,
+    parse_qs,
+    encode_to_bytes,
+    decode_from_bytes,
+    unquote_utf8,
+)
 from .mocket import Mocket, MocketEntry
 
 
@@ -22,22 +29,42 @@ class Request(BaseHTTPRequestHandler):
         self.error_code = self.error_message = None
         self.parse_request()
         self.method = self.command
+        self.querystring = parse_qs(unquote_utf8(urlsplit(self.path).query), keep_blank_values=True)
+
+    def __str__(self):
+        return "{} - {} - {}".format(self.method, self.path, self.headers)
 
     def __str__(self):
         return "{} - {} - {}".format(self.method, self.path, self.headers)
 
 
 class Response(object):
+    headers = None
+    is_file_object = False
+
     def __init__(self, body='', status=200, headers=None):
         headers = headers or {}
-        is_file_object = False
         try:
             #  File Objects
             self.body = body.read()
-            is_file_object = True
+            self.is_file_object = True
         except AttributeError:
             self.body = encode_to_bytes(body)
         self.status = status
+
+        self.set_base_headers()
+
+        if headers is not None:
+            self.set_extra_headers(headers)
+
+        self.data = self.get_protocol_data() + self.body
+
+    def get_protocol_data(self):
+        status_line = 'HTTP/1.1 {status_code} {status}'.format(status_code=self.status, status=STATUS[self.status])
+        header_lines = CRLF.join(['{0}: {1}'.format(k.capitalize(), v) for k, v in self.headers.items()])
+        return '{0}\r\n{1}\r\n\r\n'.format(status_line, header_lines).encode('utf-8')
+
+    def set_base_headers(self):
         self.headers = {
             'Status': str(self.status),
             'Date': time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime()),
@@ -45,18 +72,14 @@ class Response(object):
             'Connection': 'close',
             'Content-Length': str(len(self.body)),
         }
-        if not is_file_object:
+        if not self.is_file_object:
             self.headers['Content-Type'] = 'text/plain; charset=utf-8'
         else:
             self.headers['Content-Type'] = decode_from_bytes(magic.from_buffer(self.body, mime=True))
+
+    def set_extra_headers(self, headers):
         for k, v in headers.items():
             self.headers['-'.join([token.capitalize() for token in k.split('-')])] = v
-        self.data = self.get_protocol_data() + self.body
-
-    def get_protocol_data(self):
-        status_line = 'HTTP/1.1 {status_code} {status}'.format(status_code=self.status, status=STATUS[self.status])
-        header_lines = CRLF.join(['{0}: {1}'.format(k.capitalize(), v) for k, v in self.headers.items()])
-        return '{0}\r\n{1}\r\n\r\n'.format(status_line, header_lines).encode('utf-8')
 
 
 class Entry(MocketEntry):
@@ -75,7 +98,7 @@ class Entry(MocketEntry):
     request_cls = Request
     response_cls = Response
 
-    def __init__(self, uri, method, responses):
+    def __init__(self, uri, method, responses, match_querystring=True):
         uri = urlsplit(uri)
 
         if not uri.port:
@@ -90,6 +113,7 @@ class Entry(MocketEntry):
         self.query = uri.query
         self.method = method.upper()
         self._sent_data = b''
+        self._match_querystring = match_querystring
 
     def collect(self, data):
         self._sent_data += data
@@ -116,11 +140,13 @@ class Entry(MocketEntry):
             except AttributeError:
                 return False
         uri = urlsplit(path)
-        kw = dict(keep_blank_values=True)
-        ch = uri.path == self.path and parse_qs(uri.query, **kw) == parse_qs(self.query, **kw) and method == self.method
-        if ch:
+        can_handle = uri.path == self.path and method == self.method
+        if self._match_querystring:
+            kw = dict(keep_blank_values=True)
+            can_handle = can_handle and parse_qs(uri.query, **kw) == parse_qs(self.query, **kw)
+        if can_handle:
             Mocket._last_entry = self
-        return ch
+        return can_handle
 
     @staticmethod
     def _parse_requestline(line):
@@ -144,9 +170,21 @@ class Entry(MocketEntry):
             raise ValueError('Not a Request-Line')
 
     @classmethod
-    def register(cls, method, uri, *responses):
-        Mocket.register(cls(uri, method, responses))
+    def register(cls, method, uri, *responses, **config):
+
+        default_config = dict(match_querystring=True, add_trailing_slash=True)
+        default_config.update(config)
+        config = default_config
+
+        if config['add_trailing_slash'] and not urlsplit(uri).path:
+            uri += '/'
+
+        Mocket.register(cls(uri, method, responses, match_querystring=config['match_querystring']))
 
     @classmethod
-    def single_register(cls, method, uri, body='', status=200, headers=None):
-        cls.register(method, uri, Response(body=body, status=status, headers=headers))
+    def single_register(cls, method, uri, body='', status=200, headers=None, match_querystring=True):
+        cls.register(
+            method, uri, cls.response_cls(
+                body=body, status=status, headers=headers
+            ), match_querystring=match_querystring
+        )
