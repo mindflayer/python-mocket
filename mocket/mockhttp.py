@@ -169,12 +169,16 @@ class Entry(MocketEntry):
             raise ValueError('Not a Request-Line')
 
     @classmethod
-    def register(cls, method, uri, *responses, match_querystring=True, add_trailing_slash=True):
+    def register(cls, method, uri, *responses, **config):
 
-        if add_trailing_slash and not urlsplit(uri).path:
+        default_config = dict(match_querystring=True, add_trailing_slash=True)
+        default_config.update(config)
+        config = default_config
+
+        if config['add_trailing_slash'] and not urlsplit(uri).path:
             uri += '/'
 
-        Mocket.register(cls(uri, method, responses, match_querystring=match_querystring))
+        Mocket.register(cls(uri, method, responses, match_querystring=config['match_querystring']))
 
     @classmethod
     def single_register(cls, method, uri, body='', status=200, headers=None, match_querystring=True):
