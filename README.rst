@@ -20,6 +20,14 @@ A socket mock framework
 -------------------------
     for all kinds of socket *animals*, web-clients included - with gevent/asyncio/SSL support
 
+Help Mocket to be part of the Python awesomeness!
+=================================================
+Thumbs up for my Pull Request at:
+
+- https://github.com/vinta/awesome-python/pull/956
+
+and maybe "star" this project on its GitHub page.
+
 How to use it
 =============
 Read these two blog posts if you want to have a big picture of what *Mocket* is capable of:
