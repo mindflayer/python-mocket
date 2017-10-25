@@ -30,10 +30,11 @@ and maybe "star" this project on its GitHub page.
 
 How to use it
 =============
-Read these two blog posts if you want to have a big picture of what *Mocket* is capable of:
+Read these three blog posts if you want to have a big picture of what *Mocket* is capable of:
 
 - https://medium.com/p/mocket-is-alive-and-is-fighting-with-us-b2810d52597a
 - https://hackernoon.com/make-development-great-again-faab769d264e
+- https://hackernoon.com/httpretty-now-supports-asyncio-e310814704c6
 
 The starting point to understand how to use *Mocket* to write a custom mock is the following example:
 
@@ -106,6 +107,49 @@ As second step, we create an `example.py` file as the following one:
 Let's fire our example test::
 
     $ py.test example.py
+
+HTTPretty compatibility layer
+=============================
+Mocket HTTP mock can work as *HTTPretty* replacement for many different use cases. Two main features are missing:
+
+- URL entries containing regular expressions;
+- response body from functions.
+Two features which are against the Zen of Python, at least imho (mindflayer), but of course I am open to call it into question.
+
+Example:
+
+.. code-block:: python
+
+    import json
+
+    import aiohttp
+    import asyncio
+    import async_timeout
+    from unittest import TestCase
+
+    from mocket.plugins.httpretty import HTTPretty, httprettified
+
+
+    class AioHttpEntryTestCase(TestCase):
+        @httprettified
+        def test_https_session(self):
+            url = 'https://httpbin.org/ip'
+            HTTPretty.register_uri(
+                HTTPretty.GET,
+                url,
+                body=json.dumps(dict(origin='127.0.0.1')),
+            )
+
+            async def main(l):
+                async with aiohttp.ClientSession(loop=l) as session:
+                    with async_timeout.timeout(3):
+                        async with session.get(url) as get_response:
+                            assert get_response.status == 200
+                            assert await get_response.text() == '{"origin": "127.0.0.1"}'
+
+            loop = asyncio.get_event_loop()
+            loop.set_debug(True)
+            loop.run_until_complete(main(loop))
 
 What about the other socket animals?
 ===================================
