@@ -124,7 +124,7 @@ class MocketSocket(object):
     _mode = None
     _bufsize = None
 
-    def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, detach=None):
+    def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, **kwargs):
         self.settimeout(socket._GLOBAL_DEFAULT_TIMEOUT)
         self.true_socket = true_socket(family, type, proto)
         self.fd = MocketSocketCore()
@@ -135,6 +135,10 @@ class MocketSocket(object):
         self.type = int(type)
         self.proto = int(proto)
         self._truesocket_recording_dir = None
+
+        sock = kwargs.get('sock')
+        if sock is not None:
+            self.__dict__ = dict(sock.__dict__)
 
     def __unicode__(self):
         return str(self)
@@ -381,14 +385,14 @@ class Mocket(object):
         socket.socket = socket.__dict__['socket'] = MocketSocket
         socket._socketobject = socket.__dict__['_socketobject'] = MocketSocket
         socket.SocketType = socket.__dict__['SocketType'] = MocketSocket
-        ssl.SSLSocket = ssl.__dict__['SSLSocket'] = MocketSocket
         socket.create_connection = socket.__dict__['create_connection'] = create_connection
         socket.gethostname = socket.__dict__['gethostname'] = lambda: 'localhost'
         socket.gethostbyname = socket.__dict__['gethostbyname'] = lambda host: '127.0.0.1'
         socket.getaddrinfo = socket.__dict__['getaddrinfo'] = \
             lambda host, port, family=None, socktype=None, proto=None, flags=None: [(2, 1, 6, '', (host, port))]
         ssl.wrap_socket = ssl.__dict__['wrap_socket'] = FakeSSLContext.wrap_socket
-        ssl.SSLContext = ssl.__dict__['SSLSocket'] = FakeSSLContext
+        ssl.SSLSocket = ssl.__dict__['SSLSocket'] = MocketSocket
+        ssl.SSLContext = ssl.__dict__['SSLContext'] = FakeSSLContext
         socket.inet_pton = socket.__dict__['inet_pton'] = lambda family, ip: byte_type(
             '\x7f\x00\x00\x01',
             'utf-8'
@@ -403,9 +407,9 @@ class Mocket(object):
         socket.gethostname = socket.__dict__['gethostname'] = true_gethostname
         socket.gethostbyname = socket.__dict__['gethostbyname'] = true_gethostbyname
         socket.getaddrinfo = socket.__dict__['getaddrinfo'] = true_getaddrinfo
-        ssl.wrap_socket = ssl.__dict__['SSLSocket'] = true_ssl_wrap_socket
-        ssl.SSLSocket = ssl.__dict__['wrap_socket'] = true_ssl_socket
-        ssl.SSLContext = ssl.__dict__['SSLSocket'] = true_ssl_context
+        ssl.wrap_socket = ssl.__dict__['wrap_socket'] = true_ssl_wrap_socket
+        ssl.SSLSocket = ssl.__dict__['SSLSocket'] = true_ssl_socket
+        ssl.SSLContext = ssl.__dict__['SSLContext'] = true_ssl_context
         socket.inet_pton = socket.__dict__['inet_pton'] = true_inet_pton
 
     @classmethod

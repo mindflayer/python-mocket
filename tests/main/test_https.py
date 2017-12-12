@@ -57,3 +57,12 @@ def test_truesendall_with_recording_https():
         responses = json.load(f)
 
     assert len(responses['httpbin.org']['443'].keys()) == 1
+
+
+def test_truesendall_after_mocket_session():
+    Mocket.enable()
+    Mocket.disable()
+
+    url = 'https://httpbin.org/ip'
+    resp = requests.get(url)
+    assert resp.status_code == 200
