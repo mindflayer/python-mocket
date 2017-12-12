@@ -90,7 +90,7 @@ class FakeSSLContext(SuperFakeSSLContext):
         pass
 
     @staticmethod
-    def wrap_socket(sock, *args, **kwargs):
+    def wrap_socket(sock=sock, *args, **kwargs):
         return sock
 
     def wrap_bio(self, incoming, outcoming, *args, **kwargs):
