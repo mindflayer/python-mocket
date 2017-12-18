@@ -15,6 +15,7 @@ import hexdump
 
 from .utils import (
     MocketSocketCore,
+    wrap_ssl_socket,
 )
 from .compat import (
     encode_to_bytes,
@@ -127,6 +128,7 @@ class MocketSocket(object):
     def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, **kwargs):
         self.settimeout(socket._GLOBAL_DEFAULT_TIMEOUT)
         self.true_socket = true_socket(family, type, proto)
+        self.true_ssl_socket = wrap_ssl_socket(true_ssl_socket, true_socket(family, type, proto), true_ssl_context())
         self.fd = MocketSocketCore()
         self._connected = False
         self._buflen = 65536
@@ -248,11 +250,6 @@ class MocketSocket(object):
             return os.read(Mocket.r_fd, buffersize)
         return self.fd.read(buffersize)
 
-    def _connect(self):  # pragma: no cover
-        if not self._connected:
-            self.true_socket.connect(Mocket._address)
-            self._connected = True
-
     def true_sendall(self, data, *args, **kwargs):
         req = decode_from_bytes(data)
         # make request unique again
@@ -294,16 +291,30 @@ class MocketSocket(object):
                 encoded_response = hexdump.restore(encode_to_bytes(response_dict['response']))
         # if not available, call the real sendall
         except KeyError:
-            self._connect()
+            host, port = Mocket._address
+            host = true_gethostbyname(host)
+
+            self.true_socket.connect((host, port))
             self.true_socket.sendall(data, *args, **kwargs)
             encoded_response = b''
-            # https://github.com/kennethreitz/requests/blob/master/tests/testserver/server.py#L13
-            while select.select([self.true_socket], [], [], 0.5)[0]:
-                recv = self.true_socket.recv(self._buflen)
-                if recv:
-                    encoded_response += recv
-                else:
-                    break
+
+            while not encoded_response:
+                # https://github.com/kennethreitz/requests/blob/master/tests/testserver/server.py#L13
+                while select.select([self.true_socket], [], [], 0.5)[0]:
+                    recv = self.true_socket.recv(self._buflen)
+                    if recv:
+                        encoded_response += recv
+                    else:
+                        break
+
+                if not encoded_response:
+                    self.true_ssl_socket.connect((host, port))
+                    while select.select([self.true_ssl_socket], [], [], 0.5)[0]:
+                        recv = self.true_ssl_socket.recv(self._buflen)
+                        if recv:
+                            encoded_response += recv
+                        else:
+                            break
 
             # dump the resulting dictionary to a JSON file
             if Mocket.get_truesocket_recording_dir():
