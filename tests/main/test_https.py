@@ -8,7 +8,7 @@ import pytest
 
 from mocket import mocketize, Mocket
 from mocket.mockhttp import Entry
-from tests import urlopen
+from tests import urlopen, HTTPError
 
 
 @pytest.fixture
@@ -57,3 +57,10 @@ def test_truesendall_with_recording_https():
         responses = json.load(f)
 
     assert len(responses['httpbin.org']['443'].keys()) == 1
+
+
+@mocketize
+def test_sendall_forgot_to_ignore_querystring():
+    Entry.single_register(Entry.GET, 'https://graph.facebook.com/')
+    with pytest.raises(HTTPError):
+        urlopen('https://graph.facebook.com/?query=string')
