@@ -31,8 +31,8 @@ class Request(BaseHTTPRequestHandler):
         self.method = self.command
         self.querystring = parse_qs(unquote_utf8(urlsplit(self.path).query), keep_blank_values=True)
 
-    def __str__(self):
-        return "{} - {} - {}".format(self.method, self.path, self.headers)
+    def add_data(self, data):
+        self.body += data
 
     def __str__(self):
         return "{} - {} - {}".format(self.method, self.path, self.headers)
