@@ -222,8 +222,9 @@ class MocketSocket(object):
     def get_entry(self, data):
         return Mocket.get_entry(self._host, self._port, data)
 
-    def sendall(self, data, *args, **kwargs):
-        entry = self.get_entry(data)
+    def sendall(self, data, entry=None, *args, **kwargs):
+        if entry is None:
+            entry = self.get_entry(data)
 
         if entry:
             entry.collect(data)
@@ -317,12 +318,13 @@ class MocketSocket(object):
     def send(self, data, *args, **kwargs):  # pragma: no cover
         entry = self.get_entry(data)
         if entry and self._entry != entry:
-            self.sendall(data, *args, **kwargs)
+            self.sendall(data, entry=entry, *args, **kwargs)
+        else:
+            req = Mocket.last_request()
+            if hasattr(req, 'add_data'):
+                req.add_data(decode_from_bytes(data))
         self._entry = entry
         return len(data)
-
-    # def __getattribute__(self, name):
-    #     return super(MocketSocket, self).__getattribute__(name)
 
     def __getattr__(self, name):
         """ Useful when clients call methods on real
