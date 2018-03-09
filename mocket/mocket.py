@@ -463,7 +463,7 @@ class MocketEntry(object):
 
 
 class Mocketizer(object):
-    def __init__(self, instance, namespace=None, truesocket_recording_dir=None):
+    def __init__(self, instance=None, namespace=None, truesocket_recording_dir=None):
         self.instance = instance
         self.truesocket_recording_dir = truesocket_recording_dir
         self.namespace = namespace or text_type(id(self))
