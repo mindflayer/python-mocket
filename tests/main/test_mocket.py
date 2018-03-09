@@ -4,7 +4,7 @@ from unittest import TestCase
 
 import pytest
 
-from mocket import Mocket, mocketize, MocketEntry
+from mocket import Mocket, mocketize, MocketEntry, Mocketizer
 from mocket.compat import encode_to_bytes
 
 
@@ -75,7 +75,6 @@ class MocketTestCase(TestCase):
         entry = MocketEntry(('localhost', 8080), [])
         self.assertEqual(entry.get_response(), encode_to_bytes(''))
         
-    @mocketize
     def test_subsequent_recv_requests_have_correct_length(self):
         Mocket.register(
             MocketEntry(
@@ -86,13 +85,14 @@ class MocketTestCase(TestCase):
                 ]
             )
         )
-        _so = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        _so.connect(('localhost', 80))
-        _so.sendall(b'first\r\n')
-        assert _so.recv(4096) == b'Long payload'
-        _so.sendall(b'second\r\n')
-        assert _so.recv(4096) == b'Short'
-        _so.close()
+        with Mocketizer():
+            _so = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            _so.connect(('localhost', 80))
+            _so.sendall(b'first\r\n')
+            assert _so.recv(4096) == b'Long payload'
+            _so.sendall(b'second\r\n')
+            assert _so.recv(4096) == b'Short'
+            _so.close()
 
 
 class MocketizeTestCase(TestCase):
