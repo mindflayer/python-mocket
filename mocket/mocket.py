@@ -470,10 +470,12 @@ class Mocketizer(object):
 
     def __enter__(self):
         Mocket.enable(namespace=self.namespace, truesocket_recording_dir=self.truesocket_recording_dir)
-        self.check_and_call('mocketize_setup')
+        if self.instance:
+            self.check_and_call('mocketize_setup')
 
     def __exit__(self, type, value, tb):
-        self.check_and_call('mocketize_teardown')
+        if self.instance:
+            self.check_and_call('mocketize_teardown')
         Mocket.disable()
         Mocket.reset()
 
