@@ -29,6 +29,7 @@ class AioHttpEntryTestCase(TestCase):
                     async with session.post(url, data=body * 6) as post_response:
                         assert post_response.status == 201
                         assert await post_response.text() == body * 2
+                        assert Mocket.last_request().method == 'POST'
                         assert Mocket.last_request().body == body * 6
 
         loop = asyncio.get_event_loop()
