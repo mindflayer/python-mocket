@@ -135,7 +135,6 @@ class Entry(MocketEntry):
             try:
                 same_entry = self == Mocket._last_entry
                 if same_entry and decode_from_bytes(data).endswith(CRLF):
-                    print(data)
                     Mocket.remove_last_request()
                 return same_entry
             except AttributeError:
