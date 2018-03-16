@@ -117,6 +117,9 @@ class Entry(MocketEntry):
 
     def collect(self, data):
         self._sent_data += data
+        decoded_data = decode_from_bytes(data)
+        if not decoded_data.startswith(Entry.METHODS) and decoded_data.endswith(CRLF):
+            Mocket.remove_last_request()
         super(Entry, self).collect(self._sent_data)
 
     def can_handle(self, data):
@@ -133,10 +136,7 @@ class Entry(MocketEntry):
             method, path, version = self._parse_requestline(requestline)
         except ValueError:
             try:
-                same_entry = self == Mocket._last_entry
-                if same_entry and decode_from_bytes(data).endswith(CRLF):
-                    Mocket.remove_last_request()
-                return same_entry
+                return self == Mocket._last_entry
             except AttributeError:
                 return False
         uri = urlsplit(path)
