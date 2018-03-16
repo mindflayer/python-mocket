@@ -80,7 +80,7 @@ As second step, we create an `example.py` file as the following one:
         }
  
  
-    @mocketize
+    @mocketize  # use its decorator
     def test_json(response):
         url_to_mock = 'https://testme.org/json'
  
@@ -95,6 +95,23 @@ As second step, we create an `example.py` file as the following one:
  
         assert response == mocked_response
 
+    # OR use its context manager
+    from mocket import Mocketizer
+    
+    def test_json_with_context_manager(response):
+        url_to_mock = 'https://testme.org/json'
+ 
+        Entry.single_register(
+            Entry.GET,
+            url_to_mock,
+            body=json.dumps(response),
+            headers={'content-type': 'application/json'}
+        )
+ 
+        with Mocketizer():
+            mocked_response = requests.get(url_to_mock).json()
+ 
+        assert response == mocked_response
 
 Let's fire our example test::
 
