@@ -8,6 +8,8 @@ omit =
 exclude_lines =
     pragma: no cover
     def __repr__
+    def __str__
+    def __unicode__
     raise NotImplementedError
     except AttributeError
     except ImportError
