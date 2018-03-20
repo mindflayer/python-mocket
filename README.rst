@@ -2,6 +2,10 @@
 mocket /mɔˈkɛt/
 ===============
 
+.. image:: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
+     :target: https://www.buymeacoffee.com/mULbInw5z
+     :alt: Buy Me A Coffee
+
 .. image:: https://api.travis-ci.org/mindflayer/python-mocket.svg?branch=master
     :target: http://travis-ci.org/mindflayer/python-mocket
 
@@ -15,11 +19,6 @@ mocket /mɔˈkɛt/
 .. image:: https://requires.io/github/mindflayer/python-mocket/requirements.svg?branch=master
      :target: https://requires.io/github/mindflayer/python-mocket/requirements/?branch=master
      :alt: Requirements Status
-
-.. image:: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
-     :target: https://www.buymeacoffee.com/mULbInw5z
-     :alt: Buy Me A Coffee
-
 
 A socket mock framework
 -------------------------
