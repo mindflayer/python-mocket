@@ -16,6 +16,11 @@ mocket /mɔˈkɛt/
      :target: https://requires.io/github/mindflayer/python-mocket/requirements/?branch=master
      :alt: Requirements Status
 
+.. image:: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
+     :target: https://www.buymeacoffee.com/mULbInw5z
+     :alt: Buy Me A Coffee
+
+
 A socket mock framework
 -------------------------
     for all kinds of socket *animals*, web-clients included - with gevent/asyncio/SSL support
