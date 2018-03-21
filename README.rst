@@ -2,10 +2,6 @@
 mocket /mɔˈkɛt/
 ===============
 
-.. image:: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
-     :target: https://www.buymeacoffee.com/mULbInw5z
-     :alt: Buy Me A Coffee
-
 .. image:: https://api.travis-ci.org/mindflayer/python-mocket.svg?branch=master
     :target: http://travis-ci.org/mindflayer/python-mocket
 
@@ -23,6 +19,14 @@ mocket /mɔˈkɛt/
 A socket mock framework
 -------------------------
     for all kinds of socket *animals*, web-clients included - with gevent/asyncio/SSL support
+
+Support it
+==========
+*Star* the project on GitHub, Buy Me a Coffee or, even better, contribute with patches or documentation.
+
+.. image:: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
+     :target: https://www.buymeacoffee.com/mULbInw5z
+     :alt: Buy Me A Coffee
 
 How to use it
 =============
