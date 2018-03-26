@@ -424,6 +424,7 @@ class Mocket(object):
         ssl.SSLSocket = ssl.__dict__['SSLSocket'] = true_ssl_socket
         ssl.SSLContext = ssl.__dict__['SSLContext'] = true_ssl_context
         socket.inet_pton = socket.__dict__['inet_pton'] = true_inet_pton
+        Mocket.reset()
 
     @classmethod
     def get_namespace(cls):
@@ -478,19 +479,20 @@ class MocketEntry(object):
 
 
 class Mocketizer(object):
-    def __init__(self, instance, namespace=None, truesocket_recording_dir=None):
+    def __init__(self, instance=None, namespace=None, truesocket_recording_dir=None):
         self.instance = instance
         self.truesocket_recording_dir = truesocket_recording_dir
         self.namespace = namespace or text_type(id(self))
 
     def __enter__(self):
         Mocket.enable(namespace=self.namespace, truesocket_recording_dir=self.truesocket_recording_dir)
-        self.check_and_call('mocketize_setup')
+        if self.instance:
+            self.check_and_call('mocketize_setup')
 
     def __exit__(self, type, value, tb):
-        self.check_and_call('mocketize_teardown')
+        if self.instance:
+            self.check_and_call('mocketize_teardown')
         Mocket.disable()
-        Mocket.reset()
 
     def check_and_call(self, method):
         method = getattr(self.instance, method, None)

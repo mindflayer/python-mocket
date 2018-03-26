@@ -17,8 +17,12 @@ class MocketPookEntry(Entry):
         return can_handle
 
     @classmethod
-    def single_register(cls, method, uri, body='', status=200, headers=None):
-        entry = cls(uri, method, Response(body=body, status=status, headers=headers))
+    def single_register(cls, method, uri, body='', status=200, headers=None, match_querystring=True):
+        entry = cls(
+            uri, method, Response(
+                body=body, status=status, headers=headers
+            ), match_querystring=match_querystring
+        )
         Mocket.register(entry)
         return entry
 
