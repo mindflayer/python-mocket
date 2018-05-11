@@ -1,3 +1,4 @@
+pip<10
 pep8
 pytest
 pytest-cov
