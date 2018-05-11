@@ -25,3 +25,4 @@ Documentation/
 doc/build
 .buildinfo
 .coverage
+shippable
