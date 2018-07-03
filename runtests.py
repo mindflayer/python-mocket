@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import sys
+import os
 
 
 def runtests(args=None):
     import pytest
-    import pip
 
     if not args:
         args = []
@@ -17,7 +17,7 @@ def runtests(args=None):
     if major == 3 and minor >= 5:
         python35 = True
 
-        pip.main(['install', 'aiohttp', 'async_timeout'])
+        os.system('pip install aiohttp async_timeout')
 
     if not any(a for a in args[1:] if not a.startswith('-')):
         args.append('tests/main')

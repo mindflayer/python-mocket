@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 import socket
 from unittest import TestCase
+import io
 
 import pytest
 
@@ -93,6 +94,28 @@ class MocketTestCase(TestCase):
             _so.sendall(b'second\r\n')
             assert _so.recv(4096) == b'Short'
             _so.close()
+
+    def test_recv_into(self):
+        Mocket.register(
+            MocketEntry(
+                ('localhost', 80),
+                [
+                    b'Long payload',
+                    b'Short'
+                ]
+            )
+        )
+        buffer = io.BytesIO()
+        with Mocketizer():
+            _so = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            _so.connect(('localhost', 80))
+            _so.sendall(b'first\r\n')
+            assert _so.recv_into(buffer, 4096) == 12
+            _so.sendall(b'second\r\n')
+            assert _so.recv_into(buffer, 4096) == 5
+            _so.close()
+        buffer.seek(0)
+        assert buffer.read() == b'Long payloadShort'
 
 
 class MocketizeTestCase(TestCase):
