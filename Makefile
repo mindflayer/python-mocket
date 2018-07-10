@@ -4,6 +4,7 @@ install-dev-requirements:
 	pip install -U -q -e .
 
 install-test-requirements:
+	pip install -U pip
 	pip install -U -q -e .[tests]
 
 test-python:

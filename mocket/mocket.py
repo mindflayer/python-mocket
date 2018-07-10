@@ -240,6 +240,9 @@ class MocketSocket(object):
     def read(self, buffersize):
         return self.fd.read(buffersize)
 
+    def recv_into(self, buffer, buffersize, flags=None):
+        return buffer.write(self.fd.read(buffersize))
+
     def recv(self, buffersize, flags=None):
         if Mocket.r_fd and Mocket.w_fd:
             return os.read(Mocket.r_fd, buffersize)
