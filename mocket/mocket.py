@@ -26,6 +26,13 @@ from .compat import (
     JSONDecodeError,
 )
 
+try:
+    from urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3
+    pyopenssl_override = True
+except ImportError:
+    pyopenssl_override = False
+
+
 __all__ = (
     'true_socket',
     'true_create_connection',
@@ -398,6 +405,9 @@ class Mocket(object):
             '\x7f\x00\x00\x01',
             'utf-8'
         )
+        if pyopenssl_override:
+            # Take out the pyopenssl version - use the default implementation
+            extract_from_urllib3()
 
     @staticmethod
     def disable():
@@ -413,6 +423,9 @@ class Mocket(object):
         ssl.SSLContext = ssl.__dict__['SSLContext'] = true_ssl_context
         socket.inet_pton = socket.__dict__['inet_pton'] = true_inet_pton
         Mocket.reset()
+        if pyopenssl_override:
+            # Put the pyopenssl version back in place
+            inject_into_urllib3()
 
     @classmethod
     def get_namespace(cls):
