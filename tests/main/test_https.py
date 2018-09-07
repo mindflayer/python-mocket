@@ -41,6 +41,7 @@ def test_json(response):
 recording_directory = tempfile.mkdtemp()
 
 
+@pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
 @mocketize(truesocket_recording_dir=recording_directory)
 def test_truesendall_with_recording_https():
     url = 'https://httpbin.org/ip'

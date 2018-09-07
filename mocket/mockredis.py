@@ -20,7 +20,11 @@ class Redisizer(byte_type):
     @staticmethod
     def tokens(iterable):
         iterable = [encode_to_bytes(x) for x in iterable]
-        return ['*{0}'.format(len(iterable)).encode('utf-8')] + list(chain(*zip(['${0}'.format(len(x)).encode('utf-8') for x in iterable], iterable)))
+        return [
+            '*{0}'.format(len(iterable)).encode('utf-8')
+        ] + list(
+            chain(*zip(['${0}'.format(len(x)).encode('utf-8') for x in iterable], iterable))
+        )
 
     @staticmethod
     def redisize(data):
