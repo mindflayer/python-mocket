@@ -12,7 +12,7 @@ python:
 install:
   - make develop
 script:
-  - make test
+  - travis_wait make test
 after_success:
   - pip install -q python-coveralls
   - coveralls

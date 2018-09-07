@@ -28,17 +28,18 @@ class Redisizer(byte_type):
 
     @staticmethod
     def redisize(data):
-        if isinstance(data, Redisizer):
-            return data
-        if isinstance(data, byte_type):
-            data = decode_from_bytes(data)
-        CONVERSION = {
+        def get_conversion(t):
+            return {
             dict: lambda x: b'\r\n'.join(Redisizer.tokens(list(chain(*tuple(x.items()))))),
             int: lambda x: ':{0}'.format(x).encode('utf-8'),
             text_type: lambda x: '${0}\r\n{1}'.format(len(x.encode('utf-8')), x).encode('utf-8'),
             list: lambda x: b'\r\n'.join(Redisizer.tokens(x)),
-        }
-        return Redisizer(CONVERSION[type(data)](data) + b'\r\n')
+            }[t]
+        if isinstance(data, Redisizer):
+            return data
+        if isinstance(data, byte_type):
+            data = decode_from_bytes(data)
+        return Redisizer(get_conversion(data.__class__)(data) + b'\r\n')
 
     @staticmethod
     def command(description, _type='+'):
