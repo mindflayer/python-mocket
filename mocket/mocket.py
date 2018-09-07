@@ -15,6 +15,7 @@ import hexdump
 
 from .utils import (
     MocketSocketCore,
+    wrap_ssl_socket,
 )
 from .compat import (
     encode_to_bytes,
@@ -131,9 +132,10 @@ class MocketSocket(object):
     _mode = None
     _bufsize = None
 
-    def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, detach=None):
+    def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, **kwargs):
         self.settimeout(socket._GLOBAL_DEFAULT_TIMEOUT)
         self.true_socket = true_socket(family, type, proto)
+        self.true_ssl_socket = wrap_ssl_socket(true_ssl_socket, true_socket(family, type, proto), true_ssl_context())
         self.fd = MocketSocketCore()
         self._connected = False
         self._buflen = 4096
@@ -142,6 +144,10 @@ class MocketSocket(object):
         self.type = int(type)
         self.proto = int(proto)
         self._truesocket_recording_dir = None
+
+        sock = kwargs.get('sock')
+        if sock is not None:
+            self.__dict__ = dict(sock.__dict__)
 
     def __unicode__(self):
         return str(self)
@@ -255,11 +261,6 @@ class MocketSocket(object):
             return os.read(Mocket.r_fd, buffersize)
         return self.fd.read(buffersize)
 
-    def _connect(self):  # pragma: no cover
-        if not self._connected:
-            self.true_socket.connect(Mocket._address)
-            self._connected = True
-
     def true_sendall(self, data, *args, **kwargs):
         req = decode_from_bytes(data)
         # make request unique again
@@ -301,7 +302,10 @@ class MocketSocket(object):
                 encoded_response = hexdump.restore(encode_to_bytes(response_dict['response']))
         # if not available, call the real sendall
         except KeyError:
-            self._connect()
+            host, port = Mocket._address
+            host = true_gethostbyname(host)
+
+            self.true_socket.connect((host, port))
             self.true_socket.sendall(data, *args, **kwargs)
             encoded_response = None
             # https://github.com/kennethreitz/requests/blob/master/tests/testserver/server.py#L13
@@ -395,14 +399,14 @@ class Mocket(object):
         socket.socket = socket.__dict__['socket'] = MocketSocket
         socket._socketobject = socket.__dict__['_socketobject'] = MocketSocket
         socket.SocketType = socket.__dict__['SocketType'] = MocketSocket
-        ssl.SSLSocket = ssl.__dict__['SSLSocket'] = MocketSocket
         socket.create_connection = socket.__dict__['create_connection'] = create_connection
         socket.gethostname = socket.__dict__['gethostname'] = lambda: 'localhost'
         socket.gethostbyname = socket.__dict__['gethostbyname'] = lambda host: '127.0.0.1'
         socket.getaddrinfo = socket.__dict__['getaddrinfo'] = \
             lambda host, port, family=None, socktype=None, proto=None, flags=None: [(2, 1, 6, '', (host, port))]
         ssl.wrap_socket = ssl.__dict__['wrap_socket'] = FakeSSLContext.wrap_socket
-        ssl.SSLContext = ssl.__dict__['SSLSocket'] = FakeSSLContext
+        ssl.SSLSocket = ssl.__dict__['SSLSocket'] = MocketSocket
+        ssl.SSLContext = ssl.__dict__['SSLContext'] = FakeSSLContext
         socket.inet_pton = socket.__dict__['inet_pton'] = lambda family, ip: byte_type(
             '\x7f\x00\x00\x01',
             'utf-8'
