@@ -20,21 +20,26 @@ class Redisizer(byte_type):
     @staticmethod
     def tokens(iterable):
         iterable = [encode_to_bytes(x) for x in iterable]
-        return ['*{0}'.format(len(iterable)).encode('utf-8')] + list(chain(*zip(['${0}'.format(len(x)).encode('utf-8') for x in iterable], iterable)))
+        return [
+            '*{0}'.format(len(iterable)).encode('utf-8')
+        ] + list(
+            chain(*zip(['${0}'.format(len(x)).encode('utf-8') for x in iterable], iterable))
+        )
 
     @staticmethod
     def redisize(data):
+        def get_conversion(t):
+            return {
+                dict: lambda x: b'\r\n'.join(Redisizer.tokens(list(chain(*tuple(x.items()))))),
+                int: lambda x: ':{0}'.format(x).encode('utf-8'),
+                text_type: lambda x: '${0}\r\n{1}'.format(len(x.encode('utf-8')), x).encode('utf-8'),
+                list: lambda x: b'\r\n'.join(Redisizer.tokens(x)),
+            }[t]
         if isinstance(data, Redisizer):
             return data
         if isinstance(data, byte_type):
             data = decode_from_bytes(data)
-        CONVERSION = {
-            dict: lambda x: b'\r\n'.join(Redisizer.tokens(list(chain(*tuple(x.items()))))),
-            int: lambda x: ':{0}'.format(x).encode('utf-8'),
-            text_type: lambda x: '${0}\r\n{1}'.format(len(x.encode('utf-8')), x).encode('utf-8'),
-            list: lambda x: b'\r\n'.join(Redisizer.tokens(x)),
-        }
-        return Redisizer(CONVERSION[type(data)](data) + b'\r\n')
+        return Redisizer(get_conversion(data.__class__)(data) + b'\r\n')
 
     @staticmethod
     def command(description, _type='+'):
