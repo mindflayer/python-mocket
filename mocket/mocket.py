@@ -27,6 +27,13 @@ from .compat import (
     JSONDecodeError,
 )
 
+try:
+    from urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3
+    pyopenssl_override = True
+except ImportError:
+    pyopenssl_override = False
+
+
 __all__ = (
     'true_socket',
     'true_create_connection',
@@ -131,7 +138,7 @@ class MocketSocket(object):
         self.true_ssl_socket = wrap_ssl_socket(true_ssl_socket, true_socket(family, type, proto), true_ssl_context())
         self.fd = MocketSocketCore()
         self._connected = False
-        self._buflen = 65536
+        self._buflen = 4096
         self._entry = None
         self.family = int(family)
         self.type = int(type)
@@ -246,6 +253,9 @@ class MocketSocket(object):
     def read(self, buffersize):
         return self.fd.read(buffersize)
 
+    def recv_into(self, buffer, buffersize, flags=None):
+        return buffer.write(self.fd.read(buffersize))
+
     def recv(self, buffersize, flags=None):
         if Mocket.r_fd and Mocket.w_fd:
             return os.read(Mocket.r_fd, buffersize)
@@ -297,25 +307,16 @@ class MocketSocket(object):
 
             self.true_socket.connect((host, port))
             self.true_socket.sendall(data, *args, **kwargs)
-            encoded_response = b''
-
-            while not encoded_response:
-                # https://github.com/kennethreitz/requests/blob/master/tests/testserver/server.py#L13
-                while select.select([self.true_socket], [], [], 0.5)[0]:
-                    recv = self.true_socket.recv(self._buflen)
-                    if recv:
-                        encoded_response += recv
-                    else:
-                        break
-
-                if not encoded_response:
-                    self.true_ssl_socket.connect((host, port))
-                    while select.select([self.true_ssl_socket], [], [], 0.5)[0]:
-                        recv = self.true_ssl_socket.recv(self._buflen)
-                        if recv:
-                            encoded_response += recv
-                        else:
-                            break
+            encoded_response = None
+            # https://github.com/kennethreitz/requests/blob/master/tests/testserver/server.py#L13
+            while True:
+                more_to_read = select.select([self.true_socket], [], [], 0.5)[0]
+                if not more_to_read and encoded_response is not None:
+                    break
+                recv = self.true_socket.recv(self._buflen)
+                if not recv and encoded_response is not None:
+                    break
+                encoded_response = encoded_response or b'' + recv
 
             # dump the resulting dictionary to a JSON file
             if Mocket.get_truesocket_recording_dir():
@@ -410,6 +411,9 @@ class Mocket(object):
             '\x7f\x00\x00\x01',
             'utf-8'
         )
+        if pyopenssl_override:
+            # Take out the pyopenssl version - use the default implementation
+            extract_from_urllib3()
 
     @staticmethod
     def disable():
@@ -425,6 +429,9 @@ class Mocket(object):
         ssl.SSLContext = ssl.__dict__['SSLContext'] = true_ssl_context
         socket.inet_pton = socket.__dict__['inet_pton'] = true_inet_pton
         Mocket.reset()
+        if pyopenssl_override:
+            # Put the pyopenssl version back in place
+            inject_into_urllib3()
 
     @classmethod
     def get_namespace(cls):

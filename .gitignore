@@ -25,3 +25,5 @@ Documentation/
 doc/build
 .buildinfo
 .coverage
+shippable
+.pytest_cache/

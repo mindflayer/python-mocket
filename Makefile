@@ -4,6 +4,7 @@ install-dev-requirements:
 	pip install -U -q -e .
 
 install-test-requirements:
+	pip install -U pip
 	pip install -U -q -e .[tests]
 
 test-python:
@@ -13,12 +14,18 @@ test-python:
 
 lint-python:
 	@echo "Linting Python files"
-	flake8 --exit-zero --ignore=E501 --exclude=.git,compat.py mocket
+	flake8 --ignore=E501,E731 --exclude=.git,compat.py mocket
 	@echo ""
 
 develop: install-test-requirements install-dev-requirements
+	mkdir -p shippable/testresults
+	mkdir -p shippable/codecoverage
 
 test: install-test-requirements lint-python test-python
+
+test-ci: install-test-requirements lint-python
+	python runtests.py --junitxml=shippable/testresults/nosetests.xml \
+	--cov-report=xml:shippable/codecoverage/coverage.xml
 
 safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
@@ -33,5 +40,5 @@ clean:
 	rm -rf *.egg-info
 	find . -type d -name __pycache__ -exec rm -rf {} \;
 
-.PHONY: publish clean
+.PHONY: clean publish safetest test test-ci develop lint-python test-python install-test-requirements install-dev-requirements
 
