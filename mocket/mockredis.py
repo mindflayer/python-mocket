@@ -30,10 +30,10 @@ class Redisizer(byte_type):
     def redisize(data):
         def get_conversion(t):
             return {
-            dict: lambda x: b'\r\n'.join(Redisizer.tokens(list(chain(*tuple(x.items()))))),
-            int: lambda x: ':{0}'.format(x).encode('utf-8'),
-            text_type: lambda x: '${0}\r\n{1}'.format(len(x.encode('utf-8')), x).encode('utf-8'),
-            list: lambda x: b'\r\n'.join(Redisizer.tokens(x)),
+                dict: lambda x: b'\r\n'.join(Redisizer.tokens(list(chain(*tuple(x.items()))))),
+                int: lambda x: ':{0}'.format(x).encode('utf-8'),
+                text_type: lambda x: '${0}\r\n{1}'.format(len(x.encode('utf-8')), x).encode('utf-8'),
+                list: lambda x: b'\r\n'.join(Redisizer.tokens(x)),
             }[t]
         if isinstance(data, Redisizer):
             return data
