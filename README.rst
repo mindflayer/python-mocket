@@ -131,6 +131,7 @@ Mocket HTTP mock can work as *HTTPretty* replacement for many different use case
 
 - URL entries containing regular expressions;
 - response body from functions.
+
 Two features which are against the Zen of Python, at least imho (mindflayer), but of course I am open to call it into question.
 
 Example:
@@ -169,7 +170,7 @@ Example:
             loop.run_until_complete(main(loop))
 
 What about the other socket animals?
-===================================
+====================================
 Using *Mocket* with asyncio based clients::
 
     $ pip install aiohttp    
