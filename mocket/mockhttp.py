@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import re
 import time
@@ -162,8 +161,7 @@ class Entry(MocketEntry):
             ...
         ValueError: Not a Request-Line
         """
-        methods = '|'.join(Entry.METHODS)
-        m = re.match(r'(' + methods + ')\s+(.*)\s+HTTP/(1.[0|1])', line, re.I)
+        m = re.match(r'({})\s+(.*)\s+HTTP/(1.[0|1])'.format('|'.join(Entry.METHODS)), line, re.I)
         if m:
             return m.group(1).upper(), m.group(2), m.group(3)
         else:

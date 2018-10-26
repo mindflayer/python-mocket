@@ -6,3 +6,5 @@ requests
 redis
 gevent
 sure
+pook
+flake8
