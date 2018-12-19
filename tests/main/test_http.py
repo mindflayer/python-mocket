@@ -242,6 +242,22 @@ class HttpEntryTestCase(HttpTestCase):
         self.assertEqual(r.headers['Content-Type'], 'image/png')
 
     @mocketize
+    def test_file_object_with_no_lib_magic(self):
+        url = 'http://github.com/fluidicon.png'
+        filename = 'tests/fluidicon.png'
+        file_obj = open(filename, 'rb')
+        Entry.register(Entry.GET, url, Response(body=file_obj, lib_magic=None))
+        r = requests.get(url)
+        remote_content = r.content
+        local_file_obj = open(filename, 'rb')
+        local_content = local_file_obj.read()
+        self.assertEqual(remote_content, local_content)
+        self.assertEqual(len(remote_content), len(local_content))
+        self.assertEqual(int(r.headers['Content-Length']), len(local_content))
+        with self.assertRaises(KeyError):
+            self.assertEqual(r.headers['Content-Type'], 'image/png')
+
+    @mocketize
     def test_same_url_different_methods(self):
         url = 'http://bit.ly/fakeurl'
         response_to_mock = {

@@ -3,7 +3,10 @@ import re
 import time
 from io import BytesIO
 
-import magic
+try:
+    import magic
+except ImportError:
+    magic = None
 
 from .compat import (
     BaseHTTPRequestHandler,
@@ -41,7 +44,10 @@ class Response(object):
     headers = None
     is_file_object = False
 
-    def __init__(self, body='', status=200, headers=None):
+    def __init__(self, body='', status=200, headers=None, lib_magic=magic):
+        # needed for testing libmagic import failure
+        self.magic = lib_magic
+
         headers = headers or {}
         try:
             #  File Objects
@@ -73,7 +79,7 @@ class Response(object):
         }
         if not self.is_file_object:
             self.headers['Content-Type'] = 'text/plain; charset=utf-8'
-        else:
+        elif self.magic:
             self.headers['Content-Type'] = decode_from_bytes(magic.from_buffer(self.body, mime=True))
 
     def set_extra_headers(self, headers):
