@@ -14,7 +14,6 @@ except ImportError:
     magic = None
 
 
-
 STATUS = dict([(k, v[0]) for k, v in BaseHTTPRequestHandler.responses.items()])
 CRLF = '\r\n'
 

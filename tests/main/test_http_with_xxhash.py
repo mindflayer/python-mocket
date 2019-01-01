@@ -5,15 +5,13 @@ import io
 import json
 import os
 
-import pytest
 import requests
 from tests.main.test_http import HttpTestCase
 
 from mocket import Mocket, mocketize
 
 
-@pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
-class TrueHttpEntryTestCase(HttpTestCase):
+class HttpEntryTestCase(HttpTestCase):
 
     @mocketize(truesocket_recording_dir=os.path.dirname(__file__))
     def test_truesendall_with_dump_from_recording(self):
