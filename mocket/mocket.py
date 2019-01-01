@@ -25,6 +25,17 @@ from .compat import (
     JSONDecodeError,
 )
 
+hasher = hashlib.md5
+try:
+    import xxhash
+    hasher = xxhash.xxh32
+except ImportError:
+    try:
+        import xxhash_cffi as xxhash
+        hasher = xxhash.xxh32
+    except ImportError:
+        pass
+
 try:
     from urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3
     pyopenssl_override = True
@@ -116,6 +127,10 @@ def create_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_ad
     #     s.bind(source_address)
     s.connect(address)
     return s
+
+
+def _hash_request(h, req):
+    return h(encode_to_bytes(''.join(sorted(req.split('\r\n'))))).hexdigest()
 
 
 class MocketSocket(object):
@@ -262,7 +277,7 @@ class MocketSocket(object):
     def true_sendall(self, data, *args, **kwargs):
         req = decode_from_bytes(data)
         # make request unique again
-        req_signature = hashlib.md5(encode_to_bytes(''.join(sorted(req.split('\r\n'))))).hexdigest()
+        req_signature = _hash_request(hasher, req)
         # port should be always a string
         port = text_type(self._port)
 
@@ -283,7 +298,15 @@ class MocketSocket(object):
                 pass
 
         try:
-            response_dict = responses[self._host][port][req_signature]
+            try:
+                response_dict = responses[self._host][port][req_signature]
+            except KeyError:
+                if hasher is not hashlib.md5:
+                    # Fallback for backwards compatibility
+                    req_signature = _hash_request(hashlib.md5, req)
+                    response_dict = responses[self._host][port][req_signature]
+                else:
+                    raise
         except KeyError:
             # preventing next KeyError exceptions
             responses.setdefault(self._host, dict())
