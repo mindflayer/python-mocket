@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import os
+
 import io
-import time
 import json
-import mock
+import os
 import tempfile
+import time
 from unittest import TestCase
 
+import mock
 import pytest
 import requests
+from tests import HTTPError, urlencode, urlopen
 
 from mocket import Mocket, mocketize
 from mocket.mockhttp import Entry, Response
-from tests import urlopen, urlencode, HTTPError
-
 
 recording_directory = tempfile.mkdtemp()
 
@@ -90,20 +90,6 @@ class TrueHttpEntryTestCase(HttpTestCase):
             responses = json.load(f)
 
         assert len(responses['httpbin.org']['80'].keys()) == 1
-
-    @mocketize(truesocket_recording_dir=os.path.dirname(__file__))
-    def test_truesendall_with_dump_from_recording(self):
-        requests.get('http://httpbin.org/ip', headers={"user-agent": "Fake-User-Agent"})
-        requests.get('http://httpbin.org/gzip', headers={"user-agent": "Fake-User-Agent"})
-
-        dump_filename = os.path.join(
-            Mocket.get_truesocket_recording_dir(),
-            Mocket.get_namespace() + '.json',
-        )
-        with io.open(dump_filename) as f:
-            responses = json.load(f)
-
-        self.assertEqual(len(responses['httpbin.org']['80'].keys()), 2)
 
     @mocketize
     def test_wrongpath_truesendall(self):
@@ -290,6 +276,20 @@ class HttpEntryTestCase(HttpTestCase):
             urlopen(u, request_body.encode('utf-8'))
             last_request = Mocket.last_request()
             assert last_request.body == request_body
+
+    @mocketize(truesocket_recording_dir=os.path.dirname(__file__))
+    def test_truesendall_with_dump_from_recording(self):
+        requests.get('http://httpbin.org/ip', headers={"user-agent": "Fake-User-Agent"})
+        requests.get('http://httpbin.org/gzip', headers={"user-agent": "Fake-User-Agent"})
+
+        dump_filename = os.path.join(
+            Mocket.get_truesocket_recording_dir(),
+            Mocket.get_namespace() + '.json',
+        )
+        with io.open(dump_filename) as f:
+            responses = json.load(f)
+
+        self.assertEqual(len(responses['httpbin.org']['80'].keys()), 2)
 
     # @mocketize
     # def test_http_basic_auth(self):

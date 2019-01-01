@@ -1,22 +1,17 @@
 from __future__ import unicode_literals
+
 import re
 import time
 from io import BytesIO
+
+from .compat import (BaseHTTPRequestHandler, decode_from_bytes,
+                     encode_to_bytes, parse_qs, unquote_utf8, urlsplit)
+from .mocket import Mocket, MocketEntry
 
 try:
     import magic
 except ImportError:
     magic = None
-
-from .compat import (
-    BaseHTTPRequestHandler,
-    urlsplit,
-    parse_qs,
-    encode_to_bytes,
-    decode_from_bytes,
-    unquote_utf8,
-)
-from .mocket import Mocket, MocketEntry
 
 
 STATUS = dict([(k, v[0]) for k, v in BaseHTTPRequestHandler.responses.items()])

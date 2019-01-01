@@ -1,29 +1,31 @@
 from __future__ import unicode_literals
-import socket
-import json
-import os
-import ssl
-import io
+
 import collections
 import hashlib
+import io
+import json
+import os
 import select
+import socket
+import ssl
 from datetime import datetime, timedelta
 
 import decorator
 import hexdump
 
-from .utils import (
-    MocketSocketCore,
-)
-from .compat import (
-    encode_to_bytes,
-    decode_from_bytes,
-    basestring,
-    byte_type,
-    text_type,
-    FileNotFoundError,
-    JSONDecodeError,
-)
+from .compat import (FileNotFoundError, JSONDecodeError, basestring, byte_type,
+                     decode_from_bytes, encode_to_bytes, text_type)
+from .utils import MocketSocketCore
+
+xxh32 = None
+try:
+    from xxhash import xxh32
+except ImportError:
+    try:
+        from xxhash_cffi import xxh32
+    except ImportError:
+        pass
+hasher = xxh32 or hashlib.md5
 
 try:
     from urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3
@@ -116,6 +118,10 @@ def create_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_ad
     #     s.bind(source_address)
     s.connect(address)
     return s
+
+
+def _hash_request(h, req):
+    return h(encode_to_bytes(''.join(sorted(req.split('\r\n'))))).hexdigest()
 
 
 class MocketSocket(object):
@@ -262,7 +268,7 @@ class MocketSocket(object):
     def true_sendall(self, data, *args, **kwargs):
         req = decode_from_bytes(data)
         # make request unique again
-        req_signature = hashlib.md5(encode_to_bytes(''.join(sorted(req.split('\r\n'))))).hexdigest()
+        req_signature = _hash_request(hasher, req)
         # port should be always a string
         port = text_type(self._port)
 
@@ -283,7 +289,15 @@ class MocketSocket(object):
                 pass
 
         try:
-            response_dict = responses[self._host][port][req_signature]
+            try:
+                response_dict = responses[self._host][port][req_signature]
+            except KeyError:
+                if hasher is not hashlib.md5:
+                    # Fallback for backwards compatibility
+                    req_signature = _hash_request(hashlib.md5, req)
+                    response_dict = responses[self._host][port][req_signature]
+                else:
+                    raise
         except KeyError:
             # preventing next KeyError exceptions
             responses.setdefault(self._host, dict())
