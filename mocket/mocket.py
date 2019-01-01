@@ -25,16 +25,15 @@ from .compat import (
     JSONDecodeError,
 )
 
-hasher = hashlib.md5
+xxh32 = None
 try:
-    import xxhash
-    hasher = xxhash.xxh32
+    from xxhash import xxh32
 except ImportError:
     try:
-        import xxhash_cffi as xxhash
-        hasher = xxhash.xxh32
+        from xxhash_cffi import xxh32
     except ImportError:
         pass
+hasher = xxh32 or hashlib.md5
 
 try:
     from urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3

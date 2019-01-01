@@ -13,11 +13,15 @@ def runtests(args=None):
 
     python35 = False
 
+    extras = ['xxhash']
+
     # aiohttp available on Python >=3.5
     if major == 3 and minor >= 5:
         python35 = True
 
-        os.system('pip install aiohttp async_timeout')
+        extras += ['aiohttp', 'async_timeout']
+
+    os.system('pip install {}'.format(' '.join(extras)))
 
     if not any(a for a in args[1:] if not a.startswith('-')):
         args.append('tests/main')

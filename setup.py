@@ -39,7 +39,10 @@ setup(
     packages=find_packages(exclude=exclude_packages),
     install_requires=install_requires,
     extras_require={
-        'speedups': ['xxhash;platform_python_implementation=="CPython"', 'xxhash-cffi;platform_python_implementation=="PyPy"'],
+        'speedups': [
+            'xxhash;platform_python_implementation=="CPython"',
+            'xxhash-cffi;platform_python_implementation=="PyPy"'
+        ],
         'tests': tests_requires,
         'dev': [],
         'pook': pook_requires,  # plugins version supporting mocket.plugins.pook.MocketEngine
