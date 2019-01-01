@@ -55,6 +55,12 @@ Using pip::
 
     $ pip install mocket
 
+Speedups
+========
+Mocket uses **xxhash** when available instead of *hashlib.md5* for creating hashes, you can install it as follows::
+
+    $ pip install mocket[speedups]
+
 Issues
 ============
 When opening an **Issue**, please add few lines of code as failing test, or -better- open its relative **Pull request** adding this test to our test suite.
