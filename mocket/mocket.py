@@ -1,29 +1,21 @@
 from __future__ import unicode_literals
-import socket
-import json
-import os
-import ssl
-import io
+
 import collections
 import hashlib
+import io
+import json
+import os
 import select
+import socket
+import ssl
 from datetime import datetime, timedelta
 
 import decorator
 import hexdump
 
-from .utils import (
-    MocketSocketCore,
-)
-from .compat import (
-    encode_to_bytes,
-    decode_from_bytes,
-    basestring,
-    byte_type,
-    text_type,
-    FileNotFoundError,
-    JSONDecodeError,
-)
+from .compat import (FileNotFoundError, JSONDecodeError, basestring, byte_type,
+                     decode_from_bytes, encode_to_bytes, text_type)
+from .utils import MocketSocketCore
 
 xxh32 = None
 try:

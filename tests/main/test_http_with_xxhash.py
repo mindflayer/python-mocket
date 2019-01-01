@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import os
+
 import io
 import json
+import os
 
 import pytest
 import requests
+from tests.main.test_http import HttpTestCase
 
 from mocket import Mocket, mocketize
-from tests.main.test_http import HttpTestCase
 
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')

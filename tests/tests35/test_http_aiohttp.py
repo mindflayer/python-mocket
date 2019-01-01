@@ -1,11 +1,11 @@
-import json
-
-import aiohttp
 import asyncio
-import async_timeout
+import json
 from unittest import TestCase
 
-from mocket.mocket import mocketize, Mocket
+import aiohttp
+import async_timeout
+
+from mocket.mocket import Mocket, mocketize
 from mocket.mockhttp import Entry
 from mocket.plugins.httpretty import HTTPretty, httprettified
 

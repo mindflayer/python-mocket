@@ -1,8 +1,7 @@
-import requests
 import pook
+import requests
 
 from mocket.plugins.pook_mock_engine import MocketEngine
-
 
 pook.set_mock_engine(MocketEngine)
 
@@ -29,4 +28,3 @@ def test_pook_engine():
     assert resp.status_code == status
     assert resp.json() == response_json
     assert mock.calls == 2
-

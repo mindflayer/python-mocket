@@ -1,8 +1,7 @@
 import io
 import sys
 
-from setuptools import setup, find_packages, os
-
+from setuptools import find_packages, os, setup
 
 major, minor = sys.version_info[:2]
 

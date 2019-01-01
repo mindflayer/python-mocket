@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import os
+
 import io
-import time
 import json
-import mock
+import os
 import tempfile
+import time
 from unittest import TestCase
 
+import mock
 import pytest
 import requests
+from tests import HTTPError, urlencode, urlopen
 
 from mocket import Mocket, mocketize
 from mocket.mockhttp import Entry, Response
-from tests import urlopen, urlencode, HTTPError
-
 
 recording_directory = tempfile.mkdtemp()
 

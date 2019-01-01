@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
+
 from itertools import chain
 
-from .compat import text_type, byte_type, encode_to_bytes, decode_from_bytes, shsplit
-from .mocket import MocketEntry, Mocket
+from .compat import (byte_type, decode_from_bytes, encode_to_bytes, shsplit,
+                     text_type)
+from .mocket import Mocket, MocketEntry
 
 
 class Request(object):
