@@ -22,7 +22,7 @@ from .compat import (
     encode_to_bytes,
     text_type,
 )
-from .utils import MocketSocketCore, wrap_ssl_socket
+from .utils import MocketSocketCore, wrap_ssl_socket, SSL_PROTOCOL
 
 xxh32 = None
 try:
@@ -92,7 +92,7 @@ class FakeSSLContext(SuperFakeSSLContext):
                 self.sock.true_socket = true_ssl_socket(
                     sock=self.sock.true_socket,
                     server_hostname=server_hostname,
-                    _context=true_ssl_context(protocol=ssl.PROTOCOL_SSLv23),
+                    _context=true_ssl_context(protocol=SSL_PROTOCOL),
                 )
             else:  # Python 2.
                 self.sock.true_socket = true_ssl_socket(sock=self.sock.true_socket)

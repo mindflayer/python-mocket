@@ -3,6 +3,9 @@ import os
 import ssl
 
 
+SSL_PROTOCOL = ssl.PROTOCOL_SSLv23
+
+
 class MocketSocketCore(io.BytesIO):
     def write(self, content):
         super(MocketSocketCore, self).write(content)
@@ -21,7 +24,7 @@ def wrap_ssl_socket(
     certfile=None,
     server_side=False,
     cert_reqs=ssl.CERT_NONE,
-    ssl_version=ssl.PROTOCOL_TLS,
+    ssl_version=SSL_PROTOCOL,
     ca_certs=None,
     do_handshake_on_connect=True,
     suppress_ragged_eofs=True,
