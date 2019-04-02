@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import io
 import socket
 from unittest import TestCase
 import io
