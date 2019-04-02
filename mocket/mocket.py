@@ -151,7 +151,7 @@ class MocketSocket(object):
         self.true_socket = true_socket(family, type, proto)
         self.fd = MocketSocketCore()
         self._connected = False
-        self._buflen = 4096
+        self._buflen = 65536
         self._entry = None
         self.family = int(family)
         self.type = int(type)
@@ -330,16 +330,16 @@ class MocketSocket(object):
                 # already connected
                 pass
             self.true_socket.sendall(data, *args, **kwargs)
-            encoded_response = None
+            encoded_response = b''
             # https://github.com/kennethreitz/requests/blob/master/tests/testserver/server.py#L13
             while True:
-                more_to_read = select.select([self.true_socket], [], [], 0.5)[0]
-                if not more_to_read and encoded_response is not None:
+                if not select.select([self.true_socket], [], [], 0.1)[0] and encoded_response:
                     break
                 recv = self.true_socket.recv(self._buflen)
-                if not recv and encoded_response is not None:
+
+                if not recv and encoded_response:
                     break
-                encoded_response = encoded_response or b"" + recv
+                encoded_response += recv
 
             # dump the resulting dictionary to a JSON file
             if Mocket.get_truesocket_recording_dir():
