@@ -13,17 +13,30 @@ class MocketSocketCore(io.BytesIO):
             os.write(Mocket.w_fd, content)
 
 
-def wrap_ssl_socket(cls, sock, context, keyfile=None, certfile=None,
-                server_side=False, cert_reqs=ssl.CERT_NONE,
-                ssl_version=ssl.PROTOCOL_TLS, ca_certs=None,
-                do_handshake_on_connect=True,
-                suppress_ragged_eofs=True,
-                ciphers=None):
+def wrap_ssl_socket(
+    cls,
+    sock,
+    context,
+    keyfile=None,
+    certfile=None,
+    server_side=False,
+    cert_reqs=ssl.CERT_NONE,
+    ssl_version=ssl.PROTOCOL_TLS,
+    ca_certs=None,
+    do_handshake_on_connect=True,
+    suppress_ragged_eofs=True,
+    ciphers=None,
+):
     return cls(
-        sock=sock, keyfile=keyfile, certfile=certfile,
-        server_side=server_side, cert_reqs=cert_reqs,
-        ssl_version=ssl_version, ca_certs=ca_certs,
+        sock=sock,
+        keyfile=keyfile,
+        certfile=certfile,
+        server_side=server_side,
+        cert_reqs=cert_reqs,
+        ssl_version=ssl_version,
+        ca_certs=ca_certs,
         do_handshake_on_connect=do_handshake_on_connect,
         suppress_ragged_eofs=suppress_ragged_eofs,
-        ciphers=ciphers, _context=context
+        ciphers=ciphers,
+        _context=context,
     )

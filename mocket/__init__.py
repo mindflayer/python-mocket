@@ -8,4 +8,3 @@ except ImportError:
 __all__ = (mocketize, Mocket, MocketEntry, Mocketizer)
 
 __version__ = '2.6.0'
-
