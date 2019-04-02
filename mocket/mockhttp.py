@@ -1,20 +1,17 @@
-# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
 import re
 import time
 from io import BytesIO
 
-import magic
-
-from .compat import (
-    BaseHTTPRequestHandler,
-    urlsplit,
-    parse_qs,
-    encode_to_bytes,
-    decode_from_bytes,
-    unquote_utf8,
-)
+from .compat import (BaseHTTPRequestHandler, decode_from_bytes,
+                     encode_to_bytes, parse_qs, unquote_utf8, urlsplit)
 from .mocket import Mocket, MocketEntry
+
+try:
+    import magic
+except ImportError:
+    magic = None
 
 
 STATUS = dict([(k, v[0]) for k, v in BaseHTTPRequestHandler.responses.items()])
@@ -42,7 +39,10 @@ class Response(object):
     headers = None
     is_file_object = False
 
-    def __init__(self, body='', status=200, headers=None):
+    def __init__(self, body='', status=200, headers=None, lib_magic=magic):
+        # needed for testing libmagic import failure
+        self.magic = lib_magic
+
         headers = headers or {}
         try:
             #  File Objects
@@ -74,7 +74,7 @@ class Response(object):
         }
         if not self.is_file_object:
             self.headers['Content-Type'] = 'text/plain; charset=utf-8'
-        else:
+        elif self.magic:
             self.headers['Content-Type'] = decode_from_bytes(magic.from_buffer(self.body, mime=True))
 
     def set_extra_headers(self, headers):
@@ -162,8 +162,7 @@ class Entry(MocketEntry):
             ...
         ValueError: Not a Request-Line
         """
-        methods = '|'.join(Entry.METHODS)
-        m = re.match(r'(' + methods + ')\s+(.*)\s+HTTP/(1.[0|1])', line, re.I)
+        m = re.match(r'({})\s+(.*)\s+HTTP/(1.[0|1])'.format('|'.join(Entry.METHODS)), line, re.I)
         if m:
             return m.group(1).upper(), m.group(2), m.group(3)
         else:

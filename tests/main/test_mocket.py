@@ -1,11 +1,13 @@
 from __future__ import unicode_literals
+
+import io
 import socket
 from unittest import TestCase
 import io
 
 import pytest
 
-from mocket import Mocket, mocketize, MocketEntry, Mocketizer
+from mocket import Mocket, MocketEntry, Mocketizer, mocketize
 from mocket.compat import encode_to_bytes
 
 

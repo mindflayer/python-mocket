@@ -1,20 +1,20 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import os
+
 import io
-import time
 import json
-import mock
+import os
 import tempfile
+import time
 from unittest import TestCase
 
+import mock
 import pytest
 import requests
+from tests import HTTPError, urlencode, urlopen
 
 from mocket import Mocket, mocketize
 from mocket.mockhttp import Entry, Response
-from tests import urlopen, urlencode, HTTPError
-
 
 recording_directory = tempfile.mkdtemp()
 
@@ -90,20 +90,6 @@ class TrueHttpEntryTestCase(HttpTestCase):
             responses = json.load(f)
 
         assert len(responses['httpbin.org']['80'].keys()) == 1
-
-    @mocketize(truesocket_recording_dir=os.path.dirname(__file__))
-    def test_truesendall_with_dump_from_recording(self):
-        requests.get('http://httpbin.org/ip', headers={"user-agent": "Fake-User-Agent"})
-        requests.get('http://httpbin.org/gzip', headers={"user-agent": "Fake-User-Agent"})
-
-        dump_filename = os.path.join(
-            Mocket.get_truesocket_recording_dir(),
-            Mocket.get_namespace() + '.json',
-        )
-        with io.open(dump_filename) as f:
-            responses = json.load(f)
-
-        self.assertEqual(len(responses['httpbin.org']['80'].keys()), 2)
 
     @mocketize
     def test_wrongpath_truesendall(self):
@@ -242,6 +228,22 @@ class HttpEntryTestCase(HttpTestCase):
         self.assertEqual(r.headers['Content-Type'], 'image/png')
 
     @mocketize
+    def test_file_object_with_no_lib_magic(self):
+        url = 'http://github.com/fluidicon.png'
+        filename = 'tests/fluidicon.png'
+        file_obj = open(filename, 'rb')
+        Entry.register(Entry.GET, url, Response(body=file_obj, lib_magic=None))
+        r = requests.get(url)
+        remote_content = r.content
+        local_file_obj = open(filename, 'rb')
+        local_content = local_file_obj.read()
+        self.assertEqual(remote_content, local_content)
+        self.assertEqual(len(remote_content), len(local_content))
+        self.assertEqual(int(r.headers['Content-Length']), len(local_content))
+        with self.assertRaises(KeyError):
+            self.assertEqual(r.headers['Content-Type'], 'image/png')
+
+    @mocketize
     def test_same_url_different_methods(self):
         url = 'http://bit.ly/fakeurl'
         response_to_mock = {
@@ -274,6 +276,20 @@ class HttpEntryTestCase(HttpTestCase):
             urlopen(u, request_body.encode('utf-8'))
             last_request = Mocket.last_request()
             assert last_request.body == request_body
+
+    @mocketize(truesocket_recording_dir=os.path.dirname(__file__))
+    def test_truesendall_with_dump_from_recording(self):
+        requests.get('http://httpbin.org/ip', headers={"user-agent": "Fake-User-Agent"})
+        requests.get('http://httpbin.org/gzip', headers={"user-agent": "Fake-User-Agent"})
+
+        dump_filename = os.path.join(
+            Mocket.get_truesocket_recording_dir(),
+            Mocket.get_namespace() + '.json',
+        )
+        with io.open(dump_filename) as f:
+            responses = json.load(f)
+
+        self.assertEqual(len(responses['httpbin.org']['80'].keys()), 2)
 
     # @mocketize
     # def test_http_basic_auth(self):

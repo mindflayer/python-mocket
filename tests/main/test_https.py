@@ -1,14 +1,14 @@
-import os
 import io
 import json
+import os
 import tempfile
 
-import requests
 import pytest
-
-from mocket import mocketize, Mocket
-from mocket.mockhttp import Entry
+import requests
 from tests import urlopen
+
+from mocket import Mocket, mocketize
+from mocket.mockhttp import Entry
 
 
 @pytest.fixture

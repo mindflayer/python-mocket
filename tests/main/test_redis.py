@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
+
 from unittest import TestCase
 
 import pytest
 import redis
 
-from mocket import mocketize, Mocket
-from mocket.mockredis import Entry, OK, ERROR, Redisizer
+from mocket import Mocket, mocketize
+from mocket.mockredis import ERROR, OK, Entry, Redisizer
 
 
 class RedisizerTestCase(TestCase):

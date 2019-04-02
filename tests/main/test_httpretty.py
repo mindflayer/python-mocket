@@ -1,4 +1,3 @@
-# #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # <HTTPretty - HTTP client mock for Python>
