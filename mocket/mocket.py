@@ -328,7 +328,7 @@ class MocketSocket(object):
 
             try:
                 self.true_socket.connect((host, port))
-            except OSError:
+            except (OSError, socket.error):
                 # already connected
                 pass
             self.true_socket.sendall(data, *args, **kwargs)
