@@ -335,10 +335,9 @@ class MocketSocket(object):
             encoded_response = b""
             # https://github.com/kennethreitz/requests/blob/master/tests/testserver/server.py#L13
             while True:
-                if (
-                    not select.select([self.true_socket], [], [], 0.1)[0]
-                    and encoded_response
-                ):
+                if not select.select(
+                    [self.true_socket], [], [], 0.1
+                )[0] and encoded_response:
                     break
                 recv = self.true_socket.recv(self._buflen)
 
