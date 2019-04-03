@@ -132,6 +132,7 @@ def _hash_request(h, req):
 
 
 class MocketSocket(object):
+    fd = None
     family = None
     type = None
     proto = None
@@ -148,7 +149,6 @@ class MocketSocket(object):
     ):
         self.settimeout(socket._GLOBAL_DEFAULT_TIMEOUT)
         self.true_socket = true_socket(family, type, proto)
-        self.fd = MocketSocketCore()
         self._connected = False
         self._buflen = 65536
         self._entry = None
@@ -256,11 +256,8 @@ class MocketSocket(object):
         else:
             response = self.true_sendall(data, *args, **kwargs)
 
-        try:
-            self.fd.seek(0)
-        except ValueError:
-            self.fd = MocketSocketCore()
-            self.fd.seek(0)
+        self.fd = MocketSocketCore()
+        self.fd.seek(0)
         self.fd.write(response)
         self.fd.truncate()
         self.fd.seek(0)
@@ -376,6 +373,9 @@ class MocketSocket(object):
         self._entry = entry
         return len(data)
 
+    def close(self):
+        self.fd = MocketSocketCore()
+
     def __getattr__(self, name):
         """ Do nothing catchall function, for methods like close() and shutdown() """
 
@@ -411,6 +411,8 @@ class Mocket(object):
 
     @classmethod
     def reset(cls):
+        cls.r_fd = None
+        cls.w_fd = None
         cls._entries = collections.defaultdict(list)
         cls._requests = []
 
