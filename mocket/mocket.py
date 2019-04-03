@@ -257,7 +257,10 @@ class MocketSocket(object):
         else:
             response = self.true_sendall(data, *args, **kwargs)
 
-        self.fd.seek(0)
+        try:
+            self.fd.seek(0)
+        except ValueError:
+            self.fd = MocketSocketCore()
         self.fd.write(response)
         self.fd.truncate()
         self.fd.seek(0)
@@ -328,7 +331,7 @@ class MocketSocket(object):
 
             try:
                 self.true_socket.connect((host, port))
-            except (OSError, socket.error):
+            except (OSError, socket.error, ValueError):
                 # already connected
                 pass
             self.true_socket.sendall(data, *args, **kwargs)
@@ -373,10 +376,8 @@ class MocketSocket(object):
         self._entry = entry
         return len(data)
 
-    def __getattr__(self, name):
-        """ Useful when clients call methods on real
-        socket we do not provide on the fake one. """
-        return getattr(self.true_socket, name)  # pragma: no cover
+    def close(self):
+        pass
 
 
 class Mocket(object):
