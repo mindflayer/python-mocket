@@ -376,7 +376,7 @@ class MocketSocket(object):
         return len(data)
 
     def __getattr__(self, name):
-        """ Do nothing  catchall function, for method like close() and shutdown() """
+        """ Do nothing catchall function, for method like close() and shutdown() """
 
         def do_nothing(*args, **kwargs):
             pass
