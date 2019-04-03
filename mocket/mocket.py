@@ -41,7 +41,6 @@ try:
 except ImportError:
     pyopenssl_override = False
 
-
 __all__ = (
     "true_socket",
     "true_create_connection",
@@ -376,8 +375,13 @@ class MocketSocket(object):
         self._entry = entry
         return len(data)
 
-    def close(self):
-        pass
+    def __getattr__(self, name):
+        """ Do nothing  catchall function, for method like close() and shutdown() """
+
+        def do_nothing(*args, **kwargs):
+            pass
+
+        return do_nothing
 
 
 class Mocket(object):

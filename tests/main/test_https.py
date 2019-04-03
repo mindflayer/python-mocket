@@ -7,7 +7,7 @@ import pytest
 import requests
 from tests import urlopen
 
-from mocket import Mocket, mocketize
+from mocket import Mocket, mocketize, Mocketizer
 from mocket.mockhttp import Entry
 
 
@@ -28,8 +28,7 @@ def test_json(response):
         Entry.GET,
         url_to_mock,
         body=json.dumps(response),
-        headers={'content-type': 'application/json'}
-    )
+        headers={'content-type': 'application/json'})
 
     mocked_response = requests.get(url_to_mock).json()
     assert response == mocked_response
@@ -60,6 +59,7 @@ def test_truesendall_with_recording_https():
     assert len(responses['httpbin.org']['443'].keys()) == 1
 
 
+@pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
 def test_truesendall_after_mocket_session():
     Mocket.enable()
     Mocket.disable()
@@ -67,3 +67,14 @@ def test_truesendall_after_mocket_session():
     url = 'https://httpbin.org/ip'
     resp = requests.get(url)
     assert resp.status_code == 200
+
+
+@pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
+def test_real_request_session():
+    session = requests.Session()
+
+    url1 = 'https://httpbin.org/ip'
+    url2 = 'https://www.google.com/'
+
+    with Mocketizer():
+        assert len(session.get(url1).content) < len(session.get(url2).content)
