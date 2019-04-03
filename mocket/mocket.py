@@ -260,6 +260,7 @@ class MocketSocket(object):
             self.fd.seek(0)
         except ValueError:
             self.fd = MocketSocketCore()
+            self.fd.seek(0)
         self.fd.write(response)
         self.fd.truncate()
         self.fd.seek(0)

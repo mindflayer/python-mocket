@@ -74,7 +74,7 @@ def test_real_request_session():
     session = requests.Session()
 
     url1 = 'https://httpbin.org/ip'
-    url2 = 'https://www.google.com/'
+    url2 = 'https://httpbin.org/headers'
 
     with Mocketizer():
         assert len(session.get(url1).content) < len(session.get(url2).content)
