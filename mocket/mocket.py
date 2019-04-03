@@ -41,7 +41,6 @@ try:
 except ImportError:
     pyopenssl_override = False
 
-
 __all__ = (
     "true_socket",
     "true_create_connection",
@@ -133,6 +132,7 @@ def _hash_request(h, req):
 
 
 class MocketSocket(object):
+    fd = None
     family = None
     type = None
     proto = None
@@ -149,7 +149,6 @@ class MocketSocket(object):
     ):
         self.settimeout(socket._GLOBAL_DEFAULT_TIMEOUT)
         self.true_socket = true_socket(family, type, proto)
-        self.fd = MocketSocketCore()
         self._connected = False
         self._buflen = 65536
         self._entry = None
@@ -257,6 +256,7 @@ class MocketSocket(object):
         else:
             response = self.true_sendall(data, *args, **kwargs)
 
+        self.fd = MocketSocketCore()
         self.fd.seek(0)
         self.fd.write(response)
         self.fd.truncate()
@@ -328,7 +328,7 @@ class MocketSocket(object):
 
             try:
                 self.true_socket.connect((host, port))
-            except (OSError, socket.error):
+            except (OSError, socket.error, ValueError):
                 # already connected
                 pass
             self.true_socket.sendall(data, *args, **kwargs)
@@ -373,10 +373,16 @@ class MocketSocket(object):
         self._entry = entry
         return len(data)
 
+    def close(self):
+        self.fd = MocketSocketCore()
+
     def __getattr__(self, name):
-        """ Useful when clients call methods on real
-        socket we do not provide on the fake one. """
-        return getattr(self.true_socket, name)  # pragma: no cover
+        """ Do nothing catchall function, for methods like close() and shutdown() """
+
+        def do_nothing(*args, **kwargs):
+            pass
+
+        return do_nothing
 
 
 class Mocket(object):
@@ -405,6 +411,8 @@ class Mocket(object):
 
     @classmethod
     def reset(cls):
+        cls.r_fd = None
+        cls.w_fd = None
         cls._entries = collections.defaultdict(list)
         cls._requests = []
 
