@@ -41,23 +41,6 @@ try:
 except ImportError:
     pyopenssl_override = False
 
-__all__ = (
-    "true_socket",
-    "true_create_connection",
-    "true_gethostbyname",
-    "true_gethostname",
-    "true_getaddrinfo",
-    "true_ssl_wrap_socket",
-    "true_ssl_socket",
-    "true_ssl_context",
-    "true_inet_pton",
-    "create_connection",
-    "MocketSocket",
-    "Mocket",
-    "MocketEntry",
-    "mocketize",
-)
-
 true_socket = socket.socket
 true_create_connection = socket.create_connection
 true_gethostbyname = socket.gethostbyname
