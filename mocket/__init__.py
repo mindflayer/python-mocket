@@ -7,4 +7,4 @@ except ImportError:
 
 __all__ = (mocketize, Mocket, MocketEntry, Mocketizer)
 
-__version__ = '2.7.1'
+__version__ = '2.7.2'
