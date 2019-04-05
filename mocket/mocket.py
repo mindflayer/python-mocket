@@ -128,7 +128,7 @@ class MocketSocket(object):
     _bufsize = None
 
     def __init__(
-        self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, **kwargs
+        self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, *args, **kwargs
     ):
         self.settimeout(socket._GLOBAL_DEFAULT_TIMEOUT)
         self.true_socket = true_socket(family, type, proto)
