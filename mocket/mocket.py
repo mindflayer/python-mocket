@@ -409,6 +409,10 @@ class Mocket(object):
         if cls._requests:
             del cls._requests[-1]
 
+    @classmethod
+    def has_requests(cls):
+        return len(cls._requests) > 0
+
     @staticmethod
     def enable(namespace=None, truesocket_recording_dir=None):
         Mocket._namespace = namespace
