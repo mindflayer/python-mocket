@@ -25,6 +25,12 @@ class MocketTestCase(TestCase):
         Mocket.reset()
         self.assertEqual(Mocket._requests, [])
 
+    def test_has_requests(self):
+        Mocket._requests.extend([1, 2, 3])
+        self.assertTrue(Mocket.has_requests())
+        Mocket.reset()
+        self.assertFalse(Mocket.has_requests())
+
     def test_gethostname(self):
         hostname = socket.gethostname()
         Mocket.enable()
