@@ -34,7 +34,7 @@ setup(
     url='https://github.com/mindflayer/python-mocket',
     description='Socket Mock Framework - for all kinds of socket animals, web-clients included - \
         with gevent/asyncio/SSL support',
-    long_description=io.open('README.rst').read(),
+    long_description=io.open('README.rst', encoding='utf-8').read(),
     packages=find_packages(exclude=exclude_packages),
     install_requires=install_requires,
     extras_require={
