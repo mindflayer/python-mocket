@@ -46,7 +46,7 @@ def encode_to_bytes(s, encoding=encoding):
 
 def decode_from_bytes(s, encoding=encoding):
     if isinstance(s, byte_type):
-        s = codecs.decode(s, encoding=encoding, errors="ignore")
+        s = codecs.decode(s, encoding, "ignore")
     return text_type(s)
 
 
