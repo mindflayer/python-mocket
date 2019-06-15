@@ -1,10 +1,11 @@
+import codecs
 import os
-import sys
 import shlex
+import sys
 
 import six
 
-encoding = os.getenv("MOCKET_ENCODING", 'utf-8')
+encoding = os.getenv("MOCKET_ENCODING", "utf-8")
 
 text_type = six.text_type
 byte_type = six.binary_type
@@ -28,6 +29,7 @@ if PY2:
 else:
     from http.server import BaseHTTPRequestHandler
     from urllib.parse import urlsplit, parse_qs, unquote as unquote_utf8
+
     FileNotFoundError = FileNotFoundError
 
 try:
@@ -36,15 +38,15 @@ except ImportError:
     JSONDecodeError = ValueError
 
 
-def encode_to_bytes(s, charset=encoding):
+def encode_to_bytes(s, encoding=encoding):
     if isinstance(s, text_type):
-        s = s.encode(charset)
+        s = s.encode(encoding)
     return byte_type(s)
 
 
-def decode_from_bytes(s, charset=encoding):
+def decode_from_bytes(s, encoding=encoding):
     if isinstance(s, byte_type):
-        s = s.decode(charset)
+        s = codecs.decode(s, encoding, "ignore")
     return text_type(s)
 
 

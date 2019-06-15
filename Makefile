@@ -31,7 +31,9 @@ safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
 
 publish:
-	python setup.py sdist upload
+	python setup.py sdist
+	pip install -U twine
+	twine upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
 	pip install anaconda-client
 	anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
 
