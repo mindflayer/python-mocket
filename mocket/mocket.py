@@ -12,6 +12,9 @@ from datetime import datetime, timedelta
 
 import decorator
 import hexdump
+import urllib3
+from urllib3.util.ssl_ import ssl_wrap_socket as urllib3_ssl_wrap_socket
+from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
 
 from .compat import (
     FileNotFoundError,
@@ -22,7 +25,7 @@ from .compat import (
     encode_to_bytes,
     text_type,
 )
-from .utils import MocketSocketCore, wrap_ssl_socket, SSL_PROTOCOL
+from .utils import SSL_PROTOCOL, MocketSocketCore, wrap_ssl_socket
 
 xxh32 = None
 try:
@@ -41,6 +44,7 @@ try:
 except ImportError:
     pyopenssl_override = False
 
+
 true_socket = socket.socket
 true_create_connection = socket.create_connection
 true_gethostbyname = socket.gethostbyname
@@ -50,6 +54,8 @@ true_ssl_wrap_socket = ssl.wrap_socket
 true_ssl_socket = ssl.SSLSocket
 true_ssl_context = ssl.SSLContext
 true_inet_pton = socket.inet_pton
+true_urllib3_wrap_socket = urllib3_wrap_socket
+true_urllib3_ssl_wrap_socket = urllib3_ssl_wrap_socket
 
 
 class SuperFakeSSLContext(object):
@@ -174,6 +180,9 @@ class MocketSocket(object):
             self.timeout = timeout
         except AttributeError:
             pass
+
+    def getsockopt(self, level, optname, buflen=None):
+        return socket.SOCK_STREAM
 
     def do_handshake(self):
         pass
@@ -443,6 +452,15 @@ class Mocket(object):
         socket.inet_pton = socket.__dict__["inet_pton"] = lambda family, ip: byte_type(
             "\x7f\x00\x00\x01", "utf-8"
         )
+        urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__[
+            "wrap_socket"
+        ] = FakeSSLContext.wrap_socket
+        urllib3.util.ssl_.ssl_wrap_socket = urllib3.util.ssl_.__dict__[
+            "ssl_wrap_socket"
+        ] = FakeSSLContext.wrap_socket
+        urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
+            "ssl_wrap_socket"
+        ] = FakeSSLContext.wrap_socket
         if pyopenssl_override:
             # Take out the pyopenssl version - use the default implementation
             extract_from_urllib3()
@@ -462,6 +480,15 @@ class Mocket(object):
         ssl.SSLSocket = ssl.__dict__["SSLSocket"] = true_ssl_socket
         ssl.SSLContext = ssl.__dict__["SSLContext"] = true_ssl_context
         socket.inet_pton = socket.__dict__["inet_pton"] = true_inet_pton
+        urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__[
+            "wrap_socket"
+        ] = true_urllib3_wrap_socket
+        urllib3.util.ssl_.ssl_wrap_socket = urllib3.util.ssl_.__dict__[
+            "ssl_wrap_socket"
+        ] = true_urllib3_ssl_wrap_socket
+        urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
+            "ssl_wrap_socket"
+        ] = true_urllib3_ssl_wrap_socket
         Mocket.reset()
         if pyopenssl_override:
             # Put the pyopenssl version back in place
