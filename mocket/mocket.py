@@ -12,6 +12,9 @@ from datetime import datetime, timedelta
 
 import decorator
 import hexdump
+import urllib3
+from urllib3.util.ssl_ import ssl_wrap_socket as urllib3_ssl_wrap_socket
+from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
 
 from .compat import (
     FileNotFoundError,
@@ -22,7 +25,7 @@ from .compat import (
     encode_to_bytes,
     text_type,
 )
-from .utils import MocketSocketCore, wrap_ssl_socket, SSL_PROTOCOL
+from .utils import SSL_PROTOCOL, MocketSocketCore, wrap_ssl_socket
 
 xxh32 = None
 try:
@@ -41,6 +44,7 @@ try:
 except ImportError:
     pyopenssl_override = False
 
+
 true_socket = socket.socket
 true_create_connection = socket.create_connection
 true_gethostbyname = socket.gethostbyname
@@ -50,6 +54,8 @@ true_ssl_wrap_socket = ssl.wrap_socket
 true_ssl_socket = ssl.SSLSocket
 true_ssl_context = ssl.SSLContext
 true_inet_pton = socket.inet_pton
+true_urllib3_wrap_socket = urllib3_wrap_socket
+true_urllib3_ssl_wrap_socket = urllib3_ssl_wrap_socket
 
 
 class SuperFakeSSLContext(object):
@@ -87,6 +93,8 @@ class FakeSSLContext(SuperFakeSSLContext):
 
     @staticmethod
     def wrap_socket(sock=sock, *args, **kwargs):
+        sock.kwargs = kwargs
+        sock._secure_socket = True
         return sock
 
     def wrap_bio(self, incoming, outcoming, *args, **kwargs):
@@ -126,6 +134,7 @@ class MocketSocket(object):
     compression = lambda s: ssl.OP_NO_COMPRESSION
     _mode = None
     _bufsize = None
+    _secure_socket = False
 
     def __init__(
         self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, *args, **kwargs
@@ -139,6 +148,7 @@ class MocketSocket(object):
         self.type = int(type)
         self.proto = int(proto)
         self._truesocket_recording_dir = None
+        self.kwargs = kwargs
 
         sock = kwargs.get("sock")
         if sock is not None:
@@ -174,6 +184,9 @@ class MocketSocket(object):
             self.timeout = timeout
         except AttributeError:
             pass
+
+    def getsockopt(self, level, optname, buflen=None):
+        return socket.SOCK_STREAM
 
     def do_handshake(self):
         pass
@@ -309,6 +322,18 @@ class MocketSocket(object):
             host, port = Mocket._address
             host = true_gethostbyname(host)
 
+            if isinstance(self.true_socket, true_socket) and self._secure_socket:
+                try:
+                    self = MocketSocket(sock=self)
+                except TypeError:
+                    ssl_context = self.kwargs.get("ssl_context")
+                    server_hostname = self.kwargs.get("server_hostname")
+                    self.true_socket = true_ssl_context.wrap_socket(
+                        self=ssl_context,
+                        sock=self.true_socket,
+                        server_hostname=server_hostname,
+                    )
+
             try:
                 self.true_socket.connect((host, port))
             except (OSError, socket.error, ValueError):
@@ -342,7 +367,7 @@ class MocketSocket(object):
                         )
                     )
 
-        # response back to .sendall() which writes it to the mocket socket and flush the BytesIO
+        # response back to .sendall() which writes it to the Mocket socket and flush the BytesIO
         return encoded_response
 
     def send(self, data, *args, **kwargs):  # pragma: no cover
@@ -438,11 +463,20 @@ class Mocket(object):
             (2, 1, 6, "", (host, port))
         ]
         ssl.wrap_socket = ssl.__dict__["wrap_socket"] = FakeSSLContext.wrap_socket
-        ssl.SSLSocket = ssl.__dict__["SSLSocket"] = MocketSocket
+        # ssl.SSLSocket = ssl.__dict__["SSLSocket"] = MocketSocket
         ssl.SSLContext = ssl.__dict__["SSLContext"] = FakeSSLContext
         socket.inet_pton = socket.__dict__["inet_pton"] = lambda family, ip: byte_type(
             "\x7f\x00\x00\x01", "utf-8"
         )
+        urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__[
+            "wrap_socket"
+        ] = FakeSSLContext.wrap_socket
+        urllib3.util.ssl_.ssl_wrap_socket = urllib3.util.ssl_.__dict__[
+            "ssl_wrap_socket"
+        ] = FakeSSLContext.wrap_socket
+        urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
+            "ssl_wrap_socket"
+        ] = FakeSSLContext.wrap_socket
         if pyopenssl_override:
             # Take out the pyopenssl version - use the default implementation
             extract_from_urllib3()
@@ -459,9 +493,18 @@ class Mocket(object):
         socket.gethostbyname = socket.__dict__["gethostbyname"] = true_gethostbyname
         socket.getaddrinfo = socket.__dict__["getaddrinfo"] = true_getaddrinfo
         ssl.wrap_socket = ssl.__dict__["wrap_socket"] = true_ssl_wrap_socket
-        ssl.SSLSocket = ssl.__dict__["SSLSocket"] = true_ssl_socket
+        # ssl.SSLSocket = ssl.__dict__["SSLSocket"] = true_ssl_socket
         ssl.SSLContext = ssl.__dict__["SSLContext"] = true_ssl_context
         socket.inet_pton = socket.__dict__["inet_pton"] = true_inet_pton
+        urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__[
+            "wrap_socket"
+        ] = true_urllib3_wrap_socket
+        urllib3.util.ssl_.ssl_wrap_socket = urllib3.util.ssl_.__dict__[
+            "ssl_wrap_socket"
+        ] = true_urllib3_ssl_wrap_socket
+        urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
+            "ssl_wrap_socket"
+        ] = true_urllib3_ssl_wrap_socket
         Mocket.reset()
         if pyopenssl_override:
             # Put the pyopenssl version back in place

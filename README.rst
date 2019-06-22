@@ -20,6 +20,10 @@ A socket mock framework
 -------------------------
     for all kinds of socket *animals*, web-clients included - with gevent/asyncio/SSL support
 
+Versioning
+==========
+Starting from 3.7.0, Mocket major version will follow the same numbering pattern as Python's and therefore indicate the most recent Python version that is supported.
+
 Support it
 ==========
 *Star* the project on GitHub, Buy Me a Coffee or, even better, contribute with patches or documentation.
