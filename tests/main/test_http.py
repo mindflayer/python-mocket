@@ -269,8 +269,8 @@ class HttpEntryTestCase(HttpTestCase):
 
         methods_from_responses = [r["method"] for r in responses]
         contents_from_responses = [r["content"] for r in responses]
-        self.assertEquals(methods, methods_from_responses)
-        self.assertEquals(list(range(len(methods))), contents_from_responses)
+        self.assertEqual(methods, methods_from_responses)
+        self.assertEqual(list(range(len(methods))), contents_from_responses)
 
     @mocketize
     def test_request_bodies(self):
