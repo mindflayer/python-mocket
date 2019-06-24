@@ -22,7 +22,7 @@ A socket mock framework
 
 Versioning
 ==========
-Starting from 3.7.0, Mocket major version will follow the same numbering pattern as Python's and therefore indicate the most recent Python version that is supported.
+Starting from *3.7.0*, Mocket major version will follow the same numbering pattern as Python's and therefore indicate the most recent Python version that is supported.
 
 Support it
 ==========
