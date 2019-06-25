@@ -2,8 +2,8 @@
 mocket /mɔˈkɛt/
 ===============
 
-.. image:: https://api.shippable.com/projects/5af070d0a55fb8070034316f/badge?branch=master
-    :target: https://app.shippable.com/github/mindflayer/python-mocket
+.. image:: https://travis-ci.org/mindflayer/python-mocket.svg?branch=master
+    :target: https://travis-ci.org/mindflayer/python-mocket
 
 .. image:: https://coveralls.io/repos/github/mindflayer/python-mocket/badge.svg?branch=master
     :target: https://coveralls.io/github/mindflayer/python-mocket?branch=master
