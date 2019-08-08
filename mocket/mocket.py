@@ -261,7 +261,7 @@ class MocketSocket(object):
     def read(self, buffersize):
         return self.fd.read(buffersize)
 
-    def recv_into(self, buffer, buffersize, flags=None):
+    def recv_into(self, buffer, buffersize=None, flags=None):
         return buffer.write(self.fd.read(buffersize))
 
     def recv(self, buffersize, flags=None):
