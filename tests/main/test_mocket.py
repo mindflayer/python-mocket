@@ -82,7 +82,7 @@ class MocketTestCase(TestCase):
     def test_empty_getresponse(self):
         entry = MocketEntry(('localhost', 8080), [])
         self.assertEqual(entry.get_response(), encode_to_bytes(''))
-        
+
     def test_subsequent_recv_requests_have_correct_length(self):
         Mocket.register(
             MocketEntry(
@@ -119,7 +119,7 @@ class MocketTestCase(TestCase):
             _so.sendall(b'first\r\n')
             assert _so.recv_into(buffer, 4096) == 12
             _so.sendall(b'second\r\n')
-            assert _so.recv_into(buffer, 4096) == 5
+            assert _so.recv_into(buffer) == 5
             _so.close()
         buffer.seek(0)
         assert buffer.read() == b'Long payloadShort'
