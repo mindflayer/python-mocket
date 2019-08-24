@@ -71,6 +71,7 @@ class SuperFakeSSLContext(object):
 
 class FakeSSLContext(SuperFakeSSLContext):
     sock = None
+    post_handshake_auth = None
 
     def __init__(self, sock=None, server_hostname=None, _context=None, *args, **kwargs):
         if isinstance(sock, MocketSocket):
