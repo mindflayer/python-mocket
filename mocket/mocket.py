@@ -30,7 +30,7 @@ from .utils import SSL_PROTOCOL, MocketSocketCore, wrap_ssl_socket
 xxh32 = None
 try:
     from xxhash import xxh32
-except ImportError:
+except ImportError:  # pragma: no cover
     try:
         from xxhash_cffi import xxh32
     except ImportError:
@@ -41,7 +41,7 @@ try:
     from urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3
 
     pyopenssl_override = True
-except ImportError:
+except ImportError:  # pragma: no cover
     pyopenssl_override = False
 
 
@@ -161,10 +161,10 @@ class MocketSocket(object):
                 true_ssl_context(protocol=SSL_PROTOCOL),
             )
 
-    def __unicode__(self):
+    def __unicode__(self):  # pragma: no cover
         return str(self)
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         return "({})(family={} type={} protocol={})".format(
             self.__class__.__name__, self.family, self.type, self.proto
         )
@@ -183,7 +183,7 @@ class MocketSocket(object):
     def settimeout(self, timeout):
         try:
             self.timeout = timeout
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             pass
 
     def getsockopt(self, level, optname, buflen=None):
