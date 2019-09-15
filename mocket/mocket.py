@@ -37,11 +37,11 @@ except ImportError:  # pragma: no cover
         pass
 hasher = xxh32 or hashlib.md5
 
-try:
+try:  # pragma: no cover
     from urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3
 
     pyopenssl_override = True
-except ImportError:  # pragma: no cover
+except ImportError:
     pyopenssl_override = False
 
 
@@ -478,7 +478,7 @@ class Mocket(object):
         urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
             "ssl_wrap_socket"
         ] = FakeSSLContext.wrap_socket
-        if pyopenssl_override:
+        if pyopenssl_override:  # pragma: no cover
             # Take out the pyopenssl version - use the default implementation
             extract_from_urllib3()
 
@@ -507,7 +507,7 @@ class Mocket(object):
             "ssl_wrap_socket"
         ] = true_urllib3_ssl_wrap_socket
         Mocket.reset()
-        if pyopenssl_override:
+        if pyopenssl_override:  # pragma: no cover
             # Put the pyopenssl version back in place
             inject_into_urllib3()
 
