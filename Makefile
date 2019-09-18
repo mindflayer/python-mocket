@@ -34,7 +34,7 @@ publish:
 	python setup.py sdist
 	pip install -U twine
 	twine upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
-	pip install anaconda-client
+	pip install -U anaconda-client
 	anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
 
 clean:
