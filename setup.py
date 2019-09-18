@@ -9,7 +9,7 @@ install_requires = io.open(os.path.join(os.path.dirname(__file__), 'requirements
 tests_requires = io.open(os.path.join(os.path.dirname(__file__), 'test_requirements.txt')).readlines()
 
 pook_requires = ('pook>=0.2.1', )
-exclude_packages = ('tests', )
+exclude_packages = ('tests', 'tests.*')
 
 
 def read_version(package):
