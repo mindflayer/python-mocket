@@ -270,7 +270,9 @@ class MocketSocket(object):
         if Mocket.r_fd and Mocket.w_fd:
             return os.read(Mocket.r_fd, buffersize)
         if self.fd is not None:
-            return self.read(buffersize)
+            data = self.read(buffersize)
+            if data:
+                return data
         # used by Redis mock
         exc = BlockingIOError()
         exc.errno = errno.EWOULDBLOCK
