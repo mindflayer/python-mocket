@@ -264,16 +264,17 @@ class MocketSocket(object):
         return self.fd.read(buffersize)
 
     def recv_into(self, buffer, buffersize=None, flags=None):
-        return buffer.write(self.fd.read(buffersize))
+        return buffer.write(self.read(buffersize))
 
     def recv(self, buffersize, flags=None):
         if Mocket.r_fd and Mocket.w_fd:
             return os.read(Mocket.r_fd, buffersize)
         if self.fd is not None:
-            return self.fd.read(buffersize)
+            return self.read(buffersize)
         # used by Redis mock
         exc = BlockingIOError()
         exc.errno = errno.EWOULDBLOCK
+        exc.args = (errno.EINTR,)
         raise exc
 
     def true_sendall(self, data, *args, **kwargs):
