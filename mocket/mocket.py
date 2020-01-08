@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import collections
+import errno
 import hashlib
 import io
 import json
@@ -268,7 +269,12 @@ class MocketSocket(object):
     def recv(self, buffersize, flags=None):
         if Mocket.r_fd and Mocket.w_fd:
             return os.read(Mocket.r_fd, buffersize)
-        return self.fd.read(buffersize)
+        if self.fd is not None:
+            return self.fd.read(buffersize)
+        # used by Redis mock
+        exc = BlockingIOError()
+        exc.errno = errno.EWOULDBLOCK
+        raise exc
 
     def true_sendall(self, data, *args, **kwargs):
         req = decode_from_bytes(data)

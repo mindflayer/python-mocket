@@ -3,7 +3,7 @@ pytest>4.6
 pytest-cov
 mock
 requests
-redis<3.2.0
+redis
 gevent
 sure
 pook
