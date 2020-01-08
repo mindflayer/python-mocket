@@ -18,6 +18,7 @@ from urllib3.util.ssl_ import ssl_wrap_socket as urllib3_ssl_wrap_socket
 from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
 
 from .compat import (
+    BlockingIOError,
     FileNotFoundError,
     JSONDecodeError,
     basestring,
@@ -276,7 +277,7 @@ class MocketSocket(object):
         # used by Redis mock
         exc = BlockingIOError()
         exc.errno = errno.EWOULDBLOCK
-        exc.args = (errno.EINTR,)
+        exc.args = (0,)
         raise exc
 
     def true_sendall(self, data, *args, **kwargs):

@@ -2,6 +2,7 @@ import codecs
 import os
 import shlex
 import sys
+from socket import error as sock_error
 
 import six
 
@@ -26,11 +27,13 @@ if PY2:
             return s
 
     FileNotFoundError = IOError
+    BlockingIOError = sock_error
 else:
     from http.server import BaseHTTPRequestHandler
     from urllib.parse import urlsplit, parse_qs, unquote as unquote_utf8
 
     FileNotFoundError = FileNotFoundError
+    BlockingIOError = BlockingIOError
 
 try:
     from json.decoder import JSONDecodeError
