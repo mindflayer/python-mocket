@@ -23,6 +23,7 @@ from .compat import (
     JSONDecodeError,
     basestring,
     byte_type,
+    collections_abc,
     decode_from_bytes,
     encode_to_bytes,
     text_type,
@@ -543,7 +544,7 @@ class MocketEntry(object):
         self.location = location
         self.response_index = 0
 
-        if not isinstance(responses, collections.Iterable) or isinstance(
+        if not isinstance(responses, collections_abc.Iterable) or isinstance(
             responses, basestring
         ):
             responses = [responses]

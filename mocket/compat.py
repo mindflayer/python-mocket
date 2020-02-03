@@ -14,6 +14,7 @@ basestring = six.string_types
 
 PY2 = sys.version_info[0] == 2
 if PY2:
+    import collections as collections_abc
     from BaseHTTPServer import BaseHTTPRequestHandler
     from urlparse import urlsplit, parse_qs, unquote
 
@@ -29,6 +30,7 @@ if PY2:
     FileNotFoundError = IOError
     BlockingIOError = sock_error
 else:
+    import collections.abc as collections_abc
     from http.server import BaseHTTPRequestHandler
     from urllib.parse import urlsplit, parse_qs, unquote as unquote_utf8
 
