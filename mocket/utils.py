@@ -1,10 +1,9 @@
-import io
 import codecs
+import io
 import os
 import ssl
 
-from mocket.compat import encode_to_bytes, decode_from_bytes
-
+from mocket.compat import decode_from_bytes, encode_to_bytes
 
 SSL_PROTOCOL = ssl.PROTOCOL_SSLv23
 
@@ -53,7 +52,7 @@ def hexdump(binary_string):
     >>> hexdump(b"bar foobar foo")
     '62 61 72 20 66 6F 6F 62 61 72 20 66 6F 6F'
     """
-    bs = decode_from_bytes(codecs.encode(binary_string, 'hex_codec')).upper()
+    bs = decode_from_bytes(codecs.encode(binary_string, "hex_codec")).upper()
     return " ".join(a + b for a, b in zip(bs[::2], bs[1::2]))
 
 
@@ -63,4 +62,4 @@ def hexload(string):
     b'bar foobar foo'
     """
     string_no_spaces = "".join(string.split())
-    return codecs.decode(encode_to_bytes(string_no_spaces), 'hex_codec')
+    return codecs.decode(encode_to_bytes(string_no_spaces), "hex_codec")
