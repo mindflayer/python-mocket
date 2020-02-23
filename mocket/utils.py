@@ -49,8 +49,8 @@ def wrap_ssl_socket(
 
 def hexdump(binary_string):
     r"""
-    >>> hexdump(b"bar foobar foo")
-    b'62 61 72 20 66 6F 6F 62 61 72 20 66 6F 6F'
+    >>> hexdump(b"bar foobar foo") == encode_to_bytes("62 61 72 20 66 6F 6F 62 61 72 20 66 6F 6F")
+    True
     """
     bs = decode_from_bytes(codecs.encode(binary_string, "hex_codec")).upper()
     return encode_to_bytes(" ".join(a + b for a, b in zip(bs[::2], bs[1::2])))
@@ -58,8 +58,8 @@ def hexdump(binary_string):
 
 def hexload(string):
     r"""
-    >>> hexload("62 61 72 20 66 6F 6F 62 61 72 20 66 6F 6F")
-    b'bar foobar foo'
+    >>> hexload("62 61 72 20 66 6F 6F 62 61 72 20 66 6F 6F") == encode_to_bytes("bar foobar foo")
+    True
     """
     string_no_spaces = "".join(string.split())
     return codecs.decode(encode_to_bytes(string_no_spaces), "hex_codec")
