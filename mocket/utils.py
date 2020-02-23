@@ -1,7 +1,9 @@
+import codecs
 import io
 import os
 import ssl
 
+from .compat import decode_from_bytes, encode_to_bytes
 
 SSL_PROTOCOL = ssl.PROTOCOL_SSLv23
 
@@ -43,3 +45,21 @@ def wrap_ssl_socket(
         ciphers=ciphers,
         _context=context,
     )
+
+
+def hexdump(binary_string):
+    r"""
+    >>> hexdump(b"bar foobar foo") == decode_from_bytes(encode_to_bytes("62 61 72 20 66 6F 6F 62 61 72 20 66 6F 6F"))
+    True
+    """
+    bs = decode_from_bytes(codecs.encode(binary_string, "hex_codec")).upper()
+    return " ".join(a + b for a, b in zip(bs[::2], bs[1::2]))
+
+
+def hexload(string):
+    r"""
+    >>> hexload("62 61 72 20 66 6F 6F 62 61 72 20 66 6F 6F") == encode_to_bytes("bar foobar foo")
+    True
+    """
+    string_no_spaces = "".join(string.split())
+    return codecs.decode(encode_to_bytes(string_no_spaces), "hex_codec")
