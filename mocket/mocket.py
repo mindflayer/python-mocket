@@ -12,7 +12,6 @@ import ssl
 from datetime import datetime, timedelta
 
 import decorator
-import hexdump
 import urllib3
 from urllib3.util.ssl_ import ssl_wrap_socket as urllib3_ssl_wrap_socket
 from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
@@ -28,7 +27,7 @@ from .compat import (
     encode_to_bytes,
     text_type,
 )
-from .utils import SSL_PROTOCOL, MocketSocketCore, wrap_ssl_socket
+from .utils import SSL_PROTOCOL, MocketSocketCore, hexdump, hexload, wrap_ssl_socket
 
 xxh32 = None
 try:
@@ -322,13 +321,7 @@ class MocketSocket(object):
 
         # try to get the response from the dictionary
         try:
-            try:
-                encoded_response = hexdump.dehex(response_dict["response"])
-            except TypeError:  # pragma: no cover
-                # Python 2
-                encoded_response = hexdump.restore(
-                    encode_to_bytes(response_dict["response"])
-                )
+            encoded_response = hexload(response_dict["response"])
         # if not available, call the real sendall
         except KeyError:
             host, port = Mocket._address
@@ -370,7 +363,7 @@ class MocketSocket(object):
 
                 # update the dictionary with request and response lines
                 response_dict["request"] = req
-                response_dict["response"] = hexdump.dump(encoded_response)
+                response_dict["response"] = hexdump(encoded_response)
 
                 with io.open(path, mode="w") as f:
                     f.write(
