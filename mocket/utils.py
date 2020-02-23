@@ -3,7 +3,7 @@ import io
 import os
 import ssl
 
-from mocket.compat import decode_from_bytes, encode_to_bytes
+from .compat import decode_from_bytes, encode_to_bytes
 
 SSL_PROTOCOL = ssl.PROTOCOL_SSLv23
 
