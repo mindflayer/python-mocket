@@ -95,6 +95,10 @@ class FakeSSLContext(SuperFakeSSLContext):
         pass
 
     @staticmethod
+    def load_verify_locations(*args, **kwargs):
+        pass
+
+    @staticmethod
     def wrap_socket(sock=sock, *args, **kwargs):
         sock.kwargs = kwargs
         sock._secure_socket = True
@@ -106,7 +110,8 @@ class FakeSSLContext(SuperFakeSSLContext):
         return ssl_obj
 
     def __getattr__(self, name):
-        return getattr(self.sock, name)
+        if self.sock is not None:
+            return getattr(self.sock, name)
 
 
 def create_connection(
