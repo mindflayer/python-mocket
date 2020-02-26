@@ -352,7 +352,7 @@ def test_multipart():
 
 # @httprettified
 # def test_callback_setting_headers_and_status_response():
-#     """HTTPretty should call a callback function and uses it retur tuple as status code, headers and body"""
+#     """HTTPretty should call a callback function and uses it return tuple as status code, headers and body"""
 #      " requests")
 #
 #     def request_callback(request, uri, headers):
