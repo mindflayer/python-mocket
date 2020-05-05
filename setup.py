@@ -24,15 +24,9 @@ def read_version(package):
                 return line.split()[-1].strip().strip('"')
 
 
-package_name = "mocket"
-
-# Get package current version
-version = read_version(package_name)
-
-
 setup(
-    name=package_name,
-    version=read_version(package_name),
+    name="mocket",
+    version=read_version("mocket"),
     author="Giorgio Salluzzo",
     author_email="giorgio.salluzzo@gmail.com",
     url="https://github.com/mindflayer/python-mocket",
