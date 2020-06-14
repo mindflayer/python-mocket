@@ -26,10 +26,15 @@ def runtests(args=None):
     if not any(a for a in args[1:] if not a.startswith('-')):
         args.append('tests/main')
         args.append('mocket')
-        args.append('tests/tests27')
+
+        if major == 2 and minor >= 7:
+            args.append('tests/tests27')
 
         if python35:
             args.append('tests/tests35')
+
+        if major == 3 and minor >= 8:
+            args.append('tests/test38')
 
     sys.exit(pytest.main(args))
 
