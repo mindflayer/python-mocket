@@ -1,4 +1,5 @@
 from mocket import mocketize, Mocket
+from mocket.mocket import async_mocketize
 from mocket.mockhttp import (
     Entry as MocketHttpEntry,
     Response as MocketHttpResponse,
@@ -40,6 +41,7 @@ class Entry(MocketHttpEntry):
 
 activate = mocketize
 httprettified = mocketize
+async_httprettified = async_mocketize
 enable = Mocket.enable
 disable = Mocket.disable
 reset = Mocket.reset
