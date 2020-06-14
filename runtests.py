@@ -34,7 +34,7 @@ def runtests(args=None):
             args.append('tests/tests35')
 
         if major == 3 and minor >= 8:
-            args.append('tests/test38')
+            args.append('tests/tests38')
 
     sys.exit(pytest.main(args))
 
