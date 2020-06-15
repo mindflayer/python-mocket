@@ -27,3 +27,4 @@ doc/build
 .coverage
 shippable
 .pytest_cache/
+Pipfile.lock
