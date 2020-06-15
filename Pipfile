@@ -21,7 +21,6 @@ gevent = "*"
 sure = "*"
 pook = "*"
 flake8 = "*"
-asyncio = "*"
 
 [requires]
 python_version = "3.8"
