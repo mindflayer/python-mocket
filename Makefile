@@ -4,7 +4,7 @@ install-dev-requirements:
 	pipenv install --dev -e .
 
 install-test-requirements:
-	pip install pipenv
+	pip install pipenv==2020.6.2
 	pipenv install --dev
 
 test-python:
