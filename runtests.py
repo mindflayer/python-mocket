@@ -21,7 +21,7 @@ def runtests(args=None):
 
         extras += ["aiohttp", "async_timeout"]
 
-    os.system("pip install {}".format(" ".join(extras)))
+    os.system("pipenv install --dev {}".format(" ".join(extras)))
 
     if not any(a for a in args[1:] if not a.startswith("-")):
         args.append("tests/main")
