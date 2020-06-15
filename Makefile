@@ -4,8 +4,7 @@ install-dev-requirements:
 	pipenv install --dev -e .
 
 install-test-requirements:
-	pip install -U pip
-	pip install pipenv
+	pip install -U pip pipenv
 	pipenv install --dev
 
 test-python:
