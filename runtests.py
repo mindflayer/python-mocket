@@ -27,9 +27,6 @@ def runtests(args=None):
         args.append("tests/main")
         args.append("mocket")
 
-        if major == 2 and minor >= 7:
-            args.append("tests/tests27")
-
         if python35:
             args.append("tests/tests35")
 
