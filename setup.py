@@ -8,11 +8,6 @@ major, minor = sys.version_info[:2]
 
 
 def list_requirements(dev=False):
-    """ Try to use `requirements.txt` if available, generating a new one otherwise. """
-    reqs_filename = "requirements.txt"
-    if os.path.isfile(reqs_filename):
-        with open(reqs_filename) as f:
-            return f.readlines()[1:]
     command = "pipenv lock -r"
     if dev:
         command += " --dev"
