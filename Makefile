@@ -26,9 +26,9 @@ safetest:
 
 publish:
 	python setup.py sdist
-	pip install -U twine
+	pipenv install --dev twine
 	twine upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)')*.*
-	pip install -U anaconda-client
+	pipenv install --dev anaconda-client
 	anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
 
 clean:

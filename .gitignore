@@ -28,3 +28,4 @@ doc/build
 shippable
 .pytest_cache/
 Pipfile.lock
+.vscode/
