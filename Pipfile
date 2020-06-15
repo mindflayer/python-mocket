@@ -22,6 +22,9 @@ gevent = "*"
 sure = "*"
 pook = "*"
 flake8 = "*"
+xxhash = "*"
+aiohttp = "*"
+async-timeout = "*"
 
 [requires]
 python_version = "3.8"

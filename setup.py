@@ -1,16 +1,25 @@
 import io
+import subprocess
 import sys
 
 from setuptools import find_packages, os, setup
 
 major, minor = sys.version_info[:2]
 
-install_requires = io.open(
-    os.path.join(os.path.dirname(__file__), "requirements.txt")
-).readlines()
-tests_requires = io.open(
-    os.path.join(os.path.dirname(__file__), "test_requirements.txt")
-).readlines()
+
+def list_requirements(dev=False):
+    """ Try to use `requirements.txt` if available, generating a new one otherwise. """
+    reqs_filename = "requirements.txt"
+    if os.path.isfile(reqs_filename):
+        with open(reqs_filename) as f:
+            return f.readlines()[1:]
+    command = "pipenv lock -r"
+    if dev:
+        command += " --dev"
+    return (
+        subprocess.check_output(command, shell=True).decode("ascii").split("\n")[1:-1]
+    )
+
 
 pook_requires = ("pook>=0.2.1",)
 exclude_packages = ("tests", "tests.*")
@@ -34,13 +43,13 @@ setup(
         with gevent/asyncio/SSL support",
     long_description=io.open("README.rst", encoding="utf-8").read(),
     packages=find_packages(exclude=exclude_packages),
-    install_requires=install_requires,
+    install_requires=list_requirements(),
     extras_require={
         "speedups": [
             'xxhash;platform_python_implementation=="CPython"',
             'xxhash-cffi;platform_python_implementation=="PyPy"',
         ],
-        "tests": tests_requires,
+        "tests": list_requirements(dev=True),
         "dev": [],
         "pook": pook_requires,  # plugins version supporting mocket.plugins.pook.MocketEngine
     },
