@@ -1,4 +1,0 @@
-python-magic
-six
-decorator
-urllib3

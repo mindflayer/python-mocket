@@ -9,13 +9,13 @@ pook.set_mock_engine(MocketEngine)
 @pook.on
 def test_pook_engine():
 
-    url = 'http://twitter.com/api/1/foobar'
+    url = "http://twitter.com/api/1/foobar"
     status = 404
-    response_json = {'error': 'foo'}
+    response_json = {"error": "foo"}
 
     mock = pook.get(
         url,
-        headers={'content-type': 'application/json'},
+        headers={"content-type": "application/json"},
         reply=status,
         response_json=response_json,
     )
