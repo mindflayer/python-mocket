@@ -3,7 +3,6 @@
 install-dev-requirements:
 	pip install pipenv==2020.6.2
 	pipenv lock
-	pipenv run python setup.py install
 
 install-test-requirements:
 	pipenv install --dev
