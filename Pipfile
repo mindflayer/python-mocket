@@ -1,0 +1,27 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+python-magic = "*"
+six = "*"
+decorator = "*"
+urllib3 = "*"
+
+[dev-packages]
+pip = "==20.1.1"
+pre-commit = "*"
+pep8 = "*"
+pytest = ">4.6"
+pytest-cov = "*"
+mock = "*"
+requests = "*"
+redis = "*"
+gevent = "*"
+sure = "*"
+pook = "*"
+flake8 = "*"
+
+[requires]
+python_version = "3.8"
