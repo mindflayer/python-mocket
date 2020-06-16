@@ -1,8 +1,11 @@
 import io
+import os
 import subprocess
 import sys
 
-from setuptools import find_packages, os, setup
+from setuptools import find_packages, setup
+
+os.environ.setdefault("PIPENV_SKIP_LOCK", "1")
 
 major, minor = sys.version_info[:2]
 
