@@ -1,5 +1,6 @@
+from sys import version_info
+
 from mocket import mocketize, Mocket
-from mocket.mocket import async_mocketize
 from mocket.mockhttp import (
     Entry as MocketHttpEntry,
     Response as MocketHttpResponse,
@@ -41,7 +42,12 @@ class Entry(MocketHttpEntry):
 
 activate = mocketize
 httprettified = mocketize
-async_httprettified = async_mocketize
+
+major, minor = version_info[:2]
+if major == 3 and minor >= 5:
+    from mocket.async_mocket import async_mocketize
+    async_httprettified = async_mocketize
+
 enable = Mocket.enable
 disable = Mocket.disable
 reset = Mocket.reset

@@ -1,13 +1,13 @@
-import asyncio
 import json
 from unittest import IsolatedAsyncioTestCase
 
 import aiohttp
 import async_timeout
 
-from mocket.mocket import Mocket, async_mocketize
+from mocket.async_mocket import async_mocketize
+from mocket.mocket import Mocket
 from mocket.mockhttp import Entry
-from mocket.plugins.httpretty import HTTPretty, async_httprettified, httprettified
+from mocket.plugins.httpretty import HTTPretty, async_httprettified
 
 
 class AioHttpEntryTestCase(IsolatedAsyncioTestCase):
@@ -16,7 +16,7 @@ class AioHttpEntryTestCase(IsolatedAsyncioTestCase):
         url = 'http://httpbin.org/ip'
         body = "asd" * 100
         Entry.single_register(Entry.GET, url, body=body, status=404)
-        Entry.single_register(Entry.POST, url, body=body*2, status=201)
+        Entry.single_register(Entry.POST, url, body=body * 2, status=201)
 
         async with aiohttp.ClientSession() as session:
             with async_timeout.timeout(3):
@@ -38,7 +38,7 @@ class AioHttpEntryTestCase(IsolatedAsyncioTestCase):
         url = 'https://httpbin.org/ip'
         body = "asd" * 100
         Entry.single_register(Entry.GET, url, body=body, status=404)
-        Entry.single_register(Entry.POST, url, body=body*2, status=201)
+        Entry.single_register(Entry.POST, url, body=body * 2, status=201)
 
         async with aiohttp.ClientSession() as session:
             with async_timeout.timeout(3):
