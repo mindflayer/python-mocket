@@ -26,7 +26,6 @@ def runtests(args=None):
     if not any(a for a in args[1:] if not a.startswith("-")):
         args.append("tests/main")
         args.append("mocket")
-        args.append('tests/tests27')
 
         if python35:
             args.append("tests/tests35")
