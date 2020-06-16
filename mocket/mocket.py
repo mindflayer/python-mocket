@@ -10,6 +10,7 @@ import select
 import socket
 import ssl
 from datetime import datetime, timedelta
+from sys import version_info
 
 import decorator
 import urllib3
@@ -573,6 +574,9 @@ class MocketEntry(object):
             self.response_index += 1
         return response.data
 
+major, minor = version_info[:2]
+
+python35 = False
 
 class Mocketizer(object):
     def __init__(self, instance=None, namespace=None, truesocket_recording_dir=None):
@@ -615,36 +619,39 @@ class Mocketizer(object):
 
         return decorator.decorator(wrapper, test)
 
-    async def __aenter__(self):
-        Mocket.enable(
-            namespace=self.namespace,
-            truesocket_recording_dir=self.truesocket_recording_dir,
-        )
-        if self.instance:
-            self.check_and_call("mocketize_setup")
+    if python35:
 
-    async def __aexit__(self, type, value, tb):
-        if self.instance:
-            self.check_and_call("mocketize_teardown")
-        Mocket.disable()
-
-    @staticmethod
-    def async_wrap(test=None, truesocket_recording_dir=None):
-        async def wrapper(t, *args, **kw):
-            instance = args[0] if args else None
-            namespace = ".".join(
-                (instance.__class__.__module__, instance.__class__.__name__, t.__name__)
+        async def __aenter__(self):
+            Mocket.enable(
+                namespace=self.namespace,
+                truesocket_recording_dir=self.truesocket_recording_dir,
             )
-            async with Mocketizer(
-                instance,
-                namespace=namespace,
-                truesocket_recording_dir=truesocket_recording_dir,
-            ):
-                await t(*args, **kw)
-            return wrapper
+            if self.instance:
+                self.check_and_call("mocketize_setup")
 
-        return decorator.decorator(wrapper, test)
+        async def __aexit__(self, type, value, tb):
+            if self.instance:
+                self.check_and_call("mocketize_teardown")
+            Mocket.disable()
+
+        @staticmethod
+        def async_wrap(test=None, truesocket_recording_dir=None):
+            async def wrapper(t, *args, **kw):
+                instance = args[0] if args else None
+                namespace = ".".join(
+                    (instance.__class__.__module__, instance.__class__.__name__, t.__name__)
+                )
+                async with Mocketizer(
+                    instance,
+                    namespace=namespace,
+                    truesocket_recording_dir=truesocket_recording_dir,
+                ):
+                    await t(*args, **kw)
+                return wrapper
+
+            return decorator.decorator(wrapper, test)
 
 
 mocketize = Mocketizer.wrap
-async_mocketize = Mocketizer.async_wrap
+if python35:
+    async_mocketize = Mocketizer.async_wrap
