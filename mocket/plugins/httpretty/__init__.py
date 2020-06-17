@@ -1,13 +1,10 @@
 from sys import version_info
 
-from mocket import mocketize, Mocket
-from mocket.mockhttp import (
-    Entry as MocketHttpEntry,
-    Response as MocketHttpResponse,
-    STATUS,
-    CRLF,
-)
-from mocket.compat import text_type, byte_type, encode_to_bytes
+from mocket import Mocket, mocketize
+from mocket.compat import byte_type, encode_to_bytes, text_type
+from mocket.mockhttp import CRLF, STATUS
+from mocket.mockhttp import Entry as MocketHttpEntry
+from mocket.mockhttp import Response as MocketHttpResponse
 
 
 def httprettifier_headers(headers):
@@ -45,8 +42,8 @@ httprettified = mocketize
 
 major, minor = version_info[:2]
 if major == 3 and minor >= 5:
-    from mocket.async_mocket import async_mocketize
-    async_httprettified = async_mocketize
+    from mocket.async_mocket import get_async_mocketize
+    async_httprettified = get_async_mocketize()
 
 enable = Mocket.enable
 disable = Mocket.disable
