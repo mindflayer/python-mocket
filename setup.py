@@ -8,9 +8,13 @@ os.environ.setdefault("PIPENV_SKIP_LOCK", "1")
 
 major, minor = sys.version_info[:2]
 
-install_requires = io.open(
-    os.path.join(os.path.dirname(__file__), "requirements.txt")
-).readlines()
+install_requires = [
+    line
+    for line in io.open(
+        os.path.join(os.path.dirname(__file__), "requirements.txt")
+    ).readlines()
+    if not line.startswith("-i")
+]
 
 pook_requires = ("pook>=0.2.1",)
 exclude_packages = ("tests", "tests.*")

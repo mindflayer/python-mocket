@@ -21,7 +21,7 @@ def runtests(args=None):
 
         extras += ["aiohttp", "async_timeout"]
 
-    os.system("pipenv install --dev {}".format(" ".join(extras)))
+    os.system("pipenv run pip install --dev {}".format(" ".join(extras)))
 
     if not any(a for a in args[1:] if not a.startswith("-")):
         args.append("tests/main")
@@ -31,7 +31,7 @@ def runtests(args=None):
             args.append("tests/tests35")
 
         if major == 3 and minor >= 8:
-            args.append('tests/tests38')
+            args.append("tests/tests38")
 
     sys.exit(pytest.main(args))
 
