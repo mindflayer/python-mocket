@@ -28,7 +28,6 @@ publish:
 	pipenv lock -r > requirements.txt
 	python setup.py sdist
 	twine upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)')*.*
-	pipenv install --dev anaconda-client
 	anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
 
 clean:
