@@ -28,4 +28,5 @@ doc/build
 shippable
 .pytest_cache/
 .vscode/
+Pipfile.lock
 requirements.txt
