@@ -25,8 +25,8 @@ safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
 
 publish:
+	pipenv lock -r > requirements.txt
 	python setup.py sdist
-	pipenv install --dev twine
 	twine upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)')*.*
 	pipenv install --dev anaconda-client
 	anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
