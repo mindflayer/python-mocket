@@ -2,7 +2,8 @@
 
 install-dev-requirements:
 	pip install pipenv==2020.6.2
-	pipenv lock
+	pipenv lock --dev
+	pipenv lock -r > requirements.txt
 
 install-test-requirements:
 	pipenv install --dev
@@ -25,7 +26,6 @@ safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
 
 publish:
-	pipenv lock -r > requirements.txt
 	python setup.py sdist
 	twine upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)')*.*
 	anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
