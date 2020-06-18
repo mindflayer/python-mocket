@@ -2,7 +2,6 @@
 
 install-dev-requirements:
 	pip install pipenv==2020.6.2
-	pipenv lock --dev
 
 install-test-requirements:
 	pipenv lock -r > requirements.txt
