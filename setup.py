@@ -1,6 +1,5 @@
 import io
 import os
-import subprocess
 import sys
 
 from setuptools import find_packages, setup
@@ -9,15 +8,13 @@ os.environ.setdefault("PIPENV_SKIP_LOCK", "1")
 
 major, minor = sys.version_info[:2]
 
-
-def list_requirements(dev=False):
-    command = "pipenv lock -r"
-    if dev:
-        command += " --dev"
-    return (
-        subprocess.check_output(command, shell=True).decode("ascii").split("\n")[1:-1]
-    )
-
+install_requires = [
+    line
+    for line in io.open(
+        os.path.join(os.path.dirname(__file__), "requirements.txt")
+    ).readlines()
+    if not line.startswith("-i")
+]
 
 pook_requires = ("pook>=0.2.1",)
 exclude_packages = ("tests", "tests.*")
@@ -41,14 +38,13 @@ setup(
         with gevent/asyncio/SSL support",
     long_description=io.open("README.rst", encoding="utf-8").read(),
     packages=find_packages(exclude=exclude_packages),
-    install_requires=list_requirements(),
+    install_requires=install_requires,
     setup_requires=["pipenv"],
     extras_require={
         "speedups": [
             'xxhash;platform_python_implementation=="CPython"',
             'xxhash-cffi;platform_python_implementation=="PyPy"',
         ],
-        "tests": list_requirements(dev=True),
         "dev": [],
         "pook": pook_requires,  # plugins version supporting mocket.plugins.pook.MocketEngine
     },
