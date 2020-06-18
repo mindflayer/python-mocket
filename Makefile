@@ -14,7 +14,7 @@ test-python:
 
 lint-python:
 	@echo "Linting Python files"
-	flake8 --ignore=E501,E731,W503 --exclude=.git,compat.py mocket
+	flake8 --ignore=E501,E731,W503 --exclude=.git,compat.py --per-file-ignores='mocket/async_mocket.py:E999' mocket
 	@echo ""
 
 develop:  install-dev-requirements install-test-requirements

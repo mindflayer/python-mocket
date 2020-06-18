@@ -30,6 +30,9 @@ def runtests(args=None):
         if python35:
             args.append("tests/tests35")
 
+        if major == 3 and minor >= 8:
+            args.append('tests/tests38')
+
     sys.exit(pytest.main(args))
 
 
