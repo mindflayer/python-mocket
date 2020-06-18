@@ -42,6 +42,7 @@ setup(
     long_description=io.open("README.rst", encoding="utf-8").read(),
     packages=find_packages(exclude=exclude_packages),
     install_requires=list_requirements(),
+    setup_requires=["pipenv"],
     extras_require={
         "speedups": [
             'xxhash;platform_python_implementation=="CPython"',
