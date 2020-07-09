@@ -37,6 +37,7 @@ setup(
     description="Socket Mock Framework - for all kinds of socket animals, web-clients included - \
         with gevent/asyncio/SSL support",
     long_description=io.open("README.rst", encoding="utf-8").read(),
+    long_description_content_type="text/x-rst",
     packages=find_packages(exclude=exclude_packages),
     install_requires=install_requires,
     setup_requires=["pipenv"],
