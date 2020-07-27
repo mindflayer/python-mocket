@@ -26,7 +26,12 @@ Starting from *3.7.0*, Mocket major version will follow the same numbering patte
 
 Support it
 ==========
-*Star* the project on GitHub, Buy Me a Coffee or, even better, contribute with patches or documentation.
+*Star* the project on GitHub, *Buy Me a Coffee* clicking the button below or, even better, contribute with patches or documentation.
+
+Thanks to `@felixonmars`_ Mocket is available in the `Arch Linux repository`_.
+
+.. _`@felixonmars`: https://github.com/felixonmars
+.. _`Arch Linux repository`: https://www.archlinux.org/packages/community/any/python-mocket/
 
 .. image:: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
      :target: https://www.buymeacoffee.com/mULbInw5z
@@ -82,13 +87,13 @@ As second step, we create an `example.py` file as the following one:
 .. code-block:: python
 
     import json
- 
+
     from mocket import mocketize
     from mocket.mockhttp import Entry
     import requests
     import pytest
- 
- 
+
+
     @pytest.fixture
     def response():
         return {
@@ -96,39 +101,39 @@ As second step, we create an `example.py` file as the following one:
             "string": "asd",
             "boolean": False,
         }
- 
- 
+
+
     @mocketize  # use its decorator
     def test_json(response):
         url_to_mock = 'https://testme.org/json'
- 
+
         Entry.single_register(
             Entry.GET,
             url_to_mock,
             body=json.dumps(response),
             headers={'content-type': 'application/json'}
         )
- 
+
         mocked_response = requests.get(url_to_mock).json()
- 
+
         assert response == mocked_response
 
     # OR use its context manager
     from mocket import Mocketizer
-    
+
     def test_json_with_context_manager(response):
         url_to_mock = 'https://testme.org/json'
- 
+
         Entry.single_register(
             Entry.GET,
             url_to_mock,
             body=json.dumps(response),
             headers={'content-type': 'application/json'}
         )
- 
+
         with Mocketizer():
             mocked_response = requests.get(url_to_mock).json()
- 
+
         assert response == mocked_response
 
 Let's fire our example test::
@@ -183,7 +188,7 @@ What about the other socket animals?
 ====================================
 Using *Mocket* with asyncio based clients::
 
-    $ pip install aiohttp    
+    $ pip install aiohttp
 
 Example:
 
