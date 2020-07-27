@@ -87,9 +87,16 @@ class Response(object):
         if not self.is_file_object:
             self.headers["Content-Type"] = "text/plain; charset=utf-8"
         elif self.magic:
-            self.headers["Content-Type"] = decode_from_bytes(
-                magic.from_buffer(self.body, mime=True)
-            )
+            if hasattr(self.magic, "from_buffer"):
+                # PyPI python-magic
+                self.headers["Content-Type"] = decode_from_bytes(
+                    magic.from_buffer(self.body, mime=True)
+                )
+            else:
+                # file's builtin python wrapper
+                _magic = magic.open(magic.MAGIC_MIME_TYPE)
+                _magic.load()
+                self.headers["Content-Type"] = _magic.buffer(self.body)
 
     def set_extra_headers(self, headers):
         for k, v in headers.items():
