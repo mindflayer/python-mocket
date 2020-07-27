@@ -10,6 +10,8 @@ decorator = "*"
 urllib3 = "*"
 
 [dev-packages]
+pipenv = "==2020.6.2"
+black = "*"
 pip = "==20.1.1"
 pre-commit = "*"
 pep8 = "*"
