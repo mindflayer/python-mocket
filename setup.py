@@ -40,7 +40,7 @@ setup(
     long_description_content_type="text/x-rst",
     packages=find_packages(exclude=exclude_packages),
     install_requires=install_requires,
-    setup_requires=["pipenv"],
+    setup_requires=[],
     extras_require={
         "speedups": [
             'xxhash;platform_python_implementation=="CPython"',
