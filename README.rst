@@ -140,6 +140,30 @@ Let's fire our example test::
 
     $ py.test example.py
 
+Then the recording feature
+==========================
+
+You probably know `VCRpy`, that's the `mocket`'s way of achieving it:
+
+.. code-block:: python
+
+    @mocketize(truesocket_recording_dir=tempfile.mkdtemp())
+    def test_truesendall_with_recording_https():
+        url = 'https://httpbin.org/ip'
+
+        requests.get(url, headers={"Accept": "application/json"})
+        resp = requests.get(url, headers={"Accept": "application/json"})
+        assert resp.status_code == 200
+
+        dump_filename = os.path.join(
+            Mocket.get_truesocket_recording_dir(),
+            Mocket.get_namespace() + '.json',
+        )
+        with io.open(dump_filename) as f:
+            response = json.load(f)
+
+        assert len(response['httpbin.org']['443'].keys()) == 1
+
 HTTPretty compatibility layer
 =============================
 Mocket HTTP mock can work as *HTTPretty* replacement for many different use cases. Two main features are missing:
