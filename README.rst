@@ -143,7 +143,7 @@ Let's fire our example test::
 Then the recording feature
 ==========================
 
-You probably know `VCRpy`, that's the `mocket`'s way of achieving it:
+You probably know *VCRpy* is capable of, that's the `mocket`'s way of achieving it:
 
 .. code-block:: python
 
