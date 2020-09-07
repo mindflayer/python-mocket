@@ -74,8 +74,8 @@ Issues
 ============
 When opening an **Issue**, please add few lines of code as failing test, or -better- open its relative **Pull request** adding this test to our test suite.
 
-Quick example of its HTTP mock
-==============================
+Example of how to mock an HTTP[S] call
+======================================
 Let's create a new virtualenv with all we need::
 
     $ virtualenv example
@@ -140,10 +140,10 @@ Let's fire our example test::
 
     $ py.test example.py
 
-Then the recording feature
-==========================
+Example of how to record real socket traffic
+============================================
 
-You probably know *VCRpy* is capable of, that's the `mocket`'s way of achieving it:
+You probably know what *VCRpy* is capable of, that's the `mocket`'s way of achieving it:
 
 .. code-block:: python
 
