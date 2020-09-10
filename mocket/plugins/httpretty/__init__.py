@@ -2,7 +2,6 @@ from sys import version_info
 
 from mocket import Mocket, mocketize
 from mocket.compat import byte_type, encode_to_bytes, text_type
-from mocket.mockhttp import CRLF, STATUS
 from mocket.mockhttp import Entry as MocketHttpEntry
 from mocket.mockhttp import Response as MocketHttpResponse
 
@@ -12,16 +11,10 @@ def httprettifier_headers(headers):
 
 
 class Response(MocketHttpResponse):
-    def get_protocol_data(self):
-        status_line = "HTTP/1.1 {status_code} {status}".format(
-            status_code=self.status, status=STATUS[self.status]
-        )
+    def get_protocol_data(self, str_format_fun_name="lower"):
         if "server" in self.headers and self.headers["server"] == "Python/Mocket":
             self.headers["server"] = "Python/HTTPretty"
-        header_lines = CRLF.join(
-            ["{0}: {1}".format(k.lower(), v) for k, v in self.headers.items()]
-        )
-        return "{0}\r\n{1}\r\n\r\n".format(status_line, header_lines).encode("utf-8")
+        return super(Response, self).get_protocol_data(str_format_fun_name=str_format_fun_name)
 
     def set_base_headers(self):
         super(Response, self).set_base_headers()
@@ -43,6 +36,7 @@ httprettified = mocketize
 major, minor = version_info[:2]
 if major == 3 and minor >= 5:
     from mocket.async_mocket import get_async_mocketize
+
     async_httprettified = get_async_mocketize()
 
 enable = Mocket.enable
@@ -118,7 +112,7 @@ class MocketHTTPretty:
 
 HTTPretty = MocketHTTPretty()
 HTTPretty.register_uri = register_uri
-
+httpretty = HTTPretty
 
 __all__ = (
     "HTTPretty",

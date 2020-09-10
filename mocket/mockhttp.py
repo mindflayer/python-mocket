@@ -68,12 +68,12 @@ class Response(object):
 
         self.data = self.get_protocol_data() + self.body
 
-    def get_protocol_data(self):
+    def get_protocol_data(self, str_format_fun_name="capitalize"):
         status_line = "HTTP/1.1 {status_code} {status}".format(
             status_code=self.status, status=STATUS[self.status]
         )
         header_lines = CRLF.join(
-            ["{0}: {1}".format(k.capitalize(), v) for k, v in self.headers.items()]
+            ("{0}: {1}".format(getattr(k, str_format_fun_name)(), v) for k, v in self.headers.items())
         )
         return "{0}\r\n{1}\r\n\r\n".format(status_line, header_lines).encode("utf-8")
 
@@ -91,8 +91,18 @@ class Response(object):
             self.headers["Content-Type"] = do_the_magic(self.magic, self.body)
 
     def set_extra_headers(self, headers):
+        r"""
+        >>> r = Response(body="<html />")
+        >>> len(r.headers.keys())
+        6
+        >>> r.set_extra_headers({"foo-bar": "Foobar"})
+        >>> len(r.headers.keys())
+        7
+        >>> encode_to_bytes(r.headers.get("Foo-Bar")) == encode_to_bytes("Foobar")
+        True
+        """
         for k, v in headers.items():
-            self.headers["-".join([token.capitalize() for token in k.split("-")])] = v
+            self.headers["-".join((token.capitalize() for token in k.split("-")))] = v
 
 
 class Entry(MocketEntry):
