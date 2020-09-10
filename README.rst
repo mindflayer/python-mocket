@@ -184,15 +184,15 @@ Example:
     import async_timeout
     from unittest import TestCase
 
-    from mocket.plugins.httpretty import HTTPretty, httprettified
+    from mocket.plugins.httpretty import httpretty, httprettified
 
 
     class AioHttpEntryTestCase(TestCase):
         @httprettified
         def test_https_session(self):
             url = 'https://httpbin.org/ip'
-            HTTPretty.register_uri(
-                HTTPretty.GET,
+            httpretty.register_uri(
+                httpretty.GET,
                 url,
                 body=json.dumps(dict(origin='127.0.0.1')),
             )

@@ -11,10 +11,10 @@ def httprettifier_headers(headers):
 
 
 class Response(MocketHttpResponse):
-    def get_protocol_data(self, str_format_fun=str.lower):
+    def get_protocol_data(self, str_format_fun_name="lower"):
         if "server" in self.headers and self.headers["server"] == "Python/Mocket":
             self.headers["server"] = "Python/HTTPretty"
-        return super(Response, self).get_protocol_data(str_format_fun=str_format_fun)
+        return super(Response, self).get_protocol_data(str_format_fun_name=str_format_fun_name)
 
     def set_base_headers(self):
         super(Response, self).set_base_headers()
