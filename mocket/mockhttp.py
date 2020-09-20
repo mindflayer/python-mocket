@@ -14,7 +14,10 @@ from .compat import (
 )
 from .mocket import Mocket, MocketEntry
 
-from http_parser.parser import HttpParser
+try:
+    from http_parser.parser import HttpParser
+except ImportError:
+    from http_parser.pyparser import HttpParser
 
 try:
     import magic
