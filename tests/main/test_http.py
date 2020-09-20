@@ -191,8 +191,14 @@ class HttpEntryTestCase(HttpTestCase):
 
     @mocketize
     def test_mockhttp_entry_collect_duplicates(self):
-        Entry.single_register(Entry.POST, "http://testme.org/", status=200, match_querystring=False)
-        requests.post("http://testme.org/?foo=bar", data="{'foo': 'bar'}", headers={'content-type': 'application/json'})
+        Entry.single_register(
+            Entry.POST, "http://testme.org/", status=200, match_querystring=False
+        )
+        requests.post(
+            "http://testme.org/?foo=bar",
+            data="{'foo': 'bar'}",
+            headers={"content-type": "application/json"},
+        )
         requests.post("http://testme.org/")
         self.assertEqual(len(Mocket._requests), 2)
         self.assertEqual(Mocket.last_request().path, "/")

@@ -37,7 +37,9 @@ class Request:
         self.path = self.parser.get_path()
         self.headers = self.parser.get_headers()
         self.body = decode_from_bytes(self.parser.recv_body())
-        self.querystring = parse_qs(unquote_utf8(self.parser.get_query_string()), keep_blank_values=True)
+        self.querystring = parse_qs(
+            unquote_utf8(self.parser.get_query_string()), keep_blank_values=True
+        )
         if self.querystring:
             self.path += "?{}".format(self.parser.get_query_string())
 
