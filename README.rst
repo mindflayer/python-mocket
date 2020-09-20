@@ -74,8 +74,8 @@ Issues
 ============
 When opening an **Issue**, please add few lines of code as failing test, or -better- open its relative **Pull request** adding this test to our test suite.
 
-Quick example of its HTTP mock
-==============================
+Example of how to mock an HTTP[S] call
+======================================
 Let's create a new virtualenv with all we need::
 
     $ virtualenv example
@@ -140,6 +140,30 @@ Let's fire our example test::
 
     $ py.test example.py
 
+Example of how to record real socket traffic
+============================================
+
+You probably know what *VCRpy* is capable of, that's the `mocket`'s way of achieving it:
+
+.. code-block:: python
+
+    @mocketize(truesocket_recording_dir=tempfile.mkdtemp())
+    def test_truesendall_with_recording_https():
+        url = 'https://httpbin.org/ip'
+
+        requests.get(url, headers={"Accept": "application/json"})
+        resp = requests.get(url, headers={"Accept": "application/json"})
+        assert resp.status_code == 200
+
+        dump_filename = os.path.join(
+            Mocket.get_truesocket_recording_dir(),
+            Mocket.get_namespace() + '.json',
+        )
+        with io.open(dump_filename) as f:
+            response = json.load(f)
+
+        assert len(response['httpbin.org']['443'].keys()) == 1
+
 HTTPretty compatibility layer
 =============================
 Mocket HTTP mock can work as *HTTPretty* replacement for many different use cases. Two main features are missing:
@@ -160,15 +184,15 @@ Example:
     import async_timeout
     from unittest import TestCase
 
-    from mocket.plugins.httpretty import HTTPretty, httprettified
+    from mocket.plugins.httpretty import httpretty, httprettified
 
 
     class AioHttpEntryTestCase(TestCase):
         @httprettified
         def test_https_session(self):
             url = 'https://httpbin.org/ip'
-            HTTPretty.register_uri(
-                HTTPretty.GET,
+            httpretty.register_uri(
+                httpretty.GET,
                 url,
                 body=json.dumps(dict(origin='127.0.0.1')),
             )
