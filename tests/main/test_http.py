@@ -190,6 +190,14 @@ class HttpEntryTestCase(HttpTestCase):
         self.assertEqual(len(Mocket._requests), 3)
 
     @mocketize
+    def test_mockhttp_entry_collect_duplicates(self):
+        Entry.single_register(Entry.POST, "http://testme.org/", status=200, match_querystring=False)
+        requests.post("http://testme.org/?foo=bar", data="{'foo': 'bar'}", headers={'content-type': 'application/json'})
+        requests.post("http://testme.org/")
+        self.assertEqual(len(Mocket._requests), 2)
+        self.assertEqual(Mocket.last_request().path, "/")
+
+    @mocketize
     def test_multipart(self):
         url = "http://httpbin.org/post"
         data = '--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="content"\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 68\r\n\r\nAction: comment\nText: Comment with attach\nAttachment: x1.txt, x2.txt\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_2"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_1"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz--\r\n'
