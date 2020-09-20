@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 import re
 import time
-from io import BytesIO
 
 from .compat import (
     BaseHTTPRequestHandler,
@@ -16,6 +15,11 @@ from .compat import (
 from .mocket import Mocket, MocketEntry
 
 try:
+    from http_parser.parser import HttpParser
+except ImportError:
+    from http_parser.pyparser import HttpParser
+
+try:
     import magic
 except ImportError:
     magic = None
@@ -25,17 +29,22 @@ STATUS = dict([(k, v[0]) for k, v in BaseHTTPRequestHandler.responses.items()])
 CRLF = "\r\n"
 
 
-class Request(BaseHTTPRequestHandler):
+class Request:
+    parser = None
+
     def __init__(self, data):
-        _, self.body = decode_from_bytes(data).split("\r\n\r\n", 1)
-        self.rfile = BytesIO(encode_to_bytes(data))
-        self.raw_requestline = self.rfile.readline()
-        self.error_code = self.error_message = None
-        self.parse_request()
-        self.method = self.command
+        self.parser = HttpParser()
+        self.parser.execute(data, len(data))
+
+        self.method = self.parser.get_method()
+        self.path = self.parser.get_path()
+        self.headers = self.parser.get_headers()
+        self.body = decode_from_bytes(self.parser.recv_body())
         self.querystring = parse_qs(
-            unquote_utf8(urlsplit(self.path).query), keep_blank_values=True
+            unquote_utf8(self.parser.get_query_string()), keep_blank_values=True
         )
+        if self.querystring:
+            self.path += "?{}".format(self.parser.get_query_string())
 
     def add_data(self, data):
         self.body += data
@@ -139,10 +148,12 @@ class Entry(MocketEntry):
         self._match_querystring = match_querystring
 
     def collect(self, data):
-        self._sent_data += data
         decoded_data = decode_from_bytes(data)
-        if not decoded_data.startswith(Entry.METHODS) and decoded_data.endswith(CRLF):
+        if not decoded_data.startswith(Entry.METHODS):
             Mocket.remove_last_request()
+            self._sent_data += data
+        else:
+            self._sent_data = data
         super(Entry, self).collect(self._sent_data)
 
     def can_handle(self, data):

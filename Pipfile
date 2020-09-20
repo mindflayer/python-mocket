@@ -8,6 +8,7 @@ python-magic = "*"
 six = "*"
 decorator = "*"
 urllib3 = "*"
+http-parser = "*"
 
 [dev-packages]
 pre-commit = "*"
