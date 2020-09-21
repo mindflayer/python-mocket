@@ -2,17 +2,22 @@ from __future__ import unicode_literals
 
 import re
 import time
-from io import BytesIO
 
 from .compat import (
     BaseHTTPRequestHandler,
     decode_from_bytes,
+    do_the_magic,
     encode_to_bytes,
     parse_qs,
     unquote_utf8,
     urlsplit,
 )
 from .mocket import Mocket, MocketEntry
+
+try:
+    from http_parser.parser import HttpParser
+except ImportError:
+    from http_parser.pyparser import HttpParser
 
 try:
     import magic
@@ -24,17 +29,22 @@ STATUS = dict([(k, v[0]) for k, v in BaseHTTPRequestHandler.responses.items()])
 CRLF = "\r\n"
 
 
-class Request(BaseHTTPRequestHandler):
+class Request:
+    parser = None
+
     def __init__(self, data):
-        _, self.body = decode_from_bytes(data).split("\r\n\r\n", 1)
-        self.rfile = BytesIO(encode_to_bytes(data))
-        self.raw_requestline = self.rfile.readline()
-        self.error_code = self.error_message = None
-        self.parse_request()
-        self.method = self.command
+        self.parser = HttpParser()
+        self.parser.execute(data, len(data))
+
+        self.method = self.parser.get_method()
+        self.path = self.parser.get_path()
+        self.headers = self.parser.get_headers()
+        self.body = decode_from_bytes(self.parser.recv_body())
         self.querystring = parse_qs(
-            unquote_utf8(urlsplit(self.path).query), keep_blank_values=True
+            unquote_utf8(self.parser.get_query_string()), keep_blank_values=True
         )
+        if self.querystring:
+            self.path += "?{}".format(self.parser.get_query_string())
 
     def add_data(self, data):
         self.body += data
@@ -67,12 +77,12 @@ class Response(object):
 
         self.data = self.get_protocol_data() + self.body
 
-    def get_protocol_data(self):
+    def get_protocol_data(self, str_format_fun_name="capitalize"):
         status_line = "HTTP/1.1 {status_code} {status}".format(
             status_code=self.status, status=STATUS[self.status]
         )
         header_lines = CRLF.join(
-            ["{0}: {1}".format(k.capitalize(), v) for k, v in self.headers.items()]
+            ("{0}: {1}".format(getattr(k, str_format_fun_name)(), v) for k, v in self.headers.items())
         )
         return "{0}\r\n{1}\r\n\r\n".format(status_line, header_lines).encode("utf-8")
 
@@ -87,13 +97,21 @@ class Response(object):
         if not self.is_file_object:
             self.headers["Content-Type"] = "text/plain; charset=utf-8"
         elif self.magic:
-            self.headers["Content-Type"] = decode_from_bytes(
-                magic.from_buffer(self.body, mime=True)
-            )
+            self.headers["Content-Type"] = do_the_magic(self.magic, self.body)
 
     def set_extra_headers(self, headers):
+        r"""
+        >>> r = Response(body="<html />")
+        >>> len(r.headers.keys())
+        6
+        >>> r.set_extra_headers({"foo-bar": "Foobar"})
+        >>> len(r.headers.keys())
+        7
+        >>> encode_to_bytes(r.headers.get("Foo-Bar")) == encode_to_bytes("Foobar")
+        True
+        """
         for k, v in headers.items():
-            self.headers["-".join([token.capitalize() for token in k.split("-")])] = v
+            self.headers["-".join((token.capitalize() for token in k.split("-")))] = v
 
 
 class Entry(MocketEntry):
@@ -130,10 +148,12 @@ class Entry(MocketEntry):
         self._match_querystring = match_querystring
 
     def collect(self, data):
-        self._sent_data += data
         decoded_data = decode_from_bytes(data)
-        if not decoded_data.startswith(Entry.METHODS) and decoded_data.endswith(CRLF):
+        if not decoded_data.startswith(Entry.METHODS):
             Mocket.remove_last_request()
+            self._sent_data += data
+        else:
+            self._sent_data = data
         super(Entry, self).collect(self._sent_data)
 
     def can_handle(self, data):

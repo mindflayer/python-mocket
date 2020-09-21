@@ -26,7 +26,12 @@ Starting from *3.7.0*, Mocket major version will follow the same numbering patte
 
 Support it
 ==========
-*Star* the project on GitHub, Buy Me a Coffee or, even better, contribute with patches or documentation.
+*Star* the project on GitHub, *Buy Me a Coffee* clicking the button below or, even better, contribute with patches or documentation.
+
+Thanks to `@felixonmars`_ Mocket is available in the `Arch Linux repository`_.
+
+.. _`@felixonmars`: https://github.com/felixonmars
+.. _`Arch Linux repository`: https://www.archlinux.org/packages/community/any/python-mocket/
 
 .. image:: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
      :target: https://www.buymeacoffee.com/mULbInw5z
@@ -69,8 +74,8 @@ Issues
 ============
 When opening an **Issue**, please add few lines of code as failing test, or -better- open its relative **Pull request** adding this test to our test suite.
 
-Quick example of its HTTP mock
-==============================
+Example of how to mock an HTTP[S] call
+======================================
 Let's create a new virtualenv with all we need::
 
     $ virtualenv example
@@ -82,13 +87,13 @@ As second step, we create an `example.py` file as the following one:
 .. code-block:: python
 
     import json
- 
+
     from mocket import mocketize
     from mocket.mockhttp import Entry
     import requests
     import pytest
- 
- 
+
+
     @pytest.fixture
     def response():
         return {
@@ -96,44 +101,68 @@ As second step, we create an `example.py` file as the following one:
             "string": "asd",
             "boolean": False,
         }
- 
- 
+
+
     @mocketize  # use its decorator
     def test_json(response):
         url_to_mock = 'https://testme.org/json'
- 
+
         Entry.single_register(
             Entry.GET,
             url_to_mock,
             body=json.dumps(response),
             headers={'content-type': 'application/json'}
         )
- 
+
         mocked_response = requests.get(url_to_mock).json()
- 
+
         assert response == mocked_response
 
     # OR use its context manager
     from mocket import Mocketizer
-    
+
     def test_json_with_context_manager(response):
         url_to_mock = 'https://testme.org/json'
- 
+
         Entry.single_register(
             Entry.GET,
             url_to_mock,
             body=json.dumps(response),
             headers={'content-type': 'application/json'}
         )
- 
+
         with Mocketizer():
             mocked_response = requests.get(url_to_mock).json()
- 
+
         assert response == mocked_response
 
 Let's fire our example test::
 
     $ py.test example.py
+
+Example of how to record real socket traffic
+============================================
+
+You probably know what *VCRpy* is capable of, that's the `mocket`'s way of achieving it:
+
+.. code-block:: python
+
+    @mocketize(truesocket_recording_dir=tempfile.mkdtemp())
+    def test_truesendall_with_recording_https():
+        url = 'https://httpbin.org/ip'
+
+        requests.get(url, headers={"Accept": "application/json"})
+        resp = requests.get(url, headers={"Accept": "application/json"})
+        assert resp.status_code == 200
+
+        dump_filename = os.path.join(
+            Mocket.get_truesocket_recording_dir(),
+            Mocket.get_namespace() + '.json',
+        )
+        with io.open(dump_filename) as f:
+            response = json.load(f)
+
+        assert len(response['httpbin.org']['443'].keys()) == 1
 
 HTTPretty compatibility layer
 =============================
@@ -155,15 +184,15 @@ Example:
     import async_timeout
     from unittest import TestCase
 
-    from mocket.plugins.httpretty import HTTPretty, httprettified
+    from mocket.plugins.httpretty import httpretty, httprettified
 
 
     class AioHttpEntryTestCase(TestCase):
         @httprettified
         def test_https_session(self):
             url = 'https://httpbin.org/ip'
-            HTTPretty.register_uri(
-                HTTPretty.GET,
+            httpretty.register_uri(
+                httpretty.GET,
                 url,
                 body=json.dumps(dict(origin='127.0.0.1')),
             )
@@ -183,7 +212,7 @@ What about the other socket animals?
 ====================================
 Using *Mocket* with asyncio based clients::
 
-    $ pip install aiohttp    
+    $ pip install aiohttp
 
 Example:
 
@@ -211,6 +240,31 @@ Example:
 
             loop = asyncio.get_event_loop()
             loop.run_until_complete(main(loop))
+
+    # or again with a unittest.IsolatedAsyncioTestCase
+    from mocket.async_mocket import async_mocketize
+
+    class AioHttpEntryTestCase(IsolatedAsyncioTestCase):
+        @async_mocketize
+        async def test_http_session(self):
+            url = 'http://httpbin.org/ip'
+            body = "asd" * 100
+            Entry.single_register(Entry.GET, url, body=body, status=404)
+            Entry.single_register(Entry.POST, url, body=body * 2, status=201)
+
+            async with aiohttp.ClientSession() as session:
+                with async_timeout.timeout(3):
+                    async with session.get(url) as get_response:
+                        assert get_response.status == 404
+                        assert await get_response.text() == body
+
+                with async_timeout.timeout(3):
+                    async with session.post(url, data=body * 6) as post_response:
+                        assert post_response.status == 201
+                        assert await post_response.text() == body * 2
+                        assert Mocket.last_request().method == 'POST'
+                        assert Mocket.last_request().body == body * 6
+
 
 Works well with others
 =======================

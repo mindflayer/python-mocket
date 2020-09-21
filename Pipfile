@@ -1,0 +1,29 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+python-magic = "*"
+six = "*"
+decorator = "*"
+urllib3 = "*"
+http-parser = "*"
+
+[dev-packages]
+pre-commit = "*"
+pep8 = "*"
+pytest = ">4.6"
+pytest-cov = "*"
+mock = "*"
+requests = "*"
+redis = "*"
+gevent = "*"
+sure = "*"
+pook = "*"
+flake8 = "*"
+twine = "*"
+anaconda-client = "*"
+
+[requires]
+python_version = "3.8"
