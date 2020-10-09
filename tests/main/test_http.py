@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import io
 import json
 import os
+import socket
 import tempfile
 import time
 from unittest import TestCase
@@ -321,3 +322,38 @@ class HttpEntryTestCase(HttpTestCase):
         files = {"content": file_obj}
         r = requests.post(url, files=files, data={}, verify=False)
         self.assertEqual(r.status_code, 201)
+
+    @mocketize
+    def test_sockets(self):
+        """
+        https://github.com/mindflayer/python-mocket/issues/111
+        https://gist.github.com/amotl/015ef6b336db55128798d7f1a9a67dea
+        """
+
+        # Define HTTP conversation.
+        url = "http://127.0.0.1/api/data"
+        Entry.single_register(Entry.POST, url)
+
+        # Define HTTP url segments and data.
+        host = "127.0.0.1"
+        port = 80
+        method = "POST"
+        path = "/api/data"
+        data = json.dumps({"hello": "world"})
+
+        # Invoke HTTP request.
+        address = socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM)[0]
+        sock = socket.socket(address[0], address[1], address[2])
+
+        sock.connect(address[-1])
+        sock.write("%s %s HTTP/1.0\r\n" % (method, path))
+        sock.write("Host: %s\r\n" % host)
+        sock.write("Content-Type: application/json\r\n")
+        sock.write("Content-Length: %d\r\n" % len(data))
+        sock.write("Connection: close\r\n\r\n")
+        sock.write(data)
+        sock.close()
+
+        # Proof that worked.
+        print(Mocket.last_request().__dict__)
+        assert Mocket.last_request().body == '{"hello": "world"}'

@@ -38,7 +38,7 @@ except ImportError:  # pragma: no cover
 hasher = xxh32 or hashlib.md5
 
 try:  # pragma: no cover
-    from urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3
+    from urllib3.contrib.pyopenssl import extract_from_urllib3, inject_into_urllib3
 
     pyopenssl_override = True
 except ImportError:
@@ -386,7 +386,7 @@ class MocketSocket(object):
         else:
             req = Mocket.last_request()
             if hasattr(req, "add_data"):
-                req.add_data(decode_from_bytes(data))
+                req.add_data(data)
         self._entry = entry
         return len(data)
 

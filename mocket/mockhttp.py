@@ -31,6 +31,7 @@ CRLF = "\r\n"
 
 class Request:
     parser = None
+    _body = None
 
     def __init__(self, data):
         self.parser = HttpParser()
@@ -39,7 +40,6 @@ class Request:
         self.method = self.parser.get_method()
         self.path = self.parser.get_path()
         self.headers = self.parser.get_headers()
-        self.body = decode_from_bytes(self.parser.recv_body())
         self.querystring = parse_qs(
             unquote_utf8(self.parser.get_query_string()), keep_blank_values=True
         )
@@ -47,7 +47,13 @@ class Request:
             self.path += "?{}".format(self.parser.get_query_string())
 
     def add_data(self, data):
-        self.body += data
+        self.parser.execute(data, len(data))
+
+    @property
+    def body(self):
+        if self._body is None:
+            self._body = decode_from_bytes(self.parser.recv_body())
+        return self._body
 
     def __str__(self):
         return "{} - {} - {}".format(self.method, self.path, self.headers)
@@ -82,7 +88,10 @@ class Response(object):
             status_code=self.status, status=STATUS[self.status]
         )
         header_lines = CRLF.join(
-            ("{0}: {1}".format(getattr(k, str_format_fun_name)(), v) for k, v in self.headers.items())
+            (
+                "{0}: {1}".format(getattr(k, str_format_fun_name)(), v)
+                for k, v in self.headers.items()
+            )
         )
         return "{0}\r\n{1}\r\n\r\n".format(status_line, header_lines).encode("utf-8")
 
