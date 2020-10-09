@@ -1,8 +1,9 @@
 from sys import version_info
 
 from mocket import Mocket, mocketize
-from mocket.compat import byte_type, encode_to_bytes, text_type
+from mocket.compat import byte_type, text_type
 from mocket.mockhttp import Entry as MocketHttpEntry
+from mocket.mockhttp import Request as MocketHttpRequest
 from mocket.mockhttp import Response as MocketHttpResponse
 
 
@@ -10,11 +11,21 @@ def httprettifier_headers(headers):
     return {k.lower().replace("_", "-"): v for k, v in headers.items()}
 
 
+class Request(MocketHttpRequest):
+    @property
+    def body(self):
+        if self._body is None:
+            self._body = self.parser.recv_body()
+        return self._body
+
+
 class Response(MocketHttpResponse):
     def get_protocol_data(self, str_format_fun_name="lower"):
         if "server" in self.headers and self.headers["server"] == "Python/Mocket":
             self.headers["server"] = "Python/HTTPretty"
-        return super(Response, self).get_protocol_data(str_format_fun_name=str_format_fun_name)
+        return super(Response, self).get_protocol_data(
+            str_format_fun_name=str_format_fun_name
+        )
 
     def set_base_headers(self):
         super(Response, self).set_base_headers()
@@ -27,6 +38,7 @@ class Response(MocketHttpResponse):
 
 
 class Entry(MocketHttpEntry):
+    request_cls = Request
     response_cls = Response
 
 
@@ -102,7 +114,6 @@ class MocketHTTPretty:
     def __getattr__(self, name):
         if name == "last_request":
             last_request = getattr(Mocket, "last_request")()
-            last_request.body = encode_to_bytes(last_request.body)
             return last_request
         elif name == "latest_requests":
             return getattr(Mocket, "_requests")
