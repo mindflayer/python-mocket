@@ -259,7 +259,7 @@ class RedisTestCase(TestCase):
 
     @mocketize
     def test_raise_exception(self):
-        Entry.register_response("INCRBY counter one", TimeoutError("Mocket rulez!"))
+        Entry.register_response("INCRBY counter one", IOError("Mocket rulez!"))
         self.assertRaises(
             redis.exceptions.ConnectionError, self.rclient.incr, "counter", "one"
         )

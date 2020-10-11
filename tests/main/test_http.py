@@ -326,7 +326,7 @@ class HttpEntryTestCase(HttpTestCase):
     @mocketize
     def test_raise_exception(self):
         url = "http://github.com/fluidicon.png"
-        Entry.single_register(Entry.GET, url, exception=TimeoutError())
+        Entry.single_register(Entry.GET, url, exception=IOError())
         with self.assertRaises(requests.exceptions.ConnectionError):
             requests.get(url)
 

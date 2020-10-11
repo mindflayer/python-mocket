@@ -84,9 +84,9 @@ class MocketTestCase(TestCase):
         self.assertEqual(entry.get_response(), encode_to_bytes(""))
 
     def test_raise_exception(self):
-        entry = MocketEntry(("localhost", 8080), [TimeoutError()])
+        entry = MocketEntry(("localhost", 8080), [IOError()])
 
-        with self.assertRaises(TimeoutError):
+        with self.assertRaises(IOError):
             entry.get_response()
 
     def test_subsequent_recv_requests_have_correct_length(self):
