@@ -143,8 +143,8 @@ Let's fire our example test::
 
     $ py.test example.py
 
-Example of how to fake a socket errors
-======================================
+Example of how to fake socket errors
+====================================
 
 It's very important that we test non-happy paths.
 
