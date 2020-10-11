@@ -1,3 +1,4 @@
+dist: xenial
 services:
   - redis-server
 language: python
