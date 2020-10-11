@@ -143,6 +143,20 @@ Let's fire our example test::
 
     $ py.test example.py
 
+Example of how to fake a socket errors
+======================================
+
+It's very important that we test non-happy paths.
+
+.. code-block:: python
+
+    @mocketize
+    def test_raise_exception(self):
+        url = "http://github.com/fluidicon.png"
+        Entry.single_register(Entry.GET, url, exception=socket.error())
+        with self.assertRaises(requests.exceptions.ConnectionError):
+            requests.get(url)
+
 Example of how to record real socket traffic
 ============================================
 
