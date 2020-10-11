@@ -324,6 +324,13 @@ class HttpEntryTestCase(HttpTestCase):
         self.assertEqual(r.status_code, 201)
 
     @mocketize
+    def test_raise_exception(self):
+        url = "http://github.com/fluidicon.png"
+        Entry.single_register(Entry.GET, url, exception=socket.error())
+        with self.assertRaises(requests.exceptions.ConnectionError):
+            requests.get(url)
+
+    @mocketize
     def test_sockets(self):
         """
         https://github.com/mindflayer/python-mocket/issues/111
@@ -355,5 +362,4 @@ class HttpEntryTestCase(HttpTestCase):
         sock.close()
 
         # Proof that worked.
-        print(Mocket.last_request().__dict__)
-        assert Mocket.last_request().body == '{"hello": "world"}'
+        self.assertEqual(Mocket.last_request().body, '{"hello": "world"}')

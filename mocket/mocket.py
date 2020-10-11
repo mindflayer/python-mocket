@@ -472,7 +472,6 @@ class Mocket(object):
             (2, 1, 6, "", (host, port))
         ]
         ssl.wrap_socket = ssl.__dict__["wrap_socket"] = FakeSSLContext.wrap_socket
-        # ssl.SSLSocket = ssl.__dict__["SSLSocket"] = MocketSocket
         ssl.SSLContext = ssl.__dict__["SSLContext"] = FakeSSLContext
         socket.inet_pton = socket.__dict__["inet_pton"] = lambda family, ip: byte_type(
             "\x7f\x00\x00\x01", "utf-8"
@@ -502,7 +501,6 @@ class Mocket(object):
         socket.gethostbyname = socket.__dict__["gethostbyname"] = true_gethostbyname
         socket.getaddrinfo = socket.__dict__["getaddrinfo"] = true_getaddrinfo
         ssl.wrap_socket = ssl.__dict__["wrap_socket"] = true_ssl_wrap_socket
-        # ssl.SSLSocket = ssl.__dict__["SSLSocket"] = true_ssl_socket
         ssl.SSLContext = ssl.__dict__["SSLContext"] = true_ssl_context
         socket.inet_pton = socket.__dict__["inet_pton"] = true_inet_pton
         urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__[
@@ -548,7 +546,9 @@ class MocketEntry(object):
 
         lresponses = []
         for r in responses:
-            if not getattr(r, "data", False):
+            if isinstance(r, BaseException):
+                pass
+            elif not getattr(r, "data", False):
                 if isinstance(r, text_type):
                     r = encode_to_bytes(r)
                 r = self.response_cls(r)
@@ -569,6 +569,10 @@ class MocketEntry(object):
         response = self.responses[self.response_index]
         if self.response_index < len(self.responses) - 1:
             self.response_index += 1
+
+        if isinstance(response, BaseException):
+            raise response
+
         return response.data
 
 
@@ -600,9 +604,15 @@ class Mocketizer(object):
     def wrap(test=None, truesocket_recording_dir=None):
         def wrapper(t, *args, **kw):
             instance = args[0] if args else None
-            namespace = ".".join(
-                (instance.__class__.__module__, instance.__class__.__name__, t.__name__)
-            )
+            namespace = None
+            if truesocket_recording_dir:
+                namespace = ".".join(
+                    (
+                        instance.__class__.__module__,
+                        instance.__class__.__name__,
+                        t.__name__,
+                    )
+                )
             with Mocketizer(
                 instance,
                 namespace=namespace,
