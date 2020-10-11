@@ -231,11 +231,22 @@ class Entry(MocketEntry):
 
     @classmethod
     def single_register(
-        cls, method, uri, body="", status=200, headers=None, match_querystring=True
+        cls,
+        method,
+        uri,
+        body="",
+        status=200,
+        headers=None,
+        match_querystring=True,
+        exception=None,
     ):
+
+        response = (
+            exception
+            if exception
+            else cls.response_cls(body=body, status=status, headers=headers)
+        )
+
         cls.register(
-            method,
-            uri,
-            cls.response_cls(body=body, status=status, headers=headers),
-            match_querystring=match_querystring,
+            method, uri, response, match_querystring=match_querystring,
         )
