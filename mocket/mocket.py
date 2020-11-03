@@ -243,6 +243,7 @@ class MocketSocket(object):
     def makefile(self, mode="r", bufsize=-1):
         self._mode = mode
         self._bufsize = bufsize
+        self.fd = MocketSocketCore()
         return self.fd
 
     def get_entry(self, data):
@@ -258,7 +259,6 @@ class MocketSocket(object):
         else:
             response = self.true_sendall(data, *args, **kwargs)
 
-        self.fd = MocketSocketCore()
         self.fd.seek(0)
         self.fd.write(response)
         self.fd.truncate()
