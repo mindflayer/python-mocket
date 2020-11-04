@@ -115,12 +115,13 @@ class MocketTestCase(TestCase):
         assert buffer.read() == b"Long payloadShort"
 
     def test_makefile(self):
-        addr = ('localhost', 8080)
+        addr = ('localhost', 80)
         Mocket.register(MocketEntry(addr, ['Show me.\r\n']))
         with Mocketizer():
-            sock = socket.create_connection(addr)
-            fp = sock.makefile('rb')
-            sock.sendall(encode_to_bytes('...\r\n'))
+            _so = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            _so.connect(addr)
+            fp = _so.makefile('rb')
+            _so.sendall(encode_to_bytes('...\r\n'))
             self.assertEqual(fp.read().strip(), encode_to_bytes('Show me.'))
             self.assertEqual(len(Mocket._requests), 1)
 

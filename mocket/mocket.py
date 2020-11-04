@@ -243,7 +243,8 @@ class MocketSocket(object):
     def makefile(self, mode="r", bufsize=-1):
         self._mode = mode
         self._bufsize = bufsize
-        self.fd = MocketSocketCore()
+        if self.fd is None:
+            self.fd = MocketSocketCore()
         return self.fd
 
     def get_entry(self, data):
