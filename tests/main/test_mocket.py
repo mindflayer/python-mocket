@@ -114,6 +114,16 @@ class MocketTestCase(TestCase):
         buffer.seek(0)
         assert buffer.read() == b"Long payloadShort"
 
+    def test_makefile(self):
+        addr = ('localhost', 8080)
+        Mocket.register(MocketEntry(addr, ['Show me.\r\n']))
+        with Mocketizer():
+            sock = socket.create_connection(addr)
+            fp = sock.makefile('rb')
+            sock.sendall(encode_to_bytes('...\r\n'))
+            self.assertEqual(fp.read().strip(), encode_to_bytes('Show me.'))
+            self.assertEqual(len(Mocket._requests), 1)
+
 
 class MocketizeTestCase(TestCase):
     def mocketize_setup(self):

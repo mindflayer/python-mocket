@@ -259,6 +259,7 @@ class MocketSocket(object):
         else:
             response = self.true_sendall(data, *args, **kwargs)
 
+        self.fd = MocketSocketCore()
         self.fd.seek(0)
         self.fd.write(response)
         self.fd.truncate()
