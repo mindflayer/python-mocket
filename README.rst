@@ -2,7 +2,7 @@
 mocket /mɔˈkɛt/
 ===============
 
-.. image:: https://travis-ci.org/mindflayer/python-mocket.svg?branch=master
+.. image:: https://travis-ci.com/mindflayer/python-mocket.svg?branch=master
     :target: https://travis-ci.org/mindflayer/python-mocket
 
 .. image:: https://coveralls.io/repos/github/mindflayer/python-mocket/badge.svg?branch=master
