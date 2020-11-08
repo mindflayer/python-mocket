@@ -112,14 +112,10 @@ class FakeSSLContext(SuperFakeSSLContext):
             return getattr(self.sock, name)
 
 
-def create_connection(
-    address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None
-):
+def create_connection(address, timeout=None, source_address=None):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
-    if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
+    if timeout:
         s.settimeout(timeout)
-    # if source_address:
-    #     s.bind(source_address)
     s.connect(address)
     return s
 
@@ -129,7 +125,8 @@ def _hash_request(h, req):
 
 
 class MocketSocket(object):
-    fd = None
+    timeout = None
+    _fd = None
     family = None
     type = None
     proto = None
@@ -145,7 +142,6 @@ class MocketSocket(object):
     def __init__(
         self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, *args, **kwargs
     ):
-        self.settimeout(socket._GLOBAL_DEFAULT_TIMEOUT)
         self.true_socket = true_socket(family, type, proto)
         self._connected = False
         self._buflen = 65536
@@ -174,6 +170,12 @@ class MocketSocket(object):
             self.__class__.__name__, self.family, self.type, self.proto
         )
 
+    @property
+    def fd(self):
+        if self._fd is None:
+            self._fd = MocketSocketCore()
+        return self._fd
+
     def gettimeout(self):
         return self.timeout
 
@@ -186,10 +188,7 @@ class MocketSocket(object):
             self.true_socket.setsockopt(family, type, proto)
 
     def settimeout(self, timeout):
-        try:
-            self.timeout = timeout
-        except AttributeError:  # pragma: no cover
-            pass
+        self.timeout = timeout
 
     def getsockopt(self, level, optname, buflen=None):
         return socket.SOCK_STREAM
@@ -258,7 +257,6 @@ class MocketSocket(object):
         else:
             response = self.true_sendall(data, *args, **kwargs)
 
-        self.fd = MocketSocketCore()
         self.fd.seek(0)
         self.fd.write(response)
         self.fd.truncate()
@@ -273,7 +271,7 @@ class MocketSocket(object):
     def recv(self, buffersize, flags=None):
         if Mocket.r_fd and Mocket.w_fd:
             return os.read(Mocket.r_fd, buffersize)
-        if self.fd is not None:
+        if self.fd:
             data = self.read(buffersize)
             if data:
                 return data
@@ -391,7 +389,7 @@ class MocketSocket(object):
         return len(data)
 
     def close(self):
-        self.fd = MocketSocketCore()
+        self._fd = None
 
     def __getattr__(self, name):
         """ Do nothing catchall function, for methods like close() and shutdown() """
