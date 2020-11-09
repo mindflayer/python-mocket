@@ -271,10 +271,9 @@ class MocketSocket(object):
     def recv(self, buffersize, flags=None):
         if Mocket.r_fd and Mocket.w_fd:
             return os.read(Mocket.r_fd, buffersize)
-        if self.fd:
-            data = self.read(buffersize)
-            if data:
-                return data
+        data = self.read(buffersize)
+        if data:
+            return data
         # used by Redis mock
         exc = BlockingIOError()
         exc.errno = errno.EWOULDBLOCK

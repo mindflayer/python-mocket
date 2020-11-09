@@ -30,7 +30,7 @@ publish: install-test-requirements
 	anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
 
 clean:
-	rm -rf *.egg-info
+	rm -rf *.egg-info dist/
 	find . -type d -name __pycache__ -exec rm -rf {} \;
 
 .PHONY: clean publish safetest test develop lint-python test-python install-test-requirements install-dev-requirements
