@@ -338,12 +338,12 @@ class HttpEntryTestCase(HttpTestCase):
         """
 
         # Define HTTP conversation.
-        url = "http://127.0.0.1/api/data"
+        url = "http://127.0.0.1:8080/api/data"
         Entry.single_register(Entry.POST, url)
 
         # Define HTTP url segments and data.
         host = "127.0.0.1"
-        port = 80
+        port = 8080
         method = "POST"
         path = "/api/data"
         data = json.dumps({"hello": "world"})

@@ -160,7 +160,7 @@ It's very important that we test non-happy paths.
 Example of how to record real socket traffic
 ============================================
 
-You probably know what *VCRpy* is capable of, that's the `mocket`'s way of achieving it:
+You probably know what *VCRpy* is capable of, that's the *mocket*'s way of achieving it:
 
 .. code-block:: python
 
@@ -186,9 +186,9 @@ HTTPretty compatibility layer
 Mocket HTTP mock can work as *HTTPretty* replacement for many different use cases. Two main features are missing:
 
 - URL entries containing regular expressions;
-- response body from functions.
+- response body from functions (used mostly to fake errors, *mocket* doesn't need to do it this way).
 
-Two features which are against the Zen of Python, at least imho (mindflayer), but of course I am open to call it into question.
+Two features which are against the Zen of Python, at least imho (*mindflayer*), but of course I am open to call it into question.
 
 Example:
 
