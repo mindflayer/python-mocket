@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 import io
 import socket
-import time
 from unittest import TestCase
 
 import pytest
@@ -91,10 +90,11 @@ class MocketTestCase(TestCase):
             entry.get_response()
 
     def test_subsequent_recv_requests_have_correct_length(self):
-        Mocket.register(MocketEntry(("localhost", 80), [b"Long payload", b"Short"]))
+        addr = ("localhost", 80)
+        Mocket.register(MocketEntry(addr, [b"Long payload", b"Short"]))
         with Mocketizer():
             _so = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            _so.connect(("localhost", 80))
+            _so.connect(addr)
             _so.sendall(b"first\r\n")
             self.assertEqual(_so.recv(4096), b"Long payload")
             _so.sendall(b"second\r\n")
@@ -102,11 +102,12 @@ class MocketTestCase(TestCase):
             _so.close()
 
     def test_recv_into(self):
-        Mocket.register(MocketEntry(("localhost", 80), [b"Long payload", b"Short"]))
+        addr = ("localhost", 80)
+        Mocket.register(MocketEntry(addr, [b"Long payload", b"Short"]))
         buffer = io.BytesIO()
         with Mocketizer():
             _so = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            _so.connect(("localhost", 80))
+            _so.connect(addr)
             _so.sendall(b"first\r\n")
             self.assertEqual(_so.recv_into(buffer, 4096), 12)
             _so.sendall(b"second\r\n")
@@ -124,32 +125,6 @@ class MocketTestCase(TestCase):
             fp = _so.makefile("rb")
             _so.sendall(encode_to_bytes("...\r\n"))
             self.assertEqual(fp.read().strip(), encode_to_bytes("Show me."))
-            self.assertEqual(len(Mocket._requests), 1)
-
-    def test_socket_recv(self):
-        addr = ("localhost", 80)
-        Mocket.register(MocketEntry(addr, ["Show ", "me.\r\n"]))
-        with Mocketizer():
-            _so = socket.create_connection(addr)
-            _so.sendall(encode_to_bytes("I know kung fu.\r\n"))
-            data = ""
-            match_eol = False
-            while not match_eol:
-                data += _so.recv(4096).decode()
-                match_eol = "\r" in data
-            self.assertEqual(data.strip(), "Show me.")
-            self.assertEqual(len(Mocket._requests), 1)
-
-    def test_socket_recv_blocking(self):
-        addr = ("localhost", 80)
-        Mocket.register(MocketEntry(addr, ["response\r\n"]))
-        with Mocketizer():
-            _so = socket.create_connection(addr)
-            _so.sendall(encode_to_bytes("\r\n"))
-            start_time = time.time()
-            with pytest.raises(BlockingIOError, match="0"):
-                while (time.time() == start_time) < 3:
-                    _so.recv(4096).decode()
             self.assertEqual(len(Mocket._requests), 1)
 
 
