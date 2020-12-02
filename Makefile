@@ -24,7 +24,7 @@ test: lint-python test-python
 safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
 
-publish: install-test-requirements
+publish:
 	python setup.py sdist
 	twine upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)')*.*
 	anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz

@@ -8,13 +8,13 @@ os.environ.setdefault("PIPENV_SKIP_LOCK", "1")
 
 major, minor = sys.version_info[:2]
 
-install_requires = [
-    line
-    for line in io.open(
-        os.path.join(os.path.dirname(__file__), "requirements.txt")
-    ).readlines()
-    if not line.startswith("-i")
-]
+install_requires = (
+    "decorator>=4.4.2",
+    "http-parser>=0.9.0",
+    "python-magic>=0.4.18",
+    "six>=1.15.0",
+    "urllib3>=1.25.11",
+)
 
 pook_requires = ("pook>=0.2.1",)
 exclude_packages = ("tests", "tests.*")

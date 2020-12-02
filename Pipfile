@@ -4,11 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-python-magic = "*"
-six = "*"
-decorator = "*"
-urllib3 = "*"
-http-parser = "*"
+mocket = {editable = true, path = "."}
 
 [dev-packages]
 pre-commit = "*"
