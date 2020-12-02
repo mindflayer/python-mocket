@@ -4,8 +4,6 @@ import sys
 
 from setuptools import find_packages, setup
 
-os.environ.setdefault("PIPENV_SKIP_LOCK", "1")
-
 major, minor = sys.version_info[:2]
 
 install_requires = [
