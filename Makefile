@@ -1,11 +1,11 @@
 #!/usr/bin/make -f
 
 install-dev-requirements:
-	pip install pipenv==2020.8.13
+	pip install pipenv==2020.11.15
 
 install-test-requirements:
-	pipenv lock -r > requirements.txt
 	pipenv install --dev
+	python -c "import pipfile; pf = pipfile.load('Pipfile'); print('\n'.join(package+version for package, version in pf.data['default'].items()))" > requirements.txt
 
 test-python:
 	@echo "Running Python tests"
