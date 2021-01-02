@@ -1,4 +1,5 @@
 import collections
+import collections.abc as collections_abc
 import errno
 import hashlib
 import io
@@ -20,7 +21,6 @@ from .compat import (
     JSONDecodeError,
     basestring,
     byte_type,
-    collections_abc,
     decode_from_bytes,
     encode_to_bytes,
     text_type,
@@ -77,14 +77,11 @@ class FakeSSLContext(SuperFakeSSLContext):
         if isinstance(sock, MocketSocket):
             self.sock = sock
             self.sock._host = server_hostname
-            if true_ssl_context:
-                self.sock.true_socket = true_ssl_socket(
-                    sock=self.sock.true_socket,
-                    server_hostname=server_hostname,
-                    _context=true_ssl_context(protocol=SSL_PROTOCOL),
-                )
-            else:  # Python 2.
-                self.sock.true_socket = true_ssl_socket(sock=self.sock.true_socket)
+            self.sock.true_socket = true_ssl_socket(
+                sock=self.sock.true_socket,
+                server_hostname=server_hostname,
+                _context=true_ssl_context(protocol=SSL_PROTOCOL),
+            )
         elif isinstance(sock, int) and true_ssl_context:
             self.context = true_ssl_context(sock)
 
