@@ -49,13 +49,12 @@ setup(
         "dev": [],
         "pook": pook_requires,  # plugins version supporting mocket.plugins.pook.MocketEngine
     },
-    test_suite="runtests.runtests",
+    test_suite="run_tests.main",
     license="BSD",
     classifiers=[
         "Development Status :: 6 - Mature",
         "Intended Audience :: Developers",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",

@@ -27,6 +27,8 @@ Versioning
 ==========
 Starting from *3.7.0*, Mocket major version will follow the same numbering pattern as Python's and therefore indicate the most recent Python version that is supported.
 
+FYI: the last version compatible with Python 2.7 is *3.9.4*, bugfixing or backporting of features introduced after that release will only be available as commercial support.
+
 Support it
 ==========
 *Star* the project on GitHub, *Buy Me a Coffee* clicking the button below or, even better, contribute with patches or documentation.

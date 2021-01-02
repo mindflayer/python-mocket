@@ -3,7 +3,7 @@ import os
 import sys
 
 
-def runtests(args=None):
+def main(args=None):
     import pytest
 
     if not args:
@@ -37,4 +37,4 @@ def runtests(args=None):
 
 
 if __name__ == "__main__":
-    runtests(sys.argv)
+    main(sys.argv)

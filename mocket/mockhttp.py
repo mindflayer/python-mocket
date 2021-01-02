@@ -1,17 +1,9 @@
-from __future__ import unicode_literals
-
 import re
 import time
+from http.server import BaseHTTPRequestHandler
+from urllib.parse import parse_qs, unquote, urlsplit
 
-from .compat import (
-    BaseHTTPRequestHandler,
-    decode_from_bytes,
-    do_the_magic,
-    encode_to_bytes,
-    parse_qs,
-    unquote_utf8,
-    urlsplit,
-)
+from .compat import decode_from_bytes, do_the_magic, encode_to_bytes
 from .mocket import Mocket, MocketEntry
 
 try:
@@ -41,7 +33,7 @@ class Request:
         self.path = self.parser.get_path()
         self.headers = self.parser.get_headers()
         self.querystring = parse_qs(
-            unquote_utf8(self.parser.get_query_string()), keep_blank_values=True
+            unquote(self.parser.get_query_string()), keep_blank_values=True
         )
         if self.querystring:
             self.path += "?{}".format(self.parser.get_query_string())
