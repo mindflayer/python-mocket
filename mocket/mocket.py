@@ -583,6 +583,7 @@ class Mocketizer(object):
         )
         if self.instance:
             self.check_and_call("mocketize_setup")
+        return self
 
     def __exit__(self, type, value, tb):
         if self.instance:

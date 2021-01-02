@@ -1,22 +1,15 @@
 import decorator
 
-from mocket import Mocket, Mocketizer
+from mocket import Mocketizer
 
 
 def get_async_mocketize():
     class AsyncMocketizer(Mocketizer):
-        async def __aenter__(self):
-            Mocket.enable(
-                namespace=self.namespace,
-                truesocket_recording_dir=self.truesocket_recording_dir,
-            )
-            if self.instance:
-                self.check_and_call("mocketize_setup")
+        async def __aenter__(*args, **kwargs):
+            return Mocketizer.__enter__(*args, **kwargs)
 
-        async def __aexit__(self, type, value, tb):
-            if self.instance:
-                self.check_and_call("mocketize_teardown")
-            Mocket.disable()
+        async def __aexit__(*args, **kwargs):
+            return Mocketizer.__exit__(*args, **kwargs)
 
         @staticmethod
         def async_wrap(test=None, truesocket_recording_dir=None):
