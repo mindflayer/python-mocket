@@ -9,6 +9,7 @@ import select
 import socket
 import ssl
 from datetime import datetime, timedelta
+from json.decoder import JSONDecodeError
 
 import decorator
 import urllib3
@@ -16,9 +17,6 @@ from urllib3.util.ssl_ import ssl_wrap_socket as urllib3_ssl_wrap_socket
 from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
 
 from .compat import (
-    BlockingIOError,
-    FileNotFoundError,
-    JSONDecodeError,
     basestring,
     byte_type,
     decode_from_bytes,

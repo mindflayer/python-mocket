@@ -2,28 +2,20 @@ import codecs
 import os
 import shlex
 
-encoding = os.getenv("MOCKET_ENCODING", "utf-8")
+ENCODING = os.getenv("MOCKET_ENCODING", "utf-8")
 
 text_type = str
 byte_type = bytes
 basestring = (str,)
 
-FileNotFoundError = FileNotFoundError
-BlockingIOError = BlockingIOError
 
-try:
-    from json.decoder import JSONDecodeError
-except ImportError:
-    JSONDecodeError = ValueError
-
-
-def encode_to_bytes(s, encoding=encoding):
+def encode_to_bytes(s, encoding=ENCODING):
     if isinstance(s, text_type):
         s = s.encode(encoding)
     return byte_type(s)
 
 
-def decode_from_bytes(s, encoding=encoding):
+def decode_from_bytes(s, encoding=ENCODING):
     if isinstance(s, byte_type):
         s = codecs.decode(s, encoding, "ignore")
     return text_type(s)
