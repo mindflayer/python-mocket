@@ -599,8 +599,8 @@ class Mocketizer(object):
         if callable(method):
             method()
 
-    @staticmethod
-    def wrap(test=None, truesocket_recording_dir=None):
+    @classmethod
+    def wrap(cls, test=None, truesocket_recording_dir=None):
         def wrapper(t, *args, **kw):
             instance = args[0] if args else None
             namespace = None
@@ -612,7 +612,7 @@ class Mocketizer(object):
                         t.__name__,
                     )
                 )
-            with Mocketizer(
+            with cls(
                 instance,
                 namespace=namespace,
                 truesocket_recording_dir=truesocket_recording_dir,
