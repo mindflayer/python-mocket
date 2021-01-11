@@ -374,7 +374,7 @@ class HttpEntryTestCase(HttpTestCase):
             Mocket.assert_fail_if_entries_not_served()
 
     @mocketize
-    def test_fail_because_no_entries_not_served(self):
+    def test_does_not_fail_because_all_entries_are_served(self):
         url = "http://github.com/fluidicon.png"
         second_url = "http://github.com/fluidicon.jpg"
         Entry.single_register(Entry.GET, url)
