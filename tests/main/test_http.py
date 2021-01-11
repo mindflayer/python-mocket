@@ -363,3 +363,22 @@ class HttpEntryTestCase(HttpTestCase):
 
         # Proof that worked.
         self.assertEqual(Mocket.last_request().body, '{"hello": "world"}')
+
+    @mocketize
+    def test_fail_because_entry_not_served(self):
+        url = "http://github.com/fluidicon.png"
+        Entry.single_register(Entry.GET, url)
+        Entry.single_register(Entry.GET, "http://github.com/fluidicon.jpg")
+        requests.get(url)
+        with self.assertRaises(AssertionError):
+            Mocket.assert_fail_if_entries_not_served()
+
+    @mocketize
+    def test_does_not_fail_because_all_entries_are_served(self):
+        url = "http://github.com/fluidicon.png"
+        second_url = "http://github.com/fluidicon.jpg"
+        Entry.single_register(Entry.GET, url)
+        Entry.single_register(Entry.GET, second_url)
+        requests.get(url)
+        requests.get(second_url)
+        Mocket.assert_fail_if_entries_not_served()

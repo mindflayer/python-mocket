@@ -3,6 +3,7 @@ import collections.abc as collections_abc
 import errno
 import hashlib
 import io
+import itertools
 import json
 import os
 import select
@@ -16,13 +17,7 @@ import urllib3
 from urllib3.util.ssl_ import ssl_wrap_socket as urllib3_ssl_wrap_socket
 from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
 
-from .compat import (
-    basestring,
-    byte_type,
-    decode_from_bytes,
-    encode_to_bytes,
-    text_type,
-)
+from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, text_type
 from .utils import SSL_PROTOCOL, MocketSocketCore, hexdump, hexload, wrap_ssl_socket
 
 xxh32 = None
@@ -517,6 +512,13 @@ class Mocket(object):
     def get_truesocket_recording_dir(cls):
         return cls._truesocket_recording_dir
 
+    @classmethod
+    def assert_fail_if_entries_not_served(cls):
+        """ Mocket checks that all entries have been served at least once. """
+        assert all(
+            entry._served for entry in itertools.chain(*cls._entries.values())
+        ), "Some Mocket entries have not been served"
+
 
 class MocketEntry(object):
     class Response(byte_type):
@@ -526,8 +528,11 @@ class MocketEntry(object):
 
     request_cls = str
     response_cls = Response
+    responses = None
+    _served = None
 
     def __init__(self, location, responses):
+        self._served = False
         self.location = location
         self.response_index = 0
 
@@ -536,7 +541,7 @@ class MocketEntry(object):
         ):
             responses = [responses]
 
-        lresponses = []
+        self.responses = []
         for r in responses:
             if isinstance(r, BaseException):
                 pass
@@ -544,11 +549,10 @@ class MocketEntry(object):
                 if isinstance(r, text_type):
                     r = encode_to_bytes(r)
                 r = self.response_cls(r)
-            lresponses.append(r)
+            self.responses.append(r)
         else:
             if not responses:
-                lresponses = [self.response_cls(encode_to_bytes(""))]
-        self.responses = lresponses
+                self.responses = [self.response_cls(encode_to_bytes(""))]
 
     def can_handle(self, data):
         return True
@@ -561,6 +565,8 @@ class MocketEntry(object):
         response = self.responses[self.response_index]
         if self.response_index < len(self.responses) - 1:
             self.response_index += 1
+
+        self._served = True
 
         if isinstance(response, BaseException):
             raise response
