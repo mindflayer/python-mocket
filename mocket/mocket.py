@@ -160,6 +160,12 @@ class MocketSocket(object):
             self.__class__.__name__, self.family, self.type, self.proto
         )
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     @property
     def fd(self):
         if self._fd is None:

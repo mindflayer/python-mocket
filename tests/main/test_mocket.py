@@ -127,6 +127,16 @@ class MocketTestCase(TestCase):
             self.assertEqual(fp.read().strip(), encode_to_bytes("Show me."))
             self.assertEqual(len(Mocket._requests), 1)
 
+    def test_socket_as_context_manager(self):
+        addr = ("localhost", 80)
+        Mocket.register(MocketEntry(addr, ["Show me.\r\n"]))
+        with Mocketizer():
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as _so:
+                _so.connect(addr)
+                _so.sendall("Whatever...")
+                data = _so.recv(4096)
+                self.assertEqual(data, encode_to_bytes("Show me.\r\n"))
+
 
 class MocketizeTestCase(TestCase):
     def mocketize_setup(self):
