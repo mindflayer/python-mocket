@@ -133,7 +133,7 @@ class MocketTestCase(TestCase):
         with Mocketizer():
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as _so:
                 _so.connect(addr)
-                _so.sendall("Whatever...")
+                _so.sendall(encode_to_bytes("Whatever..."))
                 data = _so.recv(4096)
                 self.assertEqual(data, encode_to_bytes("Show me.\r\n"))
 
