@@ -153,7 +153,7 @@ class MocketSocket(object):
                 true_ssl_context(protocol=SSL_PROTOCOL),
             )
 
-     if sys.version_info >= (3, 2):
+    if sys.version_info >= (3, 2):
         def __enter__(self):
             return self
         def __exit__(self, *args):
@@ -161,7 +161,7 @@ class MocketSocket(object):
                 self.true_socket.close()
                 self._connected = False
 
-   def __unicode__(self):  # pragma: no cover
+    def __unicode__(self):  # pragma: no cover
         return str(self)
 
     def __str__(self):  # pragma: no cover
