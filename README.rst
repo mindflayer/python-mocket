@@ -54,7 +54,7 @@ The starting point to understand how to use *Mocket* to write a custom mock is t
 
 - https://github.com/mindflayer/mocketoy
 
-As next step, you are invited to have a look at both the implementation of the two mocks it provides:
+As next step, you are invited to have a look at the implementation of both the mocks it provides:
 
 - HTTP mock (similar to HTTPretty) - https://github.com/mindflayer/python-mocket/blob/master/mocket/mockhttp.py
 - Redis mock (basic implementation) - https://github.com/mindflayer/python-mocket/blob/master/mocket/mockredis.py
