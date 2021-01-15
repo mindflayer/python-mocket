@@ -3,6 +3,7 @@ import collections.abc as collections_abc
 import errno
 import hashlib
 import io
+import sys
 import itertools
 import json
 import os
@@ -152,7 +153,15 @@ class MocketSocket(object):
                 true_ssl_context(protocol=SSL_PROTOCOL),
             )
 
-    def __unicode__(self):  # pragma: no cover
+     if sys.version_info >= (3, 2):
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            if self.true_socket and not self.true_socket._closed:
+                self.true_socket.close()
+                self._connected = False
+
+   def __unicode__(self):  # pragma: no cover
         return str(self)
 
     def __str__(self):  # pragma: no cover
