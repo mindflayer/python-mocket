@@ -3,7 +3,7 @@ mocket /mɔˈkɛt/
 ===============
 
 .. image:: https://github.com/mindflayer/python-mocket/workflows/Mocket's%20CI/badge.svg
-    :target: https://github.com/mindflayer/python-mocket/actions
+    :target: https://github.com/mindflayer/python-mocket/actions?query=workflow%3A%22Mocket%27s+CI%22
 
 .. image:: https://coveralls.io/repos/github/mindflayer/python-mocket/badge.svg?branch=master
     :target: https://coveralls.io/github/mindflayer/python-mocket?branch=master
