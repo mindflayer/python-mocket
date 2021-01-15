@@ -133,7 +133,6 @@ class MocketSocket(object):
         self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, *args, **kwargs
     ):
         self.true_socket = true_socket(family, type, proto)
-        self._connected = False
         self._buflen = 65536
         self._entry = None
         self.family = int(family)
@@ -384,6 +383,8 @@ class MocketSocket(object):
         return len(data)
 
     def close(self):
+        if self.true_socket and not self.true_socket._closed:
+            self.true_socket.close()
         self._fd = None
 
     def __getattr__(self, name):
