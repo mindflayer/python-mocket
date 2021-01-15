@@ -5,16 +5,16 @@ install-dev-requirements:
 
 install-test-requirements:
 	pipenv install --dev
-	python -c "import pipfile; pf = pipfile.load('Pipfile'); print('\n'.join(package+version for package, version in pf.data['default'].items()))" > requirements.txt
+	pipenv run python -c "import pipfile; pf = pipfile.load('Pipfile'); print('\n'.join(package+version for package, version in pf.data['default'].items()))" > requirements.txt
 
 test-python:
 	@echo "Running Python tests"
-	python setup.py -q test || exit 1
+	pipenv run python setup.py -q test || exit 1
 	@echo ""
 
 lint-python:
 	@echo "Linting Python files"
-	flake8 --ignore=E501,E731,W503 --exclude=.git,compat.py --per-file-ignores='mocket/async_mocket.py:E999' mocket
+	pipenv run flake8 --ignore=E501,E731,W503 --exclude=.git,compat.py --per-file-ignores='mocket/async_mocket.py:E999' mocket
 	@echo ""
 
 develop: install-dev-requirements install-test-requirements
@@ -25,9 +25,9 @@ safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
 
 publish: install-test-requirements
-	python setup.py sdist
-	twine upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)')*.*
-	anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
+	pipenv run python setup.py sdist
+	pipenv run twine upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)')*.*
+	pipenv run anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
 
 clean:
 	rm -rf *.egg-info dist/
