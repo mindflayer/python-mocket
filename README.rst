@@ -8,9 +8,8 @@ mocket /mɔˈkɛt/
 .. image:: https://coveralls.io/repos/github/mindflayer/python-mocket/badge.svg?branch=master
     :target: https://coveralls.io/github/mindflayer/python-mocket?branch=master
 
-.. image:: https://codeclimate.com/github/mindflayer/python-mocket/badges/gpa.svg
-   :target: https://codeclimate.com/github/mindflayer/python-mocket
-   :alt: Code Climate
+.. image:: https://img.shields.io/lgtm/grade/python/g/mindflayer/python-mocket.svg?logo=lgtm&logoWidth=18
+   :target: https://lgtm.com/projects/g/mindflayer/python-mocket/context:python
 
 .. image:: https://requires.io/github/mindflayer/python-mocket/requirements.svg?branch=master
      :target: https://requires.io/github/mindflayer/python-mocket/requirements/?branch=master
