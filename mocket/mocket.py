@@ -373,7 +373,7 @@ class MocketSocket(object):
 
     def send(self, data, *args, **kwargs):  # pragma: no cover
         entry = self.get_entry(data)
-        if entry and self._entry != entry:
+        if not entry or (entry and self._entry != entry):
             self.sendall(data, entry=entry, *args, **kwargs)
         else:
             req = Mocket.last_request()
