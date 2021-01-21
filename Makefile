@@ -19,8 +19,10 @@ lint-python:
 	pipenv run flake8 --ignore=E501,E731,W503 --exclude=.git,compat.py --per-file-ignores='mocket/async_mocket.py:E999' mocket
 	@echo ""
 
-develop: install-dev-requirements install-test-requirements
+setup: develop
 	pre-commit install
+
+develop: install-dev-requirements install-test-requirements
 
 test: lint-python test-python
 
@@ -36,4 +38,4 @@ clean:
 	rm -rf *.egg-info dist/
 	find . -type d -name __pycache__ -exec rm -rf {} \;
 
-.PHONY: clean publish safetest test develop lint-python test-python install-test-requirements install-dev-requirements
+.PHONY: clean publish safetest test setup develop lint-python test-python install-test-requirements install-dev-requirements
