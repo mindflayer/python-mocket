@@ -1,18 +1,23 @@
 import asyncio
-import json
-from unittest import TestCase
-import socket
+import glob
 import io
+import json
+import shutil
+import socket
+import tempfile
+from unittest import TestCase
 
-from mocket.mocket import Mocket, mocketize
+from mocket.mocket import mocketize
 
 
 class AsyncIoRecordTestCase(TestCase):
+    temp_dir = tempfile.mkdtemp()
+
+    @mocketize(truesocket_recording_dir=temp_dir)
     def test_asyncio_record_replay(self):
         async def test_asyncio_connection():
-            mock_out = b'HTTP/1.1 301 Moved Permanently\r\n'
             reader, writer = await asyncio.open_connection(
-                host='google.com',
+                host="google.com",
                 port=80,
                 family=socket.AF_INET,
                 proto=socket.IPPROTO_TCP,
@@ -20,26 +25,24 @@ class AsyncIoRecordTestCase(TestCase):
                 server_hostname=None,
             )
 
-            buf = 'GET / HTTP/1.1\r\nHost: google.com\r\n\r\n'
+            buf = "GET / HTTP/1.1\r\nHost: google.com\r\n\r\n"
             writer.write(buf.encode())
             await writer.drain()
 
-            r = await reader.readline()
+            await reader.readline()
             writer.close()
             await writer.wait_closed()
-    
-        mock_out = b'HTTP/1.1 301 Moved Permanently\r\n'
-
-        test_name = 'test_asyncio_record'
-        # This enables mocket to record the response
-        Mocket.enable(test_name, ".")
 
         loop = asyncio.get_event_loop()
         loop.set_debug(True)
         loop.run_until_complete(test_asyncio_connection())
 
-        dump_filename = f'./{test_name}.json'
-        with io.open(dump_filename) as f:
+        files = glob.glob(f"{self.temp_dir}/*.json")
+        self.assertEqual(len(files), 1)
+
+        with io.open(files[0]) as f:
             responses = json.load(f)
 
-        assert len(responses["google.com"]["80"].keys()) == 1
+        self.assertEqual(len(responses["google.com"]["80"].keys()), 1)
+
+        shutil.rmtree(self.temp_dir)

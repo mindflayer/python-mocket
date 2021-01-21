@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+VERSION := $(shell python -c 'import mocket; print(mocket.__version__)')
+
 install-dev-requirements:
 	pip install pipenv==2020.11.15
 
@@ -18,6 +20,7 @@ lint-python:
 	@echo ""
 
 develop: install-dev-requirements install-test-requirements
+	pre-commit install
 
 test: lint-python test-python
 
@@ -26,8 +29,8 @@ safetest:
 
 publish: install-test-requirements
 	pipenv run python setup.py sdist
-	pipenv run twine upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)')*.*
-	pipenv run anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
+	pipenv run twine upload dist/mocket-$(VERSION).tar.gz
+	pipenv run anaconda upload dist/mocket-$(VERSION).tar.gz
 
 clean:
 	rm -rf *.egg-info dist/

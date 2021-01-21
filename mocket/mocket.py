@@ -548,18 +548,18 @@ class MocketEntry(object):
         ):
             responses = [responses]
 
-        self.responses = []
-        for r in responses:
-            if isinstance(r, BaseException):
-                pass
-            elif not getattr(r, "data", False):
-                if isinstance(r, text_type):
-                    r = encode_to_bytes(r)
-                r = self.response_cls(r)
-            self.responses.append(r)
+        if not responses:
+            self.responses = [self.response_cls(encode_to_bytes(""))]
         else:
-            if not responses:
-                self.responses = [self.response_cls(encode_to_bytes(""))]
+            self.responses = []
+            for r in responses:
+                if isinstance(r, BaseException):
+                    pass
+                elif not getattr(r, "data", False):
+                    if isinstance(r, text_type):
+                        r = encode_to_bytes(r)
+                    r = self.response_cls(r)
+                self.responses.append(r)
 
     def can_handle(self, data):
         return True
