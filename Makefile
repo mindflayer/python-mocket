@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+VERSION := $(shell python -c 'import mocket; print(mocket.__version__)')
+
 install-dev-requirements:
 	pip install pipenv==2020.11.15
 
@@ -17,6 +19,9 @@ lint-python:
 	pipenv run flake8 --ignore=E501,E731,W503 --exclude=.git,compat.py --per-file-ignores='mocket/async_mocket.py:E999' mocket
 	@echo ""
 
+setup: develop
+	pre-commit install
+
 develop: install-dev-requirements install-test-requirements
 
 test: lint-python test-python
@@ -26,11 +31,11 @@ safetest:
 
 publish: install-test-requirements
 	pipenv run python setup.py sdist
-	pipenv run twine upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)')*.*
-	pipenv run anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
+	pipenv run twine upload dist/mocket-$(VERSION).tar.gz
+	pipenv run anaconda upload dist/mocket-$(VERSION).tar.gz
 
 clean:
 	rm -rf *.egg-info dist/
 	find . -type d -name __pycache__ -exec rm -rf {} \;
 
-.PHONY: clean publish safetest test develop lint-python test-python install-test-requirements install-dev-requirements
+.PHONY: clean publish safetest test setup develop lint-python test-python install-test-requirements install-dev-requirements
