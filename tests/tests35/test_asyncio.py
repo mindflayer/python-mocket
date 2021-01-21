@@ -8,7 +8,8 @@ from mocket.mocket import Mocket, mocketize
 
 class AsyncIoEnterTestCase(TestCase):
     def test_asyncio_record_replay(self):
-        async def test_asyncio_connection():
+        async def test_asyncio_connection(l):
+            mock_out = b'HTTP/1.1 301 Moved Permanently\r\n'
             reader, writer = await asyncio.open_connection(
                 host='google.com',
                 port=80,
@@ -25,12 +26,13 @@ class AsyncIoEnterTestCase(TestCase):
             r = await reader.readline()
             writer.close()
             await writer.wait_closed()
-            return r
+            mock_out = b'HTTP/1.1 301 Moved Permanently\r\n'
     
         mock_out = b'HTTP/1.1 301 Moved Permanently\r\n'
         # This enables mocket to record the response
         Mocket.enable("test_asyncio_record", ".")
 
-        out = asyncio.run(test_asyncio_connection())
-        assert out == mock_out
+        loop = asyncio.get_event_loop()
+        loop.set_debug(True)
+        loop.run_until_complete(test_asyncio_connection(loop))
 
