@@ -15,6 +15,9 @@ def main(args=None):
         args.append("mocket")
         args.append("tests/tests35")
 
+        if major == 3 and minor >= 7:
+            args.append("tests/tests37")
+
         if major == 3 and minor >= 8:
             args.append("tests/tests38")
 
