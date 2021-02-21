@@ -30,7 +30,7 @@ safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
 
 publish: install-test-requirements
-	pipenv run python setup.py sdist
+	pipenv run python -m build --sdist .
 	pipenv run twine upload dist/mocket-$(VERSION).tar.gz
 	pipenv run anaconda upload dist/mocket-$(VERSION).tar.gz
 
