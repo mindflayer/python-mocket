@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
+import os
 import io
 import socket
 from unittest import TestCase
+from unittest.mock import patch
 
 import pytest
 
@@ -163,3 +165,12 @@ def fixture():
 @mocketize
 def test_mocketize_with_fixture(fixture):
     assert 2 == fixture
+
+
+@mocketize
+@patch("os.getcwd")
+def test_patch(
+    method_patch,
+):
+    method_patch.return_value = 'foo'
+    assert os.getcwd() == "foo"
