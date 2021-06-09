@@ -16,6 +16,7 @@ import decorator
 import urllib3
 from urllib3.util.ssl_ import ssl_wrap_socket as urllib3_ssl_wrap_socket
 from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
+from urllib3.connection import match_hostname as urllib3_match_hostname
 
 from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, text_type
 from .utils import SSL_PROTOCOL, MocketSocketCore, hexdump, hexload, wrap_ssl_socket
@@ -49,6 +50,7 @@ true_ssl_context = ssl.SSLContext
 true_inet_pton = socket.inet_pton
 true_urllib3_wrap_socket = urllib3_wrap_socket
 true_urllib3_ssl_wrap_socket = urllib3_ssl_wrap_socket
+true_urllib3_match_hostname = urllib3_match_hostname
 
 
 class SuperFakeSSLContext(object):
@@ -59,12 +61,21 @@ class SuperFakeSSLContext(object):
             pass
 
     options = FakeSetter()
-    verify_mode = FakeSetter(ssl.CERT_OPTIONAL)
+    verify_mode = FakeSetter(ssl.CERT_NONE)
 
 
 class FakeSSLContext(SuperFakeSSLContext):
     sock = None
     post_handshake_auth = None
+    _check_hostname = False
+
+    @property
+    def check_hostname(self):
+        return self._check_hostname
+
+    @check_hostname.setter
+    def check_hostname(self, *args):
+        self._check_hostname = False
 
     def __init__(self, sock=None, server_hostname=None, _context=None, *args, **kwargs):
         if isinstance(sock, MocketSocket):
@@ -479,6 +490,9 @@ class Mocket(object):
         urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
             "ssl_wrap_socket"
         ] = FakeSSLContext.wrap_socket
+        urllib3.connection.match_hostname = urllib3.connection.__dict__[
+            "match_hostname"
+        ] = lambda cert, hostname: None
         if pyopenssl_override:  # pragma: no cover
             # Take out the pyopenssl version - use the default implementation
             extract_from_urllib3()
@@ -506,6 +520,9 @@ class Mocket(object):
         urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
             "ssl_wrap_socket"
         ] = true_urllib3_ssl_wrap_socket
+        urllib3.connection.match_hostname = urllib3.connection.__dict__[
+            "match_hostname"
+        ] = true_urllib3_match_hostname
         Mocket.reset()
         if pyopenssl_override:  # pragma: no cover
             # Put the pyopenssl version back in place
