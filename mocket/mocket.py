@@ -14,9 +14,9 @@ from json.decoder import JSONDecodeError
 
 import decorator
 import urllib3
+from urllib3.connection import match_hostname as urllib3_match_hostname
 from urllib3.util.ssl_ import ssl_wrap_socket as urllib3_ssl_wrap_socket
 from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
-from urllib3.connection import match_hostname as urllib3_match_hostname
 
 from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, text_type
 from .utils import SSL_PROTOCOL, MocketSocketCore, hexdump, hexload
@@ -54,7 +54,7 @@ true_urllib3_match_hostname = urllib3_match_hostname
 
 
 class SuperFakeSSLContext(object):
-    """ For Python 3.6 """
+    """For Python 3.6"""
 
     class FakeSetter(int):
         def __set__(self, *args):
@@ -383,7 +383,7 @@ class MocketSocket(object):
         self._fd = None
 
     def __getattr__(self, name):
-        """ Do nothing catchall function, for methods like close() and shutdown() """
+        """Do nothing catchall function, for methods like close() and shutdown()"""
 
         def do_nothing(*args, **kwargs):
             pass
@@ -522,7 +522,7 @@ class Mocket(object):
 
     @classmethod
     def assert_fail_if_entries_not_served(cls):
-        """ Mocket checks that all entries have been served at least once. """
+        """Mocket checks that all entries have been served at least once."""
         assert all(
             entry._served for entry in itertools.chain(*cls._entries.values())
         ), "Some Mocket entries have not been served"
