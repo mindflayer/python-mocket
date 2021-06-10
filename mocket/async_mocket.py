@@ -1,4 +1,4 @@
-from mocket import Mocketizer
+from mocket import Mocketizer, mocketize
 
 
 def get_async_mocketize():
@@ -13,7 +13,7 @@ def get_async_mocketize():
         def async_wrap(*args, **kwargs):
             return Mocketizer.wrap(*args, **kwargs)
 
-    return AsyncMocketizer.async_wrap
+    return mocketize(cls=AsyncMocketizer)
 
 
 async_mocketize = get_async_mocketize()

@@ -607,28 +607,27 @@ class Mocketizer(object):
         if callable(method):
             method()
 
-    @classmethod
-    def wrap(cls, test=None, truesocket_recording_dir=None):
-        def wrapper(t, *args, **kw):
-            instance = args[0] if args else None
-            namespace = None
-            if truesocket_recording_dir:
-                namespace = ".".join(
-                    (
-                        instance.__class__.__module__,
-                        instance.__class__.__name__,
-                        t.__name__,
-                    )
-                )
-            with cls(
-                instance,
-                namespace=namespace,
-                truesocket_recording_dir=truesocket_recording_dir,
-            ):
-                t(*args, **kw)
-            return wrapper
 
-        return decorator.decorator(wrapper, test)
+def wrapper(test, cls=Mocketizer, truesocket_recording_dir=None, *args, **kw):
+    instance = args[0] if args else None
+    namespace = None
+    if truesocket_recording_dir:
+        namespace = ".".join(
+            (
+                instance.__class__.__module__,
+                instance.__class__.__name__,
+                test.__name__,
+            )
+        )
+    with cls(
+        instance,
+        namespace=namespace,
+        truesocket_recording_dir=truesocket_recording_dir,
+    ):
+        return test(*args, **kw)
 
 
-mocketize = Mocketizer.wrap
+if decorator.__version__ < "5":
+    mocketize = decorator.decorator(wrapper)
+else:
+    mocketize = decorator.decorator(wrapper, kwsyntax=True)
