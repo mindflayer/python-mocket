@@ -19,7 +19,7 @@ from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
 from urllib3.connection import match_hostname as urllib3_match_hostname
 
 from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, text_type
-from .utils import SSL_PROTOCOL, MocketSocketCore, hexdump, hexload, wrap_ssl_socket
+from .utils import SSL_PROTOCOL, MocketSocketCore, hexdump, hexload
 
 xxh32 = None
 try:
@@ -151,16 +151,6 @@ class MocketSocket(object):
         self.proto = int(proto)
         self._truesocket_recording_dir = None
         self.kwargs = kwargs
-
-        sock = kwargs.get("sock")
-        if sock is not None:
-            self.__dict__ = dict(sock.__dict__)
-
-            self.true_socket = wrap_ssl_socket(
-                true_ssl_socket,
-                self.true_socket,
-                true_ssl_context(protocol=SSL_PROTOCOL),
-            )
 
     def __unicode__(self):  # pragma: no cover
         return str(self)
@@ -334,16 +324,10 @@ class MocketSocket(object):
             host = true_gethostbyname(host)
 
             if isinstance(self.true_socket, true_socket) and self._secure_socket:
-                try:
-                    self = MocketSocket(sock=self)
-                except TypeError:
-                    ssl_context = self.kwargs.get("ssl_context")
-                    server_hostname = self.kwargs.get("server_hostname")
-                    self.true_socket = true_ssl_context.wrap_socket(
-                        self=ssl_context,
-                        sock=self.true_socket,
-                        server_hostname=server_hostname,
-                    )
+                self.true_socket = true_urllib3_ssl_wrap_socket(
+                    self.true_socket,
+                    **self.kwargs,
+                )
 
             try:
                 self.true_socket.connect((host, port))
