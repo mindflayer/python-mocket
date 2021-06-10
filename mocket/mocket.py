@@ -14,11 +14,12 @@ from json.decoder import JSONDecodeError
 
 import decorator
 import urllib3
+from urllib3.connection import match_hostname as urllib3_match_hostname
 from urllib3.util.ssl_ import ssl_wrap_socket as urllib3_ssl_wrap_socket
 from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
 
 from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, text_type
-from .utils import SSL_PROTOCOL, MocketSocketCore, hexdump, hexload, wrap_ssl_socket
+from .utils import SSL_PROTOCOL, MocketSocketCore, hexdump, hexload
 
 xxh32 = None
 try:
@@ -49,22 +50,32 @@ true_ssl_context = ssl.SSLContext
 true_inet_pton = socket.inet_pton
 true_urllib3_wrap_socket = urllib3_wrap_socket
 true_urllib3_ssl_wrap_socket = urllib3_ssl_wrap_socket
+true_urllib3_match_hostname = urllib3_match_hostname
 
 
 class SuperFakeSSLContext(object):
-    """ For Python 3.6 """
+    """For Python 3.6"""
 
     class FakeSetter(int):
         def __set__(self, *args):
             pass
 
     options = FakeSetter()
-    verify_mode = FakeSetter(ssl.CERT_OPTIONAL)
+    verify_mode = FakeSetter(ssl.CERT_NONE)
 
 
 class FakeSSLContext(SuperFakeSSLContext):
     sock = None
     post_handshake_auth = None
+    _check_hostname = False
+
+    @property
+    def check_hostname(self):
+        return self._check_hostname
+
+    @check_hostname.setter
+    def check_hostname(self, *args):
+        self._check_hostname = False
 
     def __init__(self, sock=None, server_hostname=None, _context=None, *args, **kwargs):
         if isinstance(sock, MocketSocket):
@@ -140,16 +151,6 @@ class MocketSocket(object):
         self.proto = int(proto)
         self._truesocket_recording_dir = None
         self.kwargs = kwargs
-
-        sock = kwargs.get("sock")
-        if sock is not None:
-            self.__dict__ = dict(sock.__dict__)
-
-            self.true_socket = wrap_ssl_socket(
-                true_ssl_socket,
-                self.true_socket,
-                true_ssl_context(protocol=SSL_PROTOCOL),
-            )
 
     def __unicode__(self):  # pragma: no cover
         return str(self)
@@ -323,16 +324,10 @@ class MocketSocket(object):
             host = true_gethostbyname(host)
 
             if isinstance(self.true_socket, true_socket) and self._secure_socket:
-                try:
-                    self = MocketSocket(sock=self)
-                except TypeError:
-                    ssl_context = self.kwargs.get("ssl_context")
-                    server_hostname = self.kwargs.get("server_hostname")
-                    self.true_socket = true_ssl_context.wrap_socket(
-                        self=ssl_context,
-                        sock=self.true_socket,
-                        server_hostname=server_hostname,
-                    )
+                self.true_socket = true_urllib3_ssl_wrap_socket(
+                    self.true_socket,
+                    **self.kwargs,
+                )
 
             try:
                 self.true_socket.connect((host, port))
@@ -388,7 +383,7 @@ class MocketSocket(object):
         self._fd = None
 
     def __getattr__(self, name):
-        """ Do nothing catchall function, for methods like close() and shutdown() """
+        """Do nothing catchall function, for methods like close() and shutdown()"""
 
         def do_nothing(*args, **kwargs):
             pass
@@ -479,6 +474,9 @@ class Mocket(object):
         urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
             "ssl_wrap_socket"
         ] = FakeSSLContext.wrap_socket
+        urllib3.connection.match_hostname = urllib3.connection.__dict__[
+            "match_hostname"
+        ] = lambda cert, hostname: None
         if pyopenssl_override:  # pragma: no cover
             # Take out the pyopenssl version - use the default implementation
             extract_from_urllib3()
@@ -506,6 +504,9 @@ class Mocket(object):
         urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
             "ssl_wrap_socket"
         ] = true_urllib3_ssl_wrap_socket
+        urllib3.connection.match_hostname = urllib3.connection.__dict__[
+            "match_hostname"
+        ] = true_urllib3_match_hostname
         Mocket.reset()
         if pyopenssl_override:  # pragma: no cover
             # Put the pyopenssl version back in place
@@ -521,7 +522,7 @@ class Mocket(object):
 
     @classmethod
     def assert_fail_if_entries_not_served(cls):
-        """ Mocket checks that all entries have been served at least once. """
+        """Mocket checks that all entries have been served at least once."""
         assert all(
             entry._served for entry in itertools.chain(*cls._entries.values())
         ), "Some Mocket entries have not been served"
