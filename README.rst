@@ -19,7 +19,7 @@ A socket mock framework
 -------------------------
     for all kinds of socket *animals*, web-clients included - with gevent/asyncio/SSL support
 
-...and then MicroPython's *urequest* (*mocket >= 3.9.1*)
+...and then MicroPython's *urequests* (*mocket >= 3.9.1*)
 
 
 Versioning
