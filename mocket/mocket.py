@@ -588,19 +588,32 @@ class Mocketizer(object):
         self.truesocket_recording_dir = truesocket_recording_dir
         self.namespace = namespace or text_type(id(self))
 
-    def __enter__(self):
+    def enter(self):
         Mocket.enable(
             namespace=self.namespace,
             truesocket_recording_dir=self.truesocket_recording_dir,
         )
         if self.instance:
             self.check_and_call("mocketize_setup")
+
+    def __enter__(self):
+        self.enter()
         return self
 
-    def __exit__(self, type, value, tb):
+    def exit(self):
         if self.instance:
             self.check_and_call("mocketize_teardown")
         Mocket.disable()
+
+    def __exit__(self, type, value, tb):
+        self.exit()
+
+    async def __aenter__(self, *args, **kwargs):
+        self.enter()
+        return self
+
+    async def __aexit__(self, *args, **kwargs):
+        self.exit()
 
     def check_and_call(self, method):
         method = getattr(self.instance, method, None)
@@ -608,7 +621,7 @@ class Mocketizer(object):
             method()
 
 
-def wrapper(test, cls=Mocketizer, truesocket_recording_dir=None, *args, **kw):
+def wrapper(test, cls=Mocketizer, truesocket_recording_dir=None, *args, **kwargs):
     instance = args[0] if args else None
     namespace = None
     if truesocket_recording_dir:
@@ -624,7 +637,7 @@ def wrapper(test, cls=Mocketizer, truesocket_recording_dir=None, *args, **kw):
         namespace=namespace,
         truesocket_recording_dir=truesocket_recording_dir,
     ):
-        return test(*args, **kw)
+        return test(*args, **kwargs)
 
 
 if decorator.__version__ < "5":
