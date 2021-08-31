@@ -588,47 +588,59 @@ class Mocketizer(object):
         self.truesocket_recording_dir = truesocket_recording_dir
         self.namespace = namespace or text_type(id(self))
 
-    def __enter__(self):
+    def enter(self):
         Mocket.enable(
             namespace=self.namespace,
             truesocket_recording_dir=self.truesocket_recording_dir,
         )
         if self.instance:
             self.check_and_call("mocketize_setup")
+
+    def __enter__(self):
+        self.enter()
         return self
 
-    def __exit__(self, type, value, tb):
+    def exit(self):
         if self.instance:
             self.check_and_call("mocketize_teardown")
         Mocket.disable()
+
+    def __exit__(self, type, value, tb):
+        self.exit()
+
+    async def __aenter__(self, *args, **kwargs):
+        self.enter()
+        return self
+
+    async def __aexit__(self, *args, **kwargs):
+        self.exit()
 
     def check_and_call(self, method):
         method = getattr(self.instance, method, None)
         if callable(method):
             method()
 
-    @classmethod
-    def wrap(cls, test=None, truesocket_recording_dir=None):
-        def wrapper(t, *args, **kw):
-            instance = args[0] if args else None
-            namespace = None
-            if truesocket_recording_dir:
-                namespace = ".".join(
-                    (
-                        instance.__class__.__module__,
-                        instance.__class__.__name__,
-                        t.__name__,
-                    )
-                )
-            with cls(
-                instance,
-                namespace=namespace,
-                truesocket_recording_dir=truesocket_recording_dir,
-            ):
-                t(*args, **kw)
-            return wrapper
 
-        return decorator.decorator(wrapper, test)
+def wrapper(test, cls=Mocketizer, truesocket_recording_dir=None, *args, **kwargs):
+    instance = args[0] if args else None
+    namespace = None
+    if truesocket_recording_dir:
+        namespace = ".".join(
+            (
+                instance.__class__.__module__,
+                instance.__class__.__name__,
+                test.__name__,
+            )
+        )
+    with cls(
+        instance,
+        namespace=namespace,
+        truesocket_recording_dir=truesocket_recording_dir,
+    ):
+        return test(*args, **kwargs)
 
 
-mocketize = Mocketizer.wrap
+if decorator.__version__ < "5":
+    mocketize = decorator.decorator(wrapper)
+else:
+    mocketize = decorator.decorator(wrapper, kwsyntax=True)

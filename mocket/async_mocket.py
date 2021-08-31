@@ -1,19 +1,31 @@
+import decorator
+
 from mocket import Mocketizer
 
 
-def get_async_mocketize():
-    class AsyncMocketizer(Mocketizer):
-        async def __aenter__(*args, **kwargs):
-            return Mocketizer.__enter__(*args, **kwargs)
+async def wrapper(test, cls=Mocketizer, truesocket_recording_dir=None, *args, **kwargs):
+    instance = args[0] if args else None
+    namespace = None
+    if truesocket_recording_dir:
+        namespace = ".".join(
+            (
+                instance.__class__.__module__,
+                instance.__class__.__name__,
+                test.__name__,
+            )
+        )
+    async with cls(
+        instance,
+        namespace=namespace,
+        truesocket_recording_dir=truesocket_recording_dir,
+    ):
+        return await test(*args, **kwargs)
 
-        async def __aexit__(*args, **kwargs):
-            return Mocketizer.__exit__(*args, **kwargs)
 
-        @staticmethod
-        def async_wrap(*args, **kwargs):
-            return Mocketizer.wrap(*args, **kwargs)
-
-    return AsyncMocketizer.async_wrap
+if decorator.__version__ < "5":
+    async_mocketize = decorator.decorator(wrapper)
+else:
+    async_mocketize = decorator.decorator(wrapper, kwsyntax=True)
 
 
-async_mocketize = get_async_mocketize()
+__all__ = ("async_mocketize",)
