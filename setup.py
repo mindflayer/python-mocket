@@ -49,7 +49,6 @@ setup(
         "dev": [],
         "pook": pook_requires,  # plugins version supporting mocket.plugins.pook.MocketEngine
     },
-    test_suite="run_tests.main",
     license="BSD",
     classifiers=[
         "Development Status :: 6 - Mature",

@@ -11,7 +11,7 @@ install-test-requirements:
 
 test-python:
 	@echo "Running Python tests"
-	pipenv run python setup.py -q test || exit 1
+	pipenv run python run_tests.py || exit 1
 	@echo ""
 
 lint-python:
