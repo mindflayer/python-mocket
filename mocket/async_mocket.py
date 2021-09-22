@@ -1,6 +1,5 @@
-import decorator
-
 from mocket import Mocketizer
+from mocket.utils import get_mocketize
 
 
 async def wrapper(test, cls=Mocketizer, truesocket_recording_dir=None, *args, **kwargs):
@@ -22,10 +21,7 @@ async def wrapper(test, cls=Mocketizer, truesocket_recording_dir=None, *args, **
         return await test(*args, **kwargs)
 
 
-if decorator.__version__ < "5":
-    async_mocketize = decorator.decorator(wrapper)
-else:
-    async_mocketize = decorator.decorator(wrapper, kwsyntax=True)
+async_mocketize = get_mocketize(wrapper_=wrapper)
 
 
 __all__ = ("async_mocketize",)

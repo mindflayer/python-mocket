@@ -34,3 +34,12 @@ def hexload(string):
     """
     string_no_spaces = "".join(string.split())
     return encode_to_bytes(binascii.unhexlify(string_no_spaces))
+
+
+def get_mocketize(wrapper_):
+    import decorator
+
+    if decorator.__version__ < "5":
+        return decorator.decorator(wrapper_)
+    else:
+        return decorator.decorator(wrapper_, kwsyntax=True)
