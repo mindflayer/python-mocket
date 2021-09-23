@@ -28,10 +28,9 @@ safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
 
 publish: install-test-requirements
-	VERSION := $(shell python -c 'import mocket; print(mocket.__version__)')
 	pipenv run python -m build --sdist .
-	pipenv run twine upload dist/mocket-$(VERSION).tar.gz
-	pipenv run anaconda upload dist/mocket-$(VERSION).tar.gz
+	pipenv run twine upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
+	pipenv run anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
 
 clean:
 	rm -rf *.egg-info dist/
