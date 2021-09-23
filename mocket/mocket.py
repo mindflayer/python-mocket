@@ -77,6 +77,12 @@ class FakeSSLContext(SuperFakeSSLContext):
         self._check_hostname = False
 
     def __init__(self, sock=None, server_hostname=None, _context=None, *args, **kwargs):
+        def dummy_method(*args, **kwargs):
+            pass
+
+        for m in ("load_default_certs", "load_verify_locations", "set_alpn_protocols"):
+            setattr(self, m, dummy_method)
+
         if isinstance(sock, MocketSocket):
             self.sock = sock
             self.sock._host = server_hostname
@@ -87,14 +93,6 @@ class FakeSSLContext(SuperFakeSSLContext):
             )
         elif isinstance(sock, int) and true_ssl_context:
             self.context = true_ssl_context(sock)
-
-    @staticmethod
-    def load_default_certs(*args, **kwargs):
-        pass
-
-    @staticmethod
-    def load_verify_locations(*args, **kwargs):
-        pass
 
     @staticmethod
     def wrap_socket(sock=sock, *args, **kwargs):
