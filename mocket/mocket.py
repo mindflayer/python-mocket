@@ -12,14 +12,13 @@ import ssl
 from datetime import datetime, timedelta
 from json.decoder import JSONDecodeError
 
-import decorator
 import urllib3
 from urllib3.connection import match_hostname as urllib3_match_hostname
 from urllib3.util.ssl_ import ssl_wrap_socket as urllib3_ssl_wrap_socket
 from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
 
 from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, text_type
-from .utils import SSL_PROTOCOL, MocketSocketCore, hexdump, hexload
+from .utils import SSL_PROTOCOL, MocketSocketCore, get_mocketize, hexdump, hexload
 
 xxh32 = None
 try:
@@ -65,6 +64,11 @@ class SuperFakeSSLContext(object):
 
 
 class FakeSSLContext(SuperFakeSSLContext):
+    DUMMY_METHODS = (
+        "load_default_certs",
+        "load_verify_locations",
+        "set_alpn_protocols",
+    )
     sock = None
     post_handshake_auth = None
     _check_hostname = False
@@ -78,6 +82,8 @@ class FakeSSLContext(SuperFakeSSLContext):
         self._check_hostname = False
 
     def __init__(self, sock=None, server_hostname=None, _context=None, *args, **kwargs):
+        self._set_dummy_methods()
+
         if isinstance(sock, MocketSocket):
             self.sock = sock
             self.sock._host = server_hostname
@@ -89,13 +95,12 @@ class FakeSSLContext(SuperFakeSSLContext):
         elif isinstance(sock, int) and true_ssl_context:
             self.context = true_ssl_context(sock)
 
-    @staticmethod
-    def load_default_certs(*args, **kwargs):
-        pass
+    def _set_dummy_methods(self):
+        def dummy_method(*args, **kwargs):
+            pass
 
-    @staticmethod
-    def load_verify_locations(*args, **kwargs):
-        pass
+        for m in self.DUMMY_METHODS:
+            setattr(self, m, dummy_method)
 
     @staticmethod
     def wrap_socket(sock=sock, *args, **kwargs):
@@ -640,7 +645,4 @@ def wrapper(test, cls=Mocketizer, truesocket_recording_dir=None, *args, **kwargs
         return test(*args, **kwargs)
 
 
-if decorator.__version__ < "5":
-    mocketize = decorator.decorator(wrapper)
-else:
-    mocketize = decorator.decorator(wrapper, kwsyntax=True)
+mocketize = get_mocketize(wrapper_=wrapper)

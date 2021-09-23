@@ -1,7 +1,5 @@
 #!/usr/bin/make -f
 
-VERSION := $(shell python -c 'import mocket; print(mocket.__version__)')
-
 install-dev-requirements:
 	pip install pipenv==2020.11.15
 
@@ -11,7 +9,7 @@ install-test-requirements:
 
 test-python:
 	@echo "Running Python tests"
-	pipenv run python setup.py -q test || exit 1
+	pipenv run python run_tests.py || exit 1
 	@echo ""
 
 lint-python:
@@ -30,6 +28,7 @@ safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
 
 publish: install-test-requirements
+	VERSION := $(shell python -c 'import mocket; print(mocket.__version__)')
 	pipenv run python -m build --sdist .
 	pipenv run twine upload dist/mocket-$(VERSION).tar.gz
 	pipenv run anaconda upload dist/mocket-$(VERSION).tar.gz
