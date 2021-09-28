@@ -27,7 +27,7 @@ pipfile = "*"
 build = "*"
 wheel = "*"
 twine = "*"
-anaconda-client = "*"
+anaconda-client = {git = "https://github.com/Anaconda-Server/anaconda-client"}
 
 [requires]
 python_version = "3"
