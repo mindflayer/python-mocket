@@ -11,9 +11,6 @@ mocket /mɔˈkɛt/
 .. image:: https://img.shields.io/lgtm/grade/python/g/mindflayer/python-mocket.svg?logo=lgtm&logoWidth=18
    :target: https://lgtm.com/projects/g/mindflayer/python-mocket/context:python
 
-.. image:: https://requires.io/github/mindflayer/python-mocket/requirements.svg?branch=master
-     :target: https://requires.io/github/mindflayer/python-mocket/requirements/?branch=master
-     :alt: Requirements Status
 
 A socket mock framework
 -------------------------
