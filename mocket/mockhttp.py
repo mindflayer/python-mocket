@@ -51,7 +51,7 @@ class Request:
         return "{} - {} - {}".format(self.method, self.path, self.headers)
 
 
-class Response(object):
+class Response:
     headers = None
     is_file_object = False
 
