@@ -253,15 +253,19 @@ class MocketSocket(object):
             entry = self.get_entry(data)
 
         if entry:
-            entry.collect(data)
-            response = entry.get_response()
+            consume_response = entry.collect(data)
+            if consume_response is not False:
+                response = entry.get_response()
+            else:
+                response = None
         else:
             response = self.true_sendall(data, *args, **kwargs)
 
-        self.fd.seek(0)
-        self.fd.write(response)
-        self.fd.truncate()
-        self.fd.seek(0)
+        if response is not None:
+            self.fd.seek(0)
+            self.fd.write(response)
+            self.fd.truncate()
+            self.fd.seek(0)
 
     def read(self, buffersize):
         return self.fd.read(buffersize)
@@ -539,6 +543,7 @@ class MocketEntry(object):
         def data(self):
             return self
 
+    response_index = 0
     request_cls = str
     response_cls = Response
     responses = None
@@ -547,7 +552,6 @@ class MocketEntry(object):
     def __init__(self, location, responses):
         self._served = False
         self.location = location
-        self.response_index = 0
 
         if not isinstance(responses, collections_abc.Iterable) or isinstance(
             responses, basestring

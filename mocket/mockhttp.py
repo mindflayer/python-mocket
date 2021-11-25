@@ -149,13 +149,19 @@ class Entry(MocketEntry):
         self._match_querystring = match_querystring
 
     def collect(self, data):
+        consume_response = True
+
         decoded_data = decode_from_bytes(data)
         if not decoded_data.startswith(Entry.METHODS):
             Mocket.remove_last_request()
             self._sent_data += data
+            consume_response = False
         else:
             self._sent_data = data
+
         super(Entry, self).collect(self._sent_data)
+
+        return consume_response
 
     def can_handle(self, data):
         r"""
@@ -170,10 +176,8 @@ class Entry(MocketEntry):
             requestline, _ = decode_from_bytes(data).split(CRLF, 1)
             method, path, version = self._parse_requestline(requestline)
         except ValueError:
-            try:
-                return self == Mocket._last_entry
-            except AttributeError:
-                return False
+            return self is getattr(Mocket, "_last_entry", None)
+
         uri = urlsplit(path)
         can_handle = uri.path == self.path and method == self.method
         if self._match_querystring:
@@ -240,5 +244,8 @@ class Entry(MocketEntry):
         )
 
         cls.register(
-            method, uri, response, match_querystring=match_querystring,
+            method,
+            uri,
+            response,
+            match_querystring=match_querystring,
         )

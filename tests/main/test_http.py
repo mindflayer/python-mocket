@@ -382,3 +382,30 @@ class HttpEntryTestCase(HttpTestCase):
         requests.get(url)
         requests.get(second_url)
         Mocket.assert_fail_if_entries_not_served()
+
+    @mocketize
+    def test_multi_register(self):
+        url = "http://foobar.com/path"
+        Entry.register(
+            Entry.POST,
+            url,
+            Response(body='{"foo":"bar0"}', status=200),
+            Response(body='{"foo":"bar1"}', status=201),
+            Response(body='{"foo":"bar2"}', status=202),
+        )
+
+        response = requests.post(url, json={"test": 0})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"foo": "bar0"})
+
+        response = requests.post(url, json={"test": 1})
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json(), {"foo": "bar1"})
+
+        response = requests.post(url, json={"test": 2})
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.json(), {"foo": "bar2"})
+
+        response = requests.post(url, json={"test": 22})
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.json(), {"foo": "bar2"})
