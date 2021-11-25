@@ -1,6 +1,6 @@
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.4.0
+    rev: v4.0.1
     hooks:
         - id: check-yaml
           args: ['--unsafe']
@@ -18,7 +18,7 @@ repos:
           args: ['--in-place', '--remove-all-unused-imports', '--remove-unused-variable']
 
 -   repo: https://github.com/timothycrosley/isort
-    rev: 5.7.0
+    rev: 5.10.1
     hooks:
         - id: isort
 
