@@ -208,8 +208,7 @@ class Entry(MocketEntry):
         )
         if m:
             return m.group(1).upper(), m.group(2), m.group(3)
-        else:
-            raise ValueError("Not a Request-Line")
+        raise ValueError("Not a Request-Line")
 
     @classmethod
     def register(cls, method, uri, *responses, **config):

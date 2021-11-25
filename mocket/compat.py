@@ -30,9 +30,8 @@ def do_the_magic(lib_magic, body):
     if hasattr(lib_magic, "from_buffer"):
         # PyPI python-magic
         return lib_magic.from_buffer(body, mime=True)
-    else:
-        # file's builtin python wrapper
-        # used by https://www.archlinux.org/packages/community/any/python-mocket/
-        _magic = lib_magic.open(lib_magic.MAGIC_MIME_TYPE)
-        _magic.load()
-        return _magic.buffer(body)
+    # file's builtin python wrapper
+    # used by https://www.archlinux.org/packages/community/any/python-mocket/
+    _magic = lib_magic.open(lib_magic.MAGIC_MIME_TYPE)
+    _magic.load()
+    return _magic.buffer(body)

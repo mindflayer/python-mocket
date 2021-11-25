@@ -41,5 +41,4 @@ def get_mocketize(wrapper_):
 
     if decorator.__version__ < "5":
         return decorator.decorator(wrapper_)
-    else:
-        return decorator.decorator(wrapper_, kwsyntax=True)
+    return decorator.decorator(wrapper_, kwsyntax=True)

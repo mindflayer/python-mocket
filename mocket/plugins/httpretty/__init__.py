@@ -109,10 +109,9 @@ class MocketHTTPretty:
         if name == "last_request":
             last_request = getattr(Mocket, "last_request")()
             return last_request
-        elif name == "latest_requests":
+        if name == "latest_requests":
             return getattr(Mocket, "_requests")
-        else:
-            return getattr(Entry, name)
+        return getattr(Entry, name)
 
 
 HTTPretty = MocketHTTPretty()
