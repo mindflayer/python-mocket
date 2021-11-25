@@ -108,7 +108,8 @@ class FakeSSLContext(SuperFakeSSLContext):
         sock._secure_socket = True
         return sock
 
-    def wrap_bio(self, incoming, outcoming, *args, **kwargs):
+    @staticmethod
+    def wrap_bio(incoming, outcoming, *args, **kwargs):
         ssl_obj = MocketSocket()
         ssl_obj._host = kwargs["server_hostname"]
         return ssl_obj
@@ -191,7 +192,8 @@ class MocketSocket(object):
     def settimeout(self, timeout):
         self.timeout = timeout
 
-    def getsockopt(self, level, optname, buflen=None):
+    @staticmethod
+    def getsockopt(level, optname, buflen=None):
         return socket.SOCK_STREAM
 
     def do_handshake(self):
@@ -232,7 +234,8 @@ class MocketSocket(object):
     def write(self, data):
         return self.send(encode_to_bytes(data))
 
-    def fileno(self):
+    @staticmethod
+    def fileno():
         Mocket.r_fd, Mocket.w_fd = os.pipe()
         return Mocket.r_fd
 
@@ -571,7 +574,8 @@ class MocketEntry(object):
                     r = self.response_cls(r)
                 self.responses.append(r)
 
-    def can_handle(self, data):
+    @staticmethod
+    def can_handle(data):
         return True
 
     def collect(self, data):
