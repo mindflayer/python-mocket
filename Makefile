@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 install-dev-requirements:
-	pip install pipenv==2021.11.23
+	pip install pipenv
 
 install-test-requirements:
 	pipenv install --dev
