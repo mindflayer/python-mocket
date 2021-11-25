@@ -22,8 +22,8 @@ recording_directory = tempfile.mkdtemp()
 
 class HttpTestCase(TestCase):
     def assertEqualHeaders(self, first, second, msg=None):
-        first = dict((k.lower(), v) for k, v in first.items())
-        second = dict((k.lower(), v) for k, v in second.items())
+        first = {k.lower(): v for k, v in first.items()}
+        second = {k.lower(): v for k, v in second.items()}
         self.assertEqual(first, second, msg)
 
 
