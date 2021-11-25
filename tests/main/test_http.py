@@ -394,18 +394,18 @@ class HttpEntryTestCase(HttpTestCase):
             Response(body='{"foo":"bar2"}', status=202),
         )
 
-        response = requests.post(url, data=json.dumps({"test": 1}))
+        response = requests.post(url, json={"test": 0})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"foo": "bar0"})
 
-        response = requests.post(url, data=json.dumps({"test": 1}))
+        response = requests.post(url, json={"test": 1})
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.json(), {"foo": "bar1"})
 
-        response = requests.post(url, data=json.dumps({"test": 1}))
+        response = requests.post(url, json={"test": 2})
         self.assertEqual(response.status_code, 202)
         self.assertEqual(response.json(), {"foo": "bar2"})
 
-        response = requests.post(url, data=json.dumps({"test": 1}))
+        response = requests.post(url, json={"test": 22})
         self.assertEqual(response.status_code, 202)
         self.assertEqual(response.json(), {"foo": "bar2"})
