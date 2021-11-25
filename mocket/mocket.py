@@ -52,7 +52,7 @@ true_urllib3_ssl_wrap_socket = urllib3_ssl_wrap_socket
 true_urllib3_match_hostname = urllib3_match_hostname
 
 
-class SuperFakeSSLContext(object):
+class SuperFakeSSLContext:
     """For Python 3.6"""
 
     class FakeSetter(int):
@@ -131,7 +131,7 @@ def _hash_request(h, req):
     return h(encode_to_bytes("".join(sorted(req.split("\r\n"))))).hexdigest()
 
 
-class MocketSocket(object):
+class MocketSocket:
     timeout = None
     _fd = None
     family = None
@@ -403,7 +403,7 @@ class MocketSocket(object):
         return do_nothing
 
 
-class Mocket(object):
+class Mocket:
     _entries = collections.defaultdict(list)
     _requests = []
     _namespace = text_type(id(_entries))
@@ -540,7 +540,7 @@ class Mocket(object):
         ), "Some Mocket entries have not been served"
 
 
-class MocketEntry(object):
+class MocketEntry:
     class Response(byte_type):
         @property
         def data(self):
@@ -595,7 +595,7 @@ class MocketEntry(object):
         return response.data
 
 
-class Mocketizer(object):
+class Mocketizer:
     def __init__(self, instance=None, namespace=None, truesocket_recording_dir=None):
         self.instance = instance
         self.truesocket_recording_dir = truesocket_recording_dir

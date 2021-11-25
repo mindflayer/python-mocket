@@ -4,12 +4,12 @@ from .compat import byte_type, decode_from_bytes, encode_to_bytes, shsplit, text
 from .mocket import Mocket, MocketEntry
 
 
-class Request(object):
+class Request:
     def __init__(self, data):
         self.data = data
 
 
-class Response(object):
+class Response:
     def __init__(self, data=None):
         self.data = Redisizer.redisize(data or OK)
 
