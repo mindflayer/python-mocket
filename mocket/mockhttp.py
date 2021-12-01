@@ -213,6 +213,9 @@ class Entry(MocketEntry):
     @classmethod
     def register(cls, method, uri, *responses, **config):
 
+        if "body" in config or "status" in config:
+            raise AttributeError("Did you mean `Entry.single_register(...)`?")
+
         default_config = dict(match_querystring=True, add_trailing_slash=True)
         default_config.update(config)
         config = default_config

@@ -409,3 +409,21 @@ class HttpEntryTestCase(HttpTestCase):
         response = requests.post(url, json={"test": 22})
         self.assertEqual(response.status_code, 202)
         self.assertEqual(response.json(), {"foo": "bar2"})
+
+    def test_suggestion_for_register_and_body(self):
+        url = "http://foobar.com/path"
+        with self.assertRaises(AttributeError):
+            Entry.register(
+                Entry.POST,
+                url,
+                body='{"foo":"bar0"}',
+            )
+
+    def test_suggestion_for_register_and_status(self):
+        url = "http://foobar.com/path"
+        with self.assertRaises(AttributeError):
+            Entry.register(
+                Entry.POST,
+                url,
+                status=201,
+            )
