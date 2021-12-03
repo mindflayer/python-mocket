@@ -296,7 +296,7 @@ class MocketSocket:
         port = text_type(self._port)
 
         # prepare responses dictionary
-        responses = dict()
+        responses = {}
 
         if Mocket.get_truesocket_recording_dir():
             path = os.path.join(
@@ -322,9 +322,9 @@ class MocketSocket:
                     raise
         except KeyError:
             # preventing next KeyError exceptions
-            responses.setdefault(self._host, dict())
-            responses[self._host].setdefault(port, dict())
-            responses[self._host][port].setdefault(req_signature, dict())
+            responses.setdefault(self._host, {})
+            responses[self._host].setdefault(port, {})
+            responses[self._host][port].setdefault(req_signature, {})
             response_dict = responses[self._host][port][req_signature]
 
         # try to get the response from the dictionary
