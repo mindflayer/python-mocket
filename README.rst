@@ -141,6 +141,15 @@ Let's fire our example test::
 
     $ py.test example.py
 
+
+How to be sure that all the calls are properly mocked?
+======================================================
+Add this instruction at the end of the test execution:
+
+.. code-block:: python
+
+    Mocket.assert_fail_if_entries_not_served()
+
 Example of how to fake socket errors
 ====================================
 
