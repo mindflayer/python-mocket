@@ -6,13 +6,7 @@ async def wrapper(test, cls=Mocketizer, truesocket_recording_dir=None, *args, **
     instance = args[0] if args else None
     namespace = None
     if truesocket_recording_dir:
-        namespace = ".".join(
-            (
-                instance.__class__.__module__,
-                instance.__class__.__name__,
-                test.__name__,
-            )
-        )
+        namespace = Mocketizer.get_namespace(test, instance)
     async with cls(
         instance,
         namespace=namespace,
