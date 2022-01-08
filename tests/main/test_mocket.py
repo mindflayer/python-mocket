@@ -18,17 +18,17 @@ class MocketTestCase(TestCase):
 
     def test_lastrequest(self):
         self.assertEqual(Mocket.last_request(), None)
-        Mocket._requests.extend([1, 2, 3])
+        Mocket.request_list().extend([1, 2, 3])
         self.assertEqual(Mocket.last_request(), 3)
 
     def test_reset(self):
-        Mocket._requests.extend([1, 2, 3])
-        self.assertEqual(Mocket._requests, [1, 2, 3])
+        Mocket.request_list().extend([1, 2, 3])
+        self.assertEqual(Mocket.request_list(), [1, 2, 3])
         Mocket.reset()
-        self.assertEqual(Mocket._requests, [])
+        self.assertEqual(Mocket.request_list(), [])
 
     def test_has_requests(self):
-        Mocket._requests.extend([1, 2, 3])
+        Mocket.request_list().extend([1, 2, 3])
         self.assertTrue(Mocket.has_requests())
         Mocket.reset()
         self.assertFalse(Mocket.has_requests())
@@ -64,16 +64,16 @@ class MocketTestCase(TestCase):
         request = "GET /get/p/?b=2&a=1 HTTP/1.1\r\nAccept-Encoding: identity\r\nHost: testme.org\r\nConnection: close\r\nUser-Agent: Python-urllib/2.6\r\n\r\n"
         Mocket.collect(request)
         self.assertEqual(Mocket.last_request(), request)
-        self.assertEqual(Mocket._requests, [request])
+        self.assertEqual(Mocket.request_list(), [request])
 
     def test_remove_last(self):
         Mocket._requests = [1, 2]
         Mocket.remove_last_request()
-        self.assertEqual(Mocket._requests, [1])
+        self.assertEqual(Mocket.request_list(), [1])
 
     def test_remove_last_empty(self):
         Mocket.remove_last_request()
-        self.assertEqual(Mocket._requests, [])
+        self.assertEqual(Mocket.request_list(), [])
 
     def test_getentry(self):
         entry = MocketEntry(("localhost", 80), True)
@@ -130,7 +130,7 @@ class MocketTestCase(TestCase):
             fp = _so.makefile("rb")
             _so.sendall(encode_to_bytes("...\r\n"))
             self.assertEqual(fp.read().strip(), encode_to_bytes("Show me."))
-            self.assertEqual(len(Mocket._requests), 1)
+            self.assertEqual(len(Mocket.request_list()), 1)
 
     def test_socket_as_context_manager(self):
         addr = ("localhost", 80)
