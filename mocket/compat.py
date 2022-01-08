@@ -26,7 +26,7 @@ def shsplit(s):
     return shlex.split(s)
 
 
-def do_the_magic(lib_magic, body):
+def do_the_magic(lib_magic, body):  # pragma: no cover
     if hasattr(lib_magic, "from_buffer"):
         # PyPI python-magic
         return lib_magic.from_buffer(body, mime=True)

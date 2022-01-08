@@ -158,10 +158,7 @@ class MocketSocket:
         self._truesocket_recording_dir = None
         self.kwargs = kwargs
 
-    def __unicode__(self):  # pragma: no cover
-        return str(self)
-
-    def __str__(self):  # pragma: no cover
+    def __str__(self):
         return "({})(family={} type={} protocol={})".format(
             self.__class__.__name__, self.family, self.type, self.proto
         )

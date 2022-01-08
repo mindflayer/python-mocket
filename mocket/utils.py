@@ -39,6 +39,6 @@ def hexload(string):
 def get_mocketize(wrapper_):
     import decorator
 
-    if decorator.__version__ < "5":
+    if decorator.__version__ < "5":  # pragma: no cover
         return decorator.decorator(wrapper_)
     return decorator.decorator(wrapper_, kwsyntax=True)

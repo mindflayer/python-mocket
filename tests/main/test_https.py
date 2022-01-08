@@ -2,13 +2,13 @@ import io
 import json
 import os
 import tempfile
+from urllib.request import urlopen
 
 import pytest
 import requests
 
 from mocket import Mocket, Mocketizer, mocketize
 from mocket.mockhttp import Entry
-from tests import urlopen
 
 
 @pytest.fixture
@@ -51,7 +51,8 @@ def test_truesendall_with_recording_https():
     assert resp.status_code == 200
 
     dump_filename = os.path.join(
-        Mocket.get_truesocket_recording_dir(), Mocket.get_namespace() + ".json",
+        Mocket.get_truesocket_recording_dir(),
+        Mocket.get_namespace() + ".json",
     )
     with io.open(dump_filename) as f:
         responses = json.load(f)

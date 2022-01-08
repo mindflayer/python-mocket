@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
-import os
 import io
+import os
 import socket
 from unittest import TestCase
 from unittest.mock import patch
@@ -54,7 +54,10 @@ class MocketTestCase(TestCase):
         Mocket.register(entry_1, entry_2, entry_3)
         self.assertEqual(
             Mocket._entries,
-            {("localhost", 80): [entry_1, entry_2], ("localhost", 8080): [entry_3],},
+            {
+                ("localhost", 80): [entry_1, entry_2],
+                ("localhost", 8080): [entry_3],
+            },
         )
 
     def test_collect(self):
@@ -138,6 +141,7 @@ class MocketTestCase(TestCase):
                 _so.sendall(encode_to_bytes("Whatever..."))
                 data = _so.recv(4096)
                 self.assertEqual(data, encode_to_bytes("Show me.\r\n"))
+                self.assertEqual(str(_so), "(MocketSocket)(family=2 type=1 protocol=0)")
 
 
 class MocketizeTestCase(TestCase):
@@ -172,5 +176,5 @@ def test_mocketize_with_fixture(fixture):
 def test_patch(
     method_patch,
 ):
-    method_patch.return_value = 'foo'
+    method_patch.return_value = "foo"
     assert os.getcwd() == "foo"

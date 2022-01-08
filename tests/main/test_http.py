@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import io
 import json
 import os
@@ -8,6 +6,9 @@ import socket
 import tempfile
 import time
 from unittest import TestCase
+from urllib.error import HTTPError
+from urllib.parse import urlencode
+from urllib.request import urlopen
 
 import mock
 import pytest
@@ -15,7 +16,6 @@ import requests
 
 from mocket import Mocket, mocketize
 from mocket.mockhttp import Entry, Response
-from tests import HTTPError, urlencode, urlopen
 
 recording_directory = tempfile.mkdtemp()
 
