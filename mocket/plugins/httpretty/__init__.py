@@ -107,10 +107,9 @@ class MocketHTTPretty:
 
     def __getattr__(self, name):
         if name == "last_request":
-            last_request = getattr(Mocket, "last_request")()
-            return last_request
+            return Mocket.last_request()
         if name == "latest_requests":
-            return getattr(Mocket, "_requests")
+            return Mocket._requests
         return getattr(Entry, name)
 
 
