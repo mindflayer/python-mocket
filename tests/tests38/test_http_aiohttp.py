@@ -13,7 +13,7 @@ from mocket.plugins.httpretty import HTTPretty, async_httprettified
 class AioHttpEntryTestCase(IsolatedAsyncioTestCase):
     @async_mocketize
     async def test_http_session(self):
-        url = 'http://httpbin.org/ip'
+        url = "http://httpbin.org/ip"
         body = "asd" * 100
         Entry.single_register(Entry.GET, url, body=body, status=404)
         Entry.single_register(Entry.POST, url, body=body * 2, status=201)
@@ -28,14 +28,14 @@ class AioHttpEntryTestCase(IsolatedAsyncioTestCase):
                 async with session.post(url, data=body * 6) as post_response:
                     assert post_response.status == 201
                     assert await post_response.text() == body * 2
-                    assert Mocket.last_request().method == 'POST'
+                    assert Mocket.last_request().method == "POST"
                     assert Mocket.last_request().body == body * 6
 
-        self.assertEqual(len(Mocket._requests), 2)
+        self.assertEqual(len(Mocket.request_list()), 2)
 
     @async_mocketize
     async def test_https_session(self):
-        url = 'https://httpbin.org/ip'
+        url = "https://httpbin.org/ip"
         body = "asd" * 100
         Entry.single_register(Entry.GET, url, body=body, status=404)
         Entry.single_register(Entry.POST, url, body=body * 2, status=201)
@@ -51,15 +51,15 @@ class AioHttpEntryTestCase(IsolatedAsyncioTestCase):
                     assert post_response.status == 201
                     assert await post_response.text() == body * 2
 
-        self.assertEqual(len(Mocket._requests), 2)
+        self.assertEqual(len(Mocket.request_list()), 2)
 
     @async_httprettified
     async def test_httprettish_session(self):
-        url = 'https://httpbin.org/ip'
+        url = "https://httpbin.org/ip"
         HTTPretty.register_uri(
             HTTPretty.GET,
             url,
-            body=json.dumps(dict(origin='127.0.0.1')),
+            body=json.dumps(dict(origin="127.0.0.1")),
         )
 
         async with aiohttp.ClientSession() as session:

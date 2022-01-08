@@ -99,7 +99,7 @@ class TrueRedisTestCase(TestCase):
         self.rclient.flushdb()
 
     def mocketize_teardown(self):
-        self.assertEqual(len(Mocket._requests), 0)
+        self.assertEqual(len(Mocket.request_list()), 0)
 
     @mocketize
     def test_set(self):
@@ -165,14 +165,14 @@ class RedisTestCase(TestCase):
     def mocketize_setup(self):
         Entry.register_response("FLUSHDB", OK)
         self.rclient.flushdb()
-        self.assertEqual(len(Mocket._requests), 1)
+        self.assertEqual(len(Mocket.request_list()), 1)
         Mocket.reset()
 
     @mocketize
     def test_set(self):
         Entry.register_response('SET mocket "is awesome!"', OK)
         self.assertTrue(self.rclient.set("mocket", "is awesome!"))
-        self.assertEqual(len(Mocket._requests), 1)
+        self.assertEqual(len(Mocket.request_list()), 1)
         self.assertEqual(
             Mocket.last_request().data,
             b"*3\r\n$3\r\nSET\r\n$6\r\nmocket\r\n$11\r\nis awesome!\r\n",
@@ -184,17 +184,17 @@ class RedisTestCase(TestCase):
         self.assertEqual(self.rclient.incr("counter"), 1)
         self.assertEqual(self.rclient.incr("counter"), 2)
         self.assertEqual(self.rclient.incr("counter"), 3)
-        self.assertEqual(len(Mocket._requests), 3)
+        self.assertEqual(len(Mocket.request_list()), 3)
         self.assertEqual(
-            Mocket._requests[0].data,
+            Mocket.request_list()[0].data,
             b"*3\r\n$6\r\nINCRBY\r\n$7\r\ncounter\r\n$1\r\n1\r\n",
         )
         self.assertEqual(
-            Mocket._requests[1].data,
+            Mocket.request_list()[1].data,
             b"*3\r\n$6\r\nINCRBY\r\n$7\r\ncounter\r\n$1\r\n1\r\n",
         )
         self.assertEqual(
-            Mocket._requests[2].data,
+            Mocket.request_list()[2].data,
             b"*3\r\n$6\r\nINCRBY\r\n$7\r\ncounter\r\n$1\r\n1\r\n",
         )
 
@@ -203,34 +203,34 @@ class RedisTestCase(TestCase):
         h = {b"f1": b"one", b"f2": b"two"}
         Entry.register_response("HGETALL hash", h)
         self.assertEqual(self.rclient.hgetall("hash"), h)
-        self.assertEqual(len(Mocket._requests), 1)
+        self.assertEqual(len(Mocket.request_list()), 1)
         self.assertEqual(
-            Mocket._requests[0].data, b"*2\r\n$7\r\nHGETALL\r\n$4\r\nhash\r\n"
+            Mocket.request_list()[0].data, b"*2\r\n$7\r\nHGETALL\r\n$4\r\nhash\r\n"
         )
 
     @mocketize
     def test_get(self):
         Entry.register_response("GET mocket", "is awesome!")
         self.assertEqual(self.rclient.get("mocket"), b"is awesome!")
-        self.assertEqual(len(Mocket._requests), 1)
+        self.assertEqual(len(Mocket.request_list()), 1)
         self.assertEqual(
-            Mocket._requests[0].data, b"*2\r\n$3\r\nGET\r\n$6\r\nmocket\r\n"
+            Mocket.request_list()[0].data, b"*2\r\n$3\r\nGET\r\n$6\r\nmocket\r\n"
         )
 
     @mocketize
     def test_get_utf8(self):
         Entry.register_response("GET snowman", "☃")
         self.assertEqual(self.rclient.get("snowman"), b"\xe2\x98\x83")
-        self.assertEqual(len(Mocket._requests), 1)
+        self.assertEqual(len(Mocket.request_list()), 1)
         self.assertEqual(
-            Mocket._requests[0].data, b"*2\r\n$3\r\nGET\r\n$7\r\nsnowman\r\n"
+            Mocket.request_list()[0].data, b"*2\r\n$3\r\nGET\r\n$7\r\nsnowman\r\n"
         )
 
     @mocketize
     def test_get_unicode(self):
         Entry.register_response("GET snowman", "\u2603")
         self.assertEqual(self.rclient.get("snowman"), b"\xe2\x98\x83")
-        self.assertEqual(len(Mocket._requests), 1)
+        self.assertEqual(len(Mocket.request_list()), 1)
         self.assertEqual(
             Mocket.last_request().data, b"*2\r\n$3\r\nGET\r\n$7\r\nsnowman\r\n"
         )
@@ -240,7 +240,7 @@ class RedisTestCase(TestCase):
         l = [b"one", b"two", b"three"]
         Entry.register_response("LRANGE list 0 -1", l)
         self.assertEqual(self.rclient.lrange("list", 0, -1), l)
-        self.assertEqual(len(Mocket._requests), 1)
+        self.assertEqual(len(Mocket.request_list()), 1)
         self.assertEqual(
             Mocket.last_request().data,
             b"*4\r\n$6\r\nLRANGE\r\n$4\r\nlist\r\n$1\r\n0\r\n$2\r\n-1\r\n",
@@ -252,7 +252,7 @@ class RedisTestCase(TestCase):
             "INCRBY counter one", ERROR("ERR value is not an integer or out of range")
         )
         self.assertRaises(redis.ResponseError, self.rclient.incr, "counter", "one")
-        self.assertEqual(len(Mocket._requests), 1)
+        self.assertEqual(len(Mocket.request_list()), 1)
         self.assertEqual(
             Mocket.last_request().data,
             b"*3\r\n$6\r\nINCRBY\r\n$7\r\ncounter\r\n$3\r\none\r\n",

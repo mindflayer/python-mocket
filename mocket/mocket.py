@@ -422,7 +422,7 @@ class Mocket:
 
     @classmethod
     def collect(cls, data):
-        cls._requests.append(data)
+        cls.request_list().append(data)
 
     @classmethod
     def reset(cls):
@@ -433,17 +433,21 @@ class Mocket:
 
     @classmethod
     def last_request(cls):
-        if cls._requests:
-            return cls._requests[-1]
+        if cls.has_requests():
+            return cls.request_list()[-1]
+
+    @classmethod
+    def request_list(cls):
+        return cls._requests
 
     @classmethod
     def remove_last_request(cls):
-        if cls._requests:
+        if cls.has_requests():
             del cls._requests[-1]
 
     @classmethod
     def has_requests(cls):
-        return len(cls._requests) > 0
+        return bool(cls.request_list())
 
     @staticmethod
     def enable(namespace=None, truesocket_recording_dir=None):

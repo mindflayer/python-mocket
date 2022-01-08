@@ -35,7 +35,7 @@ class AioHttpEntryTestCase(TestCase):
         loop = asyncio.get_event_loop()
         loop.set_debug(True)
         loop.run_until_complete(main(loop))
-        self.assertEqual(len(Mocket._requests), 2)
+        self.assertEqual(len(Mocket.request_list()), 2)
 
     @mocketize
     def test_https_session(self):
@@ -59,7 +59,7 @@ class AioHttpEntryTestCase(TestCase):
         loop = asyncio.get_event_loop()
         loop.set_debug(True)
         loop.run_until_complete(main(loop))
-        self.assertEqual(len(Mocket._requests), 2)
+        self.assertEqual(len(Mocket.request_list()), 2)
 
     @httprettified
     def test_httprettish_session(self):
