@@ -1,6 +1,6 @@
 name: Mocket's CI
 
-on: [pull_request]
+on: push
 
 jobs:
   build:
