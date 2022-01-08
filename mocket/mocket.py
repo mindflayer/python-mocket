@@ -598,6 +598,16 @@ class Mocketizer:
         self.truesocket_recording_dir = truesocket_recording_dir
         self.namespace = namespace or text_type(id(self))
 
+    @staticmethod
+    def get_namespace(test, instance):
+        return ".".join(
+            (
+                instance.__class__.__module__,
+                instance.__class__.__name__,
+                test.__name__,
+            )
+        )
+
     def enter(self):
         Mocket.enable(
             namespace=self.namespace,
@@ -635,13 +645,7 @@ def wrapper(test, cls=Mocketizer, truesocket_recording_dir=None, *args, **kwargs
     instance = args[0] if args else None
     namespace = None
     if truesocket_recording_dir:
-        namespace = ".".join(
-            (
-                instance.__class__.__module__,
-                instance.__class__.__name__,
-                test.__name__,
-            )
-        )
+        namespace = Mocketizer.get_namespace(test, instance)
     with cls(
         instance,
         namespace=namespace,
