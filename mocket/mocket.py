@@ -18,7 +18,15 @@ from urllib3.util.ssl_ import ssl_wrap_socket as urllib3_ssl_wrap_socket
 from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
 
 from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, text_type
-from .utils import SSL_PROTOCOL, MocketSocketCore, get_mocketize, hexdump, hexload
+from .exceptions import StrictMocketException
+from .utils import (
+    SSL_PROTOCOL,
+    MocketMode,
+    MocketSocketCore,
+    get_mocketize,
+    hexdump,
+    hexload,
+)
 
 xxh32 = None
 try:
@@ -286,6 +294,9 @@ class MocketSocket:
         raise exc
 
     def true_sendall(self, data, *args, **kwargs):
+        if MocketMode().STRICT:
+            raise StrictMocketException("Mocket tried to use the real `socket` module.")
+
         req = decode_from_bytes(data)
         # make request unique again
         req_signature = _hash_request(hasher, req)
@@ -597,20 +608,17 @@ class MocketEntry:
 
 
 class Mocketizer:
-    def __init__(self, instance=None, namespace=None, truesocket_recording_dir=None):
+    def __init__(
+        self,
+        instance=None,
+        namespace=None,
+        truesocket_recording_dir=None,
+        strict_mode=False,
+    ):
         self.instance = instance
         self.truesocket_recording_dir = truesocket_recording_dir
         self.namespace = namespace or text_type(id(self))
-
-    @staticmethod
-    def get_namespace(test, instance):
-        return ".".join(
-            (
-                instance.__class__.__module__,
-                instance.__class__.__name__,
-                test.__name__,
-            )
-        )
+        MocketMode().STRICT = strict_mode
 
     def enter(self):
         Mocket.enable(
@@ -639,22 +647,34 @@ class Mocketizer:
     async def __aexit__(self, *args, **kwargs):
         self.exit()
 
-    def check_and_call(self, method):
-        method = getattr(self.instance, method, None)
+    def check_and_call(self, method_name):
+        method = getattr(self.instance, method_name, None)
         if callable(method):
             method()
 
+    @staticmethod
+    def factory(test, truesocket_recording_dir, strict_mode, args):
+        instance = args[0] if args else None
+        namespace = None
+        if truesocket_recording_dir:
+            namespace = ".".join(
+                (
+                    instance.__class__.__module__,
+                    instance.__class__.__name__,
+                    test.__name__,
+                )
+            )
 
-def wrapper(test, cls=Mocketizer, truesocket_recording_dir=None, *args, **kwargs):
-    instance = args[0] if args else None
-    namespace = None
-    if truesocket_recording_dir:
-        namespace = Mocketizer.get_namespace(test, instance)
-    with cls(
-        instance,
-        namespace=namespace,
-        truesocket_recording_dir=truesocket_recording_dir,
-    ):
+        return Mocketizer(
+            instance,
+            namespace=namespace,
+            truesocket_recording_dir=truesocket_recording_dir,
+            strict_mode=strict_mode,
+        )
+
+
+def wrapper(test, truesocket_recording_dir=None, strict_mode=False, *args, **kwargs):
+    with Mocketizer.factory(test, truesocket_recording_dir, strict_mode, args):
         return test(*args, **kwargs)
 
 

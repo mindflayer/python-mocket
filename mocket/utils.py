@@ -42,3 +42,11 @@ def get_mocketize(wrapper_):
     if decorator.__version__ < "5":  # pragma: no cover
         return decorator.decorator(wrapper_)
     return decorator.decorator(wrapper_, kwsyntax=True)
+
+
+class MocketMode:
+    __shared_state = {}
+    STRICT = None
+
+    def __init__(self):
+        self.__dict__ = self.__shared_state

@@ -3,4 +3,4 @@ from .mocket import Mocket, MocketEntry, Mocketizer, mocketize
 
 __all__ = ("async_mocketize", "mocketize", "Mocket", "MocketEntry", "Mocketizer")
 
-__version__ = "3.10.3"
+__version__ = "3.10.4"

@@ -141,9 +141,25 @@ Let's fire our example test::
 
     $ py.test example.py
 
+How to make Mocket fail when it tries to write to a real `socket`?
+==================================================================
+NEW!!! Sometimes you just want your tests to fail when they attempt to use the network.
 
-How to be sure that all the calls are properly mocked?
-======================================================
+.. code-block:: python
+
+    with Mocketizer(strict_mode=True):
+        with pytest.raises(StrictMocketException):
+            requests.get("https://duckduckgo.com/")
+
+    # OR
+
+    @mocketize(strict_mode=True)
+    def test_get():
+        with pytest.raises(StrictMocketException):
+            requests.get("https://duckduckgo.com/")
+
+How to be sure that all the Entry instances have been served?
+=============================================================
 Add this instruction at the end of the test execution:
 
 .. code-block:: python
