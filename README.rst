@@ -45,6 +45,7 @@ Read these three blog posts if you want to have a big picture of what *Mocket* i
 - https://medium.com/p/mocket-is-alive-and-is-fighting-with-us-b2810d52597a
 - https://hackernoon.com/make-development-great-again-faab769d264e
 - https://hackernoon.com/httpretty-now-supports-asyncio-e310814704c6
+- https://medium.com/@mindflayer/how-to-make-your-tests-fail-when-they-try-to-access-the-network-python-eb80090a6d24
 
 The starting point to understand how to use *Mocket* to write a custom mock is the following example:
 
