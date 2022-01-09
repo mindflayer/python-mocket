@@ -40,7 +40,7 @@ Thanks to `@felixonmars`_ Mocket is available in the `Arch Linux repository`_.
 
 How to use it
 =============
-Read these three blog posts if you want to have a big picture of what *Mocket* is capable of:
+Read the following blog posts if you want to have a big picture of what *Mocket* is capable of:
 
 - https://medium.com/p/mocket-is-alive-and-is-fighting-with-us-b2810d52597a
 - https://hackernoon.com/make-development-great-again-faab769d264e
