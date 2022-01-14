@@ -8,8 +8,8 @@ mocket /mɔˈkɛt/
 .. image:: https://coveralls.io/repos/github/mindflayer/python-mocket/badge.svg?branch=master
     :target: https://coveralls.io/github/mindflayer/python-mocket?branch=master
 
-.. image:: https://img.shields.io/lgtm/grade/python/g/mindflayer/python-mocket.svg?logo=lgtm&logoWidth=18
-   :target: https://lgtm.com/projects/g/mindflayer/python-mocket/context:python
+.. image:: https://app.codacy.com/project/badge/Grade/6327640518ce42adaf59368217028f14
+    :target: https://www.codacy.com/gh/mindflayer/python-mocket/dashboard
 
 
 A socket mock framework
