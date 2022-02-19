@@ -80,7 +80,7 @@ Example of how to mock an HTTP[S] call
 ======================================
 Let's create a new virtualenv with all we need::
 
-    $ virtualenv example
+    $ python3 -m venv example
     $ source example/bin/activate
     $ pip install pytest requests mocket
 
