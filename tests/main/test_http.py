@@ -320,7 +320,7 @@ class HttpEntryTestCase(HttpTestCase):
         Entry.single_register(Entry.POST, url, status=201)
         file_obj = open("tests/fluidicon.png", "rb")
         files = {"content": file_obj}
-        r = requests.post(url, files=files, data={}, verify=False)
+        r = requests.post(url, files=files, data={})
         self.assertEqual(r.status_code, 201)
 
     @mocketize
