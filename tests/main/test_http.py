@@ -336,7 +336,6 @@ class HttpEntryTestCase(HttpTestCase):
         https://github.com/mindflayer/python-mocket/issues/111
         https://gist.github.com/amotl/015ef6b336db55128798d7f1a9a67dea
         """
-
         # Define HTTP conversation.
         url = "http://127.0.0.1:8080/api/data"
         Entry.single_register(Entry.POST, url)
