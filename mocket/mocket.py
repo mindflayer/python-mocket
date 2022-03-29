@@ -467,7 +467,8 @@ class Mocket:
 
         if truesocket_recording_dir:
             # JSON dumps will be saved here
-            assert os.path.isdir(truesocket_recording_dir)
+            if not os.path.isdir(truesocket_recording_dir):
+                raise AssertionError
 
         socket.socket = socket.__dict__["socket"] = MocketSocket
         socket._socketobject = socket.__dict__["_socketobject"] = MocketSocket
@@ -547,9 +548,10 @@ class Mocket:
     @classmethod
     def assert_fail_if_entries_not_served(cls):
         """Mocket checks that all entries have been served at least once."""
-        assert all(
+        if not all(
             entry._served for entry in itertools.chain(*cls._entries.values())
-        ), "Some Mocket entries have not been served"
+        ):
+            raise AssertionError("Some Mocket entries have not been served")
 
 
 class MocketEntry:
