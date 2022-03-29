@@ -35,7 +35,6 @@ from mocket.plugins.httpretty import HTTPretty, httprettified, httpretty
 @httprettified
 def test_httpretty_should_mock_a_simple_get_with_requests_read():
     """HTTPretty should mock a simple GET with requests.get"""
-
     httpretty.register_uri(
         httpretty.GET, "http://yipit.com/", body="Find the best daily deals"
     )
@@ -49,7 +48,6 @@ def test_httpretty_should_mock_a_simple_get_with_requests_read():
 @httprettified
 def test_httpretty_provides_easy_access_to_querystrings():
     """HTTPretty should provide an easy access to the querystring"""
-
     HTTPretty.register_uri(
         HTTPretty.GET, "http://yipit.com/", body="Find the best daily deals"
     )
@@ -63,7 +61,6 @@ def test_httpretty_provides_easy_access_to_querystrings():
 @httprettified
 def test_httpretty_should_mock_headers_requests():
     """HTTPretty should mock basic headers with requests"""
-
     HTTPretty.register_uri(
         HTTPretty.GET,
         "http://github.com/",
@@ -89,7 +86,6 @@ def test_httpretty_should_mock_headers_requests():
 @httprettified
 def test_httpretty_should_allow_adding_and_overwritting_requests():
     """HTTPretty should allow adding and overwritting headers with requests"""
-
     HTTPretty.register_uri(
         HTTPretty.GET,
         "http://github.com/foo",
@@ -118,7 +114,6 @@ def test_httpretty_should_allow_adding_and_overwritting_requests():
 @httprettified
 def test_httpretty_should_allow_forcing_headers_requests():
     """HTTPretty should allow forcing headers with requests"""
-
     HTTPretty.register_uri(
         HTTPretty.GET,
         "http://github.com/foo",
@@ -137,7 +132,6 @@ def test_httpretty_should_allow_forcing_headers_requests():
 def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2():
     """HTTPretty should allow adding and overwritting headers by keyword args " \
         "with requests"""
-
     HTTPretty.register_uri(
         HTTPretty.GET,
         "http://github.com/foo",
@@ -164,7 +158,6 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2():
 @httprettified
 def test_rotating_responses_with_requests():
     """HTTPretty should support rotating responses with requests"""
-
     HTTPretty.register_uri(
         HTTPretty.GET,
         "https://api.yahoo.com/test",
@@ -193,7 +186,6 @@ def test_rotating_responses_with_requests():
 @httprettified
 def test_can_inspect_last_request():
     """HTTPretty.last_request is a mimetools.Message request from last match"""
-
     HTTPretty.register_uri(
         HTTPretty.POST,
         "http://api.github.com/",
@@ -215,7 +207,6 @@ def test_can_inspect_last_request():
 @httprettified
 def test_can_inspect_last_request_with_ssl():
     """HTTPretty.last_request is recorded even when mocking 'https' (SSL)"""
-
     HTTPretty.register_uri(
         HTTPretty.POST,
         "https://secure.github.com/",
@@ -237,7 +228,6 @@ def test_can_inspect_last_request_with_ssl():
 @httprettified
 def test_httpretty_ignores_querystrings_from_registered_uri():
     """HTTPretty should ignore querystrings from the registered uri (requests library)"""
-
     HTTPretty.register_uri(
         HTTPretty.GET, "http://yipit.com/?id=123", body=b"Find the best daily deals"
     )
@@ -299,7 +289,6 @@ def test_multipart():
 @httprettified
 def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
     """HTTPretty should allow registering multiple methods for the same uri"""
-
     url = "http://test.com/test"
     methods = ["GET", "POST", "PUT", "OPTIONS"]
     for method in methods:
@@ -313,7 +302,6 @@ def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
 @httprettified
 def test_httpretty_should_allow_multiple_responses_with_multiple_methods():
     """HTTPretty should allow multiple responses when binding multiple methods to the same uri"""
-
     url = "http://test.com/list"
 
     # add get responses
