@@ -18,6 +18,15 @@ A socket mock framework
 
 ...and then MicroPython's *urequests* (*mocket >= 3.9.1*)
 
+Outside GitHub
+==============
+
+Thanks to `@felixonmars`_, Mocket is available in the `Arch Linux repository`_. It's also packaged for `openSUSE`_ and `NixOS`_.
+
+.. _`@felixonmars`: https://github.com/felixonmars
+.. _`Arch Linux repository`: https://www.archlinux.org/packages/community/any/python-mocket/
+.. _`openSUSE`: https://software.opensuse.org/package/python-mocket
+.. _`NixOS`: https://search.nixos.org/packages?query=mocket
 
 Versioning
 ==========
@@ -28,11 +37,6 @@ FYI: the last version compatible with Python 2.7 is *3.9.4*, bugfixing or backpo
 Support it
 ==========
 *Star* the project on GitHub, *Buy Me a Coffee* clicking the button below or, even better, contribute with patches or documentation.
-
-Thanks to `@felixonmars`_ Mocket is available in the `Arch Linux repository`_.
-
-.. _`@felixonmars`: https://github.com/felixonmars
-.. _`Arch Linux repository`: https://www.archlinux.org/packages/community/any/python-mocket/
 
 .. image:: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
      :target: https://www.buymeacoffee.com/mULbInw5z
