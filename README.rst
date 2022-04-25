@@ -11,6 +11,9 @@ mocket /mɔˈkɛt/
 .. image:: https://app.codacy.com/project/badge/Grade/6327640518ce42adaf59368217028f14
     :target: https://www.codacy.com/gh/mindflayer/python-mocket/dashboard
 
+.. image:: https://img.shields.io/pypi/dm/mocket
+    :target: https://pypistats.org/packages/mocket
+
 
 A socket mock framework
 -------------------------
