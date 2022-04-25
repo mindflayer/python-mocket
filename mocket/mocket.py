@@ -561,7 +561,7 @@ class MocketEntry:
             return self
 
     response_index = 0
-    request_cls = str
+    request_cls = bytes
     response_cls = Response
     responses = None
     _served = None
