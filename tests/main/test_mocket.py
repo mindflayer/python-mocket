@@ -94,6 +94,18 @@ class MocketTestCase(TestCase):
         with self.assertRaises(IOError):
             entry.get_response()
 
+    def test_collect_last_request(self):
+        addr = ("localhost", 80)
+
+        entry = MocketEntry(addr, True)
+        Mocket.register(entry)
+        with Mocketizer():
+            _so = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            _so.connect(addr)
+            _so.sendall(b"data\r\n")
+            _so.close()
+            self.assertEqual(Mocket.last_request(), b"data\r\n")
+
     def test_subsequent_recv_requests_have_correct_length(self):
         addr = ("localhost", 80)
         Mocket.register(MocketEntry(addr, [b"Long payload", b"Short"]))
