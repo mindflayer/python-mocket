@@ -29,7 +29,7 @@ safetest:
 
 publish: install-test-requirements
 	pipenv run python -m build --sdist .
-	pipenv run twine upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
+	pipenv run twine upload --repository mocket dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
 	pipenv run anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
 
 clean:
