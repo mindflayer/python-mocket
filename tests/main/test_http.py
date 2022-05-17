@@ -5,12 +5,11 @@ import os
 import socket
 import tempfile
 import time
-from unittest import TestCase
+from unittest import TestCase, mock
 from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
-import mock
 import pytest
 import requests
 
