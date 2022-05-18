@@ -87,7 +87,8 @@ class RedisEntryTestCase(TestCase):
             Mocket._entries[("localhost", 6379)][0].responses[0].data, b"+OK\r\n"
         )
 
-    def test_register_response(self):
+    @staticmethod
+    def test_register_response():
         Entry.register_response(command='SET snowman "is ☃!"', response="")
 
 

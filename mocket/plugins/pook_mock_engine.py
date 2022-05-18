@@ -28,11 +28,13 @@ class MocketPookEntry(Entry):
 
 
 class MocketInterceptor(BaseInterceptor):
-    def activate(self):
+    @staticmethod
+    def activate():
         Mocket.disable()
         Mocket.enable()
 
-    def disable(self):
+    @staticmethod
+    def disable():
         Mocket.disable()
 
 
