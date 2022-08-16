@@ -76,6 +76,7 @@ class FakeSSLContext(SuperFakeSSLContext):
         "load_default_certs",
         "load_verify_locations",
         "set_alpn_protocols",
+        "set_ciphers",
     )
     sock = None
     post_handshake_auth = None
@@ -426,6 +427,8 @@ class Mocket:
 
     @classmethod
     def get_entry(cls, host, port, data):
+        host = host or Mocket._address[0]
+        port = port or Mocket._address[1]
         entries = cls._entries.get((host, port), [])
         for entry in entries:
             if entry.can_handle(data):
