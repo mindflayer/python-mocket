@@ -388,14 +388,15 @@ class MocketSocket:
         return encoded_response
 
     def send(self, data, *args, **kwargs):  # pragma: no cover
-        entry = self.get_entry(data)
-        if not entry or (entry and self._entry != entry):
-            self.sendall(data, entry=entry, *args, **kwargs)
-        else:
-            req = Mocket.last_request()
-            if hasattr(req, "add_data"):
-                req.add_data(data)
-        self._entry = entry
+        if data != b"\0":
+            entry = self.get_entry(data)
+            if not entry or (entry and self._entry != entry):
+                self.sendall(data, entry=entry, *args, **kwargs)
+            else:
+                req = Mocket.last_request()
+                if hasattr(req, "add_data"):
+                    req.add_data(data)
+            self._entry = entry
         return len(data)
 
     def close(self):
