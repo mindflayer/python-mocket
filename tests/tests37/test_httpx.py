@@ -2,8 +2,10 @@ import json
 
 import httpx
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
-from mocket import Mocketizer, async_mocketize
+from mocket import Mocketizer, async_mocketize, mocketize
 from mocket.mockhttp import Entry
 
 
@@ -48,3 +50,28 @@ async def test_httpx_fixture(httpx_client):
         response = await client.get(url)
 
         assert response.json() == data
+
+
+def create_app() -> FastAPI:
+    app = FastAPI()
+
+    @app.get("/")
+    async def read_main() -> dict:
+        async with httpx.AsyncClient() as client:
+            r = await client.get("https://example.org/")
+            return r.json()
+
+    return app
+
+
+@mocketize
+def test_call_from_fastapi() -> None:
+    app = create_app()
+    client = TestClient(app)
+
+    Entry.single_register(Entry.GET, "https://example.org/", body='{"id": 1}')
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert response.json() == {"id": 1}
