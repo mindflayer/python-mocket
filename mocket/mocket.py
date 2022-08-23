@@ -51,6 +51,7 @@ true_create_connection = socket.create_connection
 true_gethostbyname = socket.gethostbyname
 true_gethostname = socket.gethostname
 true_getaddrinfo = socket.getaddrinfo
+true_socketpair = socket.socketpair
 true_ssl_wrap_socket = ssl.wrap_socket
 true_ssl_socket = ssl.SSLSocket
 true_ssl_context = ssl.SSLContext
@@ -134,6 +135,13 @@ def create_connection(address, timeout=None, source_address=None):
         s.settimeout(timeout)
     s.connect(address)
     return s
+
+
+def socketpair():
+    """Returns a real socketpair() used by asyncio loop for supporting calls made by fastapi and similar services."""
+    import _socket
+
+    return _socket.socketpair()
 
 
 def _hash_request(h, req):
@@ -488,6 +496,7 @@ class Mocket:
         ] = lambda host, port, family=None, socktype=None, proto=None, flags=None: [
             (2, 1, 6, "", (host, port))
         ]
+        socket.socketpair = socket.__dict__["socketpair"] = socketpair
         ssl.wrap_socket = ssl.__dict__["wrap_socket"] = FakeSSLContext.wrap_socket
         ssl.SSLContext = ssl.__dict__["SSLContext"] = FakeSSLContext
         socket.inet_pton = socket.__dict__["inet_pton"] = lambda family, ip: byte_type(
@@ -520,6 +529,7 @@ class Mocket:
         socket.gethostname = socket.__dict__["gethostname"] = true_gethostname
         socket.gethostbyname = socket.__dict__["gethostbyname"] = true_gethostbyname
         socket.getaddrinfo = socket.__dict__["getaddrinfo"] = true_getaddrinfo
+        socket.socketpair = socket.__dict__["socketpair"] = true_socketpair
         ssl.wrap_socket = ssl.__dict__["wrap_socket"] = true_ssl_wrap_socket
         ssl.SSLContext = ssl.__dict__["SSLContext"] = true_ssl_context
         socket.inet_pton = socket.__dict__["inet_pton"] = true_inet_pton
