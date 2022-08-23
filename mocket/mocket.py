@@ -138,6 +138,7 @@ def create_connection(address, timeout=None, source_address=None):
 
 
 def socketpair():
+    """Returns a real socketpair() used by asyncio loop for supporting calls made by fastapi and similar services."""
     import _socket
 
     return _socket.socketpair()
