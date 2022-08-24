@@ -43,7 +43,7 @@ Support it
 *Star* the project on GitHub, *Buy Me a Coffee* clicking the button below or, even better, contribute with patches or documentation.
 
 .. image:: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
-     :target: https://www.buymeacoffee.com/mULbInw5z
+     :target: https://www.buymeacoffee.com/mocket
      :alt: Buy Me A Coffee
 
 How to use it
