@@ -137,11 +137,11 @@ def create_connection(address, timeout=None, source_address=None):
     return s
 
 
-def socketpair():
+def socketpair(*args, **kwargs):
     """Returns a real socketpair() used by asyncio loop for supporting calls made by fastapi and similar services."""
     import _socket
 
-    return _socket.socketpair()
+    return _socket.socketpair(*args, **kwargs)
 
 
 def _hash_request(h, req):
