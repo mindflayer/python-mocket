@@ -24,12 +24,13 @@ A socket mock framework
 Outside GitHub
 ==============
 
-Thanks to `@felixonmars`_, Mocket is available in the `Arch Linux repository`_. It's also packaged for `openSUSE`_ and `NixOS`_.
+Thanks to `@felixonmars`_, Mocket is available in the `Arch Linux repository`_. It's also packaged for `openSUSE`_, `NixOS`_ and `ALT Linux`_.
 
 .. _`@felixonmars`: https://github.com/felixonmars
 .. _`Arch Linux repository`: https://www.archlinux.org/packages/community/any/python-mocket/
 .. _`openSUSE`: https://software.opensuse.org/package/python-mocket
 .. _`NixOS`: https://search.nixos.org/packages?query=mocket
+.. _`ALT Linux`: https://packages.altlinux.org/en/sisyphus/srpms/python3-module-mocket/
 
 Versioning
 ==========
@@ -42,7 +43,7 @@ Support it
 *Star* the project on GitHub, *Buy Me a Coffee* clicking the button below or, even better, contribute with patches or documentation.
 
 .. image:: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
-     :target: https://www.buymeacoffee.com/mULbInw5z
+     :target: https://www.buymeacoffee.com/mocket
      :alt: Buy Me A Coffee
 
 How to use it
@@ -53,6 +54,7 @@ Read the following blog posts if you want to have a big picture of what *Mocket*
 - https://hackernoon.com/make-development-great-again-faab769d264e
 - https://hackernoon.com/httpretty-now-supports-asyncio-e310814704c6
 - https://medium.com/@mindflayer/how-to-make-your-tests-fail-when-they-try-to-access-the-network-python-eb80090a6d24
+- https://medium.com/@mindflayer/testing-in-an-asyncio-world-a9a0ad41b0c5
 
 The starting point to understand how to use *Mocket* to write a custom mock is the following example:
 

@@ -29,6 +29,7 @@ build = "*"
 wheel = "*"
 twine = "*"
 anaconda-client = "*"
+fastapi = "*"
 
 [requires]
 python_version = "3"
