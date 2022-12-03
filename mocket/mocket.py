@@ -421,6 +421,7 @@ class MocketSocket:
 
 
 class Mocket:
+    _address = (None, None)
     _entries = collections.defaultdict(list)
     _requests = []
     _namespace = text_type(id(_entries))
