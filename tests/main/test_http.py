@@ -23,7 +23,7 @@ class HttpTestCase(TestCase):
     def assertEqualHeaders(self, first, second, msg=None):
         first = {k.lower(): v for k, v in first.items()}
         second = {k.lower(): v for k, v in second.items()}
-        self.assertEqual(first, second, msg)
+        self.assertDictEqual(first, second, msg)
 
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')

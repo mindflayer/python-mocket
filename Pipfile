@@ -7,7 +7,7 @@ name = "pypi"
 python-magic = ">=0.4.5"
 decorator = ">=4.0.0"
 urllib3 = ">=1.25.3"
-http-parser = ">=0.9.0"
+httptools = "*"
 
 [dev-packages]
 pre-commit = "*"

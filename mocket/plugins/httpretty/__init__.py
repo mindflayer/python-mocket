@@ -1,6 +1,6 @@
 from mocket import Mocket, mocketize
 from mocket.async_mocket import async_mocketize
-from mocket.compat import byte_type, text_type
+from mocket.compat import ENCODING, byte_type, text_type
 from mocket.mockhttp import Entry as MocketHttpEntry
 from mocket.mockhttp import Request as MocketHttpRequest
 from mocket.mockhttp import Response as MocketHttpResponse
@@ -13,9 +13,11 @@ def httprettifier_headers(headers):
 class Request(MocketHttpRequest):
     @property
     def body(self):
-        if self._body is None:
-            self._body = self.parser.recv_body()
-        return self._body
+        return super().body.encode(ENCODING)
+
+    @property
+    def headers(self):
+        return httprettifier_headers(super().headers)
 
 
 class Response(MocketHttpResponse):

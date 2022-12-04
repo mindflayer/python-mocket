@@ -3,13 +3,10 @@ import time
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, unquote, urlsplit
 
-from .compat import decode_from_bytes, do_the_magic, encode_to_bytes
-from .mocket import Mocket, MocketEntry
+from httptools.parser import HttpRequestParser
 
-try:
-    from http_parser.parser import HttpParser
-except ImportError:
-    from http_parser.pyparser import HttpParser
+from .compat import ENCODING, decode_from_bytes, do_the_magic, encode_to_bytes
+from .mocket import Mocket, MocketEntry
 
 try:
     import magic
@@ -21,31 +18,59 @@ STATUS = {k: v[0] for k, v in BaseHTTPRequestHandler.responses.items()}
 CRLF = "\r\n"
 
 
+class Protocol:
+    def __init__(self):
+        self.url = None
+        self.body = None
+        self.headers = {}
+
+    def on_header(self, name: bytes, value: bytes):
+        self.headers[name.decode("ascii")] = value.decode("ascii")
+
+    def on_body(self, body: bytes):
+        try:
+            self.body = body.decode(ENCODING)
+        except UnicodeDecodeError:
+            self.body = body
+
+    def on_url(self, url: bytes):
+        self.url = url.decode("ascii")
+
+
 class Request:
-    parser = None
-    _body = None
+    _protocol = None
+    _parser = None
 
     def __init__(self, data):
-        self.parser = HttpParser()
-        self.parser.execute(data, len(data))
-
-        self.method = self.parser.get_method()
-        self.path = self.parser.get_path()
-        self.headers = self.parser.get_headers()
-        self.querystring = parse_qs(
-            unquote(self.parser.get_query_string()), keep_blank_values=True
-        )
-        if self.querystring:
-            self.path += "?{}".format(self.parser.get_query_string())
+        self._protocol = Protocol()
+        self._parser = HttpRequestParser(self._protocol)
+        self.add_data(data)
 
     def add_data(self, data):
-        self.parser.execute(data, len(data))
+        self._parser.feed_data(data)
+
+    @property
+    def method(self):
+        return self._parser.get_method().decode("ascii")
+
+    @property
+    def path(self):
+        return self._protocol.url
+
+    @property
+    def headers(self):
+        return self._protocol.headers
+
+    @property
+    def querystring(self):
+        parts = self._protocol.url.split("?", 1)
+        if len(parts) == 2:
+            return parse_qs(unquote(parts[1]), keep_blank_values=True)
+        return {}
 
     @property
     def body(self):
-        if self._body is None:
-            self._body = decode_from_bytes(self.parser.recv_body())
-        return self._body
+        return self._protocol.body
 
     def __str__(self):
         return "{} - {} - {}".format(self.method, self.path, self.headers)
