@@ -231,7 +231,6 @@ Example:
 
     import aiohttp
     import asyncio
-    import async_timeout
     from unittest import TestCase
 
     from mocket.plugins.httpretty import httpretty, httprettified
@@ -248,11 +247,12 @@ Example:
             )
 
             async def main(l):
-                async with aiohttp.ClientSession(loop=l) as session:
-                    async with async_timeout.timeout(3):
-                        async with session.get(url) as get_response:
-                            assert get_response.status == 200
-                            assert await get_response.text() == '{"origin": "127.0.0.1"}'
+                async with aiohttp.ClientSession(
+                    loop=l, timeout=aiohttp.ClientTimeout(total=3)
+                ) as session:
+                    async with session.get(url) as get_response:
+                        assert get_response.status == 200
+                        assert await get_response.text() == '{"origin": "127.0.0.1"}'
 
             loop = asyncio.new_event_loop()
             loop.set_debug(True)
@@ -277,16 +277,16 @@ Example:
             Entry.single_register(Entry.POST, url, body=body*2, status=201)
 
             async def main(l):
-                async with aiohttp.ClientSession(loop=l) as session:
-                    async with async_timeout.timeout(3):
-                        async with session.get(url) as get_response:
-                            assert get_response.status == 404
-                            assert await get_response.text() == body
+                async with aiohttp.ClientSession(
+                    loop=l, timeout=aiohttp.ClientTimeout(total=3)
+                ) as session:
+                    async with session.get(url) as get_response:
+                        assert get_response.status == 404
+                        assert await get_response.text() == body
 
-                    async with async_timeout.timeout(3):
-                        async with session.post(url, data=body * 6) as post_response:
-                            assert post_response.status == 201
-                            assert await post_response.text() == body * 2
+                    async with session.post(url, data=body * 6) as post_response:
+                        assert post_response.status == 201
+                        assert await post_response.text() == body * 2
 
             loop = asyncio.new_event_loop()
             loop.run_until_complete(main(loop))
@@ -302,18 +302,18 @@ Example:
             Entry.single_register(Entry.GET, url, body=body, status=404)
             Entry.single_register(Entry.POST, url, body=body * 2, status=201)
 
-            async with aiohttp.ClientSession() as session:
-                async with async_timeout.timeout(3):
-                    async with session.get(url) as get_response:
-                        assert get_response.status == 404
-                        assert await get_response.text() == body
+            async with aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=3)
+            ) as session:
+                async with session.get(url) as get_response:
+                    assert get_response.status == 404
+                    assert await get_response.text() == body
 
-                async with async_timeout.timeout(3):
-                    async with session.post(url, data=body * 6) as post_response:
-                        assert post_response.status == 201
-                        assert await post_response.text() == body * 2
-                        assert Mocket.last_request().method == 'POST'
-                        assert Mocket.last_request().body == body * 6
+                async with session.post(url, data=body * 6) as post_response:
+                    assert post_response.status == 201
+                    assert await post_response.text() == body * 2
+                    assert Mocket.last_request().method == 'POST'
+                    assert Mocket.last_request().body == body * 6
 
 
 Works well with others
