@@ -249,12 +249,12 @@ Example:
 
             async def main(l):
                 async with aiohttp.ClientSession(loop=l) as session:
-                    with async_timeout.timeout(3):
+                    async with async_timeout.timeout(3):
                         async with session.get(url) as get_response:
                             assert get_response.status == 200
                             assert await get_response.text() == '{"origin": "127.0.0.1"}'
 
-            loop = asyncio.get_event_loop()
+            loop = asyncio.new_event_loop()
             loop.set_debug(True)
             loop.run_until_complete(main(loop))
 
@@ -278,17 +278,17 @@ Example:
 
             async def main(l):
                 async with aiohttp.ClientSession(loop=l) as session:
-                    with async_timeout.timeout(3):
+                    async with async_timeout.timeout(3):
                         async with session.get(url) as get_response:
                             assert get_response.status == 404
                             assert await get_response.text() == body
 
-                    with async_timeout.timeout(3):
+                    async with async_timeout.timeout(3):
                         async with session.post(url, data=body * 6) as post_response:
                             assert post_response.status == 201
                             assert await post_response.text() == body * 2
 
-            loop = asyncio.get_event_loop()
+            loop = asyncio.new_event_loop()
             loop.run_until_complete(main(loop))
 
     # or again with a unittest.IsolatedAsyncioTestCase
@@ -303,12 +303,12 @@ Example:
             Entry.single_register(Entry.POST, url, body=body * 2, status=201)
 
             async with aiohttp.ClientSession() as session:
-                with async_timeout.timeout(3):
+                async with async_timeout.timeout(3):
                     async with session.get(url) as get_response:
                         assert get_response.status == 404
                         assert await get_response.text() == body
 
-                with async_timeout.timeout(3):
+                async with async_timeout.timeout(3):
                     async with session.post(url, data=body * 6) as post_response:
                         assert post_response.status == 201
                         assert await post_response.text() == body * 2
