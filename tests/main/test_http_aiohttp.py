@@ -1,4 +1,3 @@
-import asyncio
 import json
 from unittest import TestCase
 
@@ -13,7 +12,7 @@ class AioHttpEntryTestCase(TestCase):
     timeout = aiohttp.ClientTimeout(total=3)
 
     @mocketize
-    def test_http_session(self):
+    def test_http_session(self, event_loop):
         url = "http://httpbin.org/ip"
         body = "asd" * 100
         Entry.single_register(Entry.GET, url, body=body, status=404)
@@ -33,13 +32,11 @@ class AioHttpEntryTestCase(TestCase):
                     assert Mocket.last_request().method == "POST"
                     assert Mocket.last_request().body == body * 6
 
-        loop = asyncio.new_event_loop()
-        loop.set_debug(True)
-        loop.run_until_complete(main(loop))
+        event_loop.run_until_complete(main(event_loop))
         self.assertEqual(len(Mocket.request_list()), 2)
 
     @mocketize
-    def test_https_session(self):
+    def test_https_session(self, event_loop):
         url = "https://httpbin.org/ip"
         body = "asd" * 100
         Entry.single_register(Entry.GET, url, body=body, status=404)
@@ -57,13 +54,11 @@ class AioHttpEntryTestCase(TestCase):
                     assert post_response.status == 201
                     assert await post_response.text() == body * 2
 
-        loop = asyncio.new_event_loop()
-        loop.set_debug(True)
-        loop.run_until_complete(main(loop))
+        event_loop.run_until_complete(main(event_loop))
         self.assertEqual(len(Mocket.request_list()), 2)
 
     @httprettified
-    def test_httprettish_session(self):
+    def test_httprettish_session(self, event_loop):
         url = "https://httpbin.org/ip"
         HTTPretty.register_uri(
             HTTPretty.GET,
@@ -79,6 +74,4 @@ class AioHttpEntryTestCase(TestCase):
                     assert get_response.status == 200
                     assert await get_response.text() == '{"origin": "127.0.0.1"}'
 
-        loop = asyncio.new_event_loop()
-        loop.set_debug(True)
-        loop.run_until_complete(main(loop))
+        event_loop.run_until_complete(main(event_loop))
