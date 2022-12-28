@@ -118,6 +118,7 @@ httpretty = HTTPretty
 
 __all__ = (
     "HTTPretty",
+    "httpretty",
     "activate",
     "async_httprettified",
     "httprettified",

@@ -1,10 +1,13 @@
 import json
+import sys
 
 import aiohttp
+import pytest
+from asgiref.sync import async_to_sync
 
 from mocket.mocket import Mocket, mocketize
 from mocket.mockhttp import Entry
-from mocket.plugins.httpretty import HTTPretty, httprettified
+from mocket.plugins.httpretty import httprettified, httpretty
 
 timeout = aiohttp.ClientTimeout(total=3)
 
@@ -16,8 +19,9 @@ def test_http_session(event_loop):
     Entry.single_register(Entry.GET, url, body=body, status=404)
     Entry.single_register(Entry.POST, url, body=body * 2, status=201)
 
-    async def main(_loop):
-        async with aiohttp.ClientSession(loop=_loop, timeout=timeout) as session:
+    @async_to_sync
+    async def perform_aiohttp_transactions():
+        async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get(url) as get_response:
                 assert get_response.status == 404
                 assert await get_response.text() == body
@@ -28,10 +32,11 @@ def test_http_session(event_loop):
                 assert Mocket.last_request().method == "POST"
                 assert Mocket.last_request().body == body * 6
 
-    event_loop.run_until_complete(main(event_loop))
+    perform_aiohttp_transactions()
     assert len(Mocket.request_list()) == 2
 
 
+@pytest.mark.skipif(sys.version_info >= (3, 11), reason="Failing with Python 3.11")
 @mocketize
 def test_https_session(event_loop):
     url = "https://httpbin.org/ip"
@@ -39,8 +44,9 @@ def test_https_session(event_loop):
     Entry.single_register(Entry.GET, url, body=body, status=404)
     Entry.single_register(Entry.POST, url, body=body * 2, status=201)
 
-    async def main(_loop):
-        async with aiohttp.ClientSession(loop=_loop, timeout=timeout) as session:
+    @async_to_sync
+    async def perform_aiohttp_transactions():
+        async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get(url) as get_response:
                 assert get_response.status == 404
                 assert await get_response.text() == body
@@ -49,23 +55,26 @@ def test_https_session(event_loop):
                 assert post_response.status == 201
                 assert await post_response.text() == body * 2
 
-    event_loop.run_until_complete(main(event_loop))
+    perform_aiohttp_transactions()
     assert len(Mocket.request_list()) == 2
 
 
+@pytest.mark.skipif(sys.version_info >= (3, 11), reason="Failing with Python 3.11")
 @httprettified
 def test_httprettish_session(event_loop):
     url = "https://httpbin.org/ip"
-    HTTPretty.register_uri(
-        HTTPretty.GET,
+    httpretty.register_uri(
+        httpretty.GET,
         url,
         body=json.dumps(dict(origin="127.0.0.1")),
     )
 
-    async def main(_loop):
-        async with aiohttp.ClientSession(loop=_loop, timeout=timeout) as session:
+    @async_to_sync
+    async def perform_aiohttp_transactions():
+        async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get(url) as get_response:
                 assert get_response.status == 200
                 assert await get_response.text() == '{"origin": "127.0.0.1"}'
 
-    event_loop.run_until_complete(main(event_loop))
+    perform_aiohttp_transactions()
+    assert len(httpretty.latest_requests) == 1

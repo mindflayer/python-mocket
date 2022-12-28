@@ -11,9 +11,10 @@ httptools = "*"
 
 [dev-packages]
 pre-commit = "*"
-pytest = ">4.6"
+pytest = "*"
 pytest-cov = "*"
 pytest-asyncio = "*"
+asgiref = "*"
 requests = "*"
 redis = "*"
 gevent = "*"
