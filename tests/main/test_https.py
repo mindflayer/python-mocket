@@ -42,22 +42,23 @@ recording_directory = tempfile.mkdtemp()
 
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
-@mocketize(truesocket_recording_dir=recording_directory)
 def test_truesendall_with_recording_https():
-    url = "https://httpbin.org/ip"
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with Mocketizer(truesocket_recording_dir=temp_dir):
+            url = "https://httpbin.org/ip"
 
-    requests.get(url, headers={"Accept": "application/json"})
-    resp = requests.get(url, headers={"Accept": "application/json"})
-    assert resp.status_code == 200
+            requests.get(url, headers={"Accept": "application/json"})
+            resp = requests.get(url, headers={"Accept": "application/json"})
+            assert resp.status_code == 200
 
-    dump_filename = os.path.join(
-        Mocket.get_truesocket_recording_dir(),
-        Mocket.get_namespace() + ".json",
-    )
-    with io.open(dump_filename) as f:
-        responses = json.load(f)
+            dump_filename = os.path.join(
+                Mocket.get_truesocket_recording_dir(),
+                Mocket.get_namespace() + ".json",
+            )
+            with io.open(dump_filename) as f:
+                responses = json.load(f)
 
-    assert len(responses["httpbin.org"]["443"].keys()) == 1
+            assert len(responses["httpbin.org"]["443"].keys()) == 1
 
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
