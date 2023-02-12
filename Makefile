@@ -2,11 +2,11 @@
 
 install-dev-requirements:
 	pip install -U pip
-	pip install pipenv
+	pip install pipenv pre-commit
 
 install-test-requirements:
 	pipenv install --dev
-	pipenv run python -c "import pipfile; pf = pipfile.load('Pipfile'); print('\n'.join(package+version for package, version in pf.data['default'].items()))" > requirements.txt
+	pipenv run python -c "import pipfile; pf = pipfile.load('Pipfile'); print('\n'.join(package+version if version != '*' else package for package, version in pf.data['default'].items()))" > requirements.txt
 
 test-python:
 	@echo "Running Python tests"
