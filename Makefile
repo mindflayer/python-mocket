@@ -34,7 +34,7 @@ publish: install-test-requirements
 	pipenv run anaconda upload dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
 
 clean:
-	rm -rf *.egg-info dist/
+	rm -rf *.egg-info dist/ requirements.txt Pipfile.lock
 	find . -type d -name __pycache__ -exec rm -rf {} \;
 
 .PHONY: clean publish safetest test setup develop lint-python test-python install-test-requirements install-dev-requirements
