@@ -174,13 +174,13 @@ def test_mocketize_outside_a_test_class():
 
 
 @pytest.fixture
-def fixture():
+def two():
     return 2
 
 
 @mocketize
-def test_mocketize_with_fixture(fixture):
-    assert 2 == fixture
+def test_mocketize_with_fixture(two):
+    assert 2 == two
 
 
 @mocketize

@@ -15,11 +15,25 @@ concurrency:
 
 jobs:
   build:
-
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: ['3.5', '3.6', '3.7', '3.8', '3.9', '3.10', 'pypy3.9']
+        python-version: ['3.5', '3.6', '3.7', '3.8', '3.9', '3.10', '3.11', 'pypy3.9']
+
+    services:
+      # https://docs.github.com/en/actions/using-containerized-services/about-service-containers
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps port 6379 on service container to the host
+          - 6379:6379
 
     steps:
     - uses: actions/checkout@v3
@@ -31,9 +45,6 @@ jobs:
         cache-dependency-path: |
           Pipfile
           setup.py
-    - name: Install Redis
-      run: |
-        sudo apt install redis-server
     - name: Install dependencies
       run: |
         make develop

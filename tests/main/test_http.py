@@ -13,17 +13,15 @@ from urllib.request import urlopen
 import pytest
 import requests
 
-from mocket import Mocket, mocketize
+from mocket import Mocket, Mocketizer, mocketize
 from mocket.mockhttp import Entry, Response
-
-recording_directory = tempfile.mkdtemp()
 
 
 class HttpTestCase(TestCase):
     def assertEqualHeaders(self, first, second, msg=None):
         first = {k.lower(): v for k, v in first.items()}
         second = {k.lower(): v for k, v in second.items()}
-        self.assertEqual(first, second, msg)
+        self.assertDictEqual(first, second, msg)
 
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
@@ -36,57 +34,63 @@ class TrueHttpEntryTestCase(HttpTestCase):
         resp = requests.get(url)
         self.assertEqual(resp.status_code, 200)
 
-    @mocketize(truesocket_recording_dir=recording_directory)
     def test_truesendall_with_recording(self):
-        url = "http://httpbin.org/ip"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with Mocketizer(truesocket_recording_dir=temp_dir):
+                url = "http://httpbin.org/ip"
 
-        urlopen(url)
-        requests.get(url)
-        resp = urlopen(url)
-        self.assertEqual(resp.code, 200)
-        resp = requests.get(url)
-        self.assertEqual(resp.status_code, 200)
-        assert "origin" in resp.json()
+                urlopen(url)
+                requests.get(url)
+                resp = urlopen(url)
+                self.assertEqual(resp.code, 200)
+                resp = requests.get(url)
+                self.assertEqual(resp.status_code, 200)
+                assert "origin" in resp.json()
 
-        dump_filename = os.path.join(
-            Mocket.get_truesocket_recording_dir(), Mocket.get_namespace() + ".json"
-        )
-        with io.open(dump_filename) as f:
-            responses = json.load(f)
+                dump_filename = os.path.join(
+                    Mocket.get_truesocket_recording_dir(),
+                    Mocket.get_namespace() + ".json",
+                )
+                with io.open(dump_filename) as f:
+                    responses = json.load(f)
 
-        self.assertEqual(len(responses["httpbin.org"]["80"].keys()), 2)
+                self.assertEqual(len(responses["httpbin.org"]["80"].keys()), 2)
 
-    @mocketize(truesocket_recording_dir=recording_directory)
     def test_truesendall_with_gzip_recording(self):
-        url = "http://httpbin.org/gzip"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with Mocketizer(truesocket_recording_dir=temp_dir):
+                url = "http://httpbin.org/gzip"
 
-        requests.get(url)
-        resp = requests.get(url)
-        self.assertEqual(resp.status_code, 200)
+                requests.get(url)
+                resp = requests.get(url)
+                self.assertEqual(resp.status_code, 200)
 
-        dump_filename = os.path.join(
-            Mocket.get_truesocket_recording_dir(), Mocket.get_namespace() + ".json"
-        )
-        with io.open(dump_filename) as f:
-            responses = json.load(f)
+                dump_filename = os.path.join(
+                    Mocket.get_truesocket_recording_dir(),
+                    Mocket.get_namespace() + ".json",
+                )
+                with io.open(dump_filename) as f:
+                    responses = json.load(f)
 
-        assert len(responses["httpbin.org"]["80"].keys()) == 1
+                assert len(responses["httpbin.org"]["80"].keys()) == 1
 
-    @mocketize(truesocket_recording_dir=recording_directory)
     def test_truesendall_with_chunk_recording(self):
-        url = "http://httpbin.org/range/70000?chunk_size=65536"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with Mocketizer(truesocket_recording_dir=temp_dir):
+                url = "http://httpbin.org/range/70000?chunk_size=65536"
 
-        requests.get(url)
-        resp = requests.get(url)
-        self.assertEqual(resp.status_code, 200)
+                requests.get(url)
+                resp = requests.get(url)
+                self.assertEqual(resp.status_code, 200)
 
-        dump_filename = os.path.join(
-            Mocket.get_truesocket_recording_dir(), Mocket.get_namespace() + ".json"
-        )
-        with io.open(dump_filename) as f:
-            responses = json.load(f)
+                dump_filename = os.path.join(
+                    Mocket.get_truesocket_recording_dir(),
+                    Mocket.get_namespace() + ".json",
+                )
+                with io.open(dump_filename) as f:
+                    responses = json.load(f)
 
-        assert len(responses["httpbin.org"]["80"].keys()) == 1
+                assert len(responses["httpbin.org"]["80"].keys()) == 1
 
     @mocketize
     def test_wrongpath_truesendall(self):
