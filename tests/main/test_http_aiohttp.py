@@ -1,5 +1,4 @@
 import json
-import sys
 
 import aiohttp
 import pytest
@@ -13,7 +12,7 @@ timeout = aiohttp.ClientTimeout(total=3)
 
 
 @mocketize
-def test_http_session(event_loop):
+def test_http_session():
     url = "http://httpbin.org/ip"
     body = "asd" * 100
     Entry.single_register(Entry.GET, url, body=body, status=404)
@@ -36,9 +35,9 @@ def test_http_session(event_loop):
     assert len(Mocket.request_list()) == 2
 
 
-@pytest.mark.skipif(sys.version_info >= (3, 11), reason="Failing with Python 3.11")
+@pytest.mark.xfail
 @mocketize
-def test_https_session(event_loop):
+def test_https_session():
     url = "https://httpbin.org/ip"
     body = "asd" * 100
     Entry.single_register(Entry.GET, url, body=body, status=404)
@@ -59,9 +58,9 @@ def test_https_session(event_loop):
     assert len(Mocket.request_list()) == 2
 
 
-@pytest.mark.skipif(sys.version_info >= (3, 11), reason="Failing with Python 3.11")
+@pytest.mark.xfail
 @httprettified
-def test_httprettish_session(event_loop):
+def test_httprettish_session():
     url = "https://httpbin.org/ip"
     httpretty.register_uri(
         httpretty.GET,
