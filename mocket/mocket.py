@@ -14,8 +14,7 @@ from json.decoder import JSONDecodeError
 
 import urllib3
 from urllib3.connection import match_hostname as urllib3_match_hostname
-from urllib3.util.ssl_ import ssl_wrap_socket as urllib3_ssl_wrap_socket
-from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
+from urllib3.connection import ssl_wrap_socket as urllib3_ssl_wrap_socket
 
 from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, text_type
 from .exceptions import StrictMocketException
@@ -56,7 +55,6 @@ true_ssl_wrap_socket = ssl.wrap_socket
 true_ssl_socket = ssl.SSLSocket
 true_ssl_context = ssl.SSLContext
 true_inet_pton = socket.inet_pton
-true_urllib3_wrap_socket = urllib3_wrap_socket
 true_urllib3_ssl_wrap_socket = urllib3_ssl_wrap_socket
 true_urllib3_match_hostname = urllib3_match_hostname
 
@@ -380,7 +378,6 @@ class MocketSocket:
 
             # dump the resulting dictionary to a JSON file
             if Mocket.get_truesocket_recording_dir():
-
                 # update the dictionary with request and response lines
                 response_dict["request"] = req
                 response_dict["response"] = hexdump(encoded_response)
@@ -534,10 +531,7 @@ class Mocket:
         ssl.wrap_socket = ssl.__dict__["wrap_socket"] = true_ssl_wrap_socket
         ssl.SSLContext = ssl.__dict__["SSLContext"] = true_ssl_context
         socket.inet_pton = socket.__dict__["inet_pton"] = true_inet_pton
-        urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__[
-            "wrap_socket"
-        ] = true_urllib3_wrap_socket
-        urllib3.util.ssl_.ssl_wrap_socket = urllib3.util.ssl_.__dict__[
+        urllib3.util.ssl_wrap_socket = urllib3.util.__dict__[
             "ssl_wrap_socket"
         ] = true_urllib3_ssl_wrap_socket
         urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
