@@ -506,6 +506,9 @@ class Mocket:
         urllib3.util.ssl_.ssl_wrap_socket = urllib3.util.ssl_.__dict__[
             "ssl_wrap_socket"
         ] = FakeSSLContext.wrap_socket
+        urllib3.util.ssl_wrap_socket = urllib3.util.__dict__[
+            "ssl_wrap_socket"
+        ] = FakeSSLContext.wrap_socket
         urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
             "ssl_wrap_socket"
         ] = FakeSSLContext.wrap_socket
@@ -531,6 +534,9 @@ class Mocket:
         ssl.wrap_socket = ssl.__dict__["wrap_socket"] = true_ssl_wrap_socket
         ssl.SSLContext = ssl.__dict__["SSLContext"] = true_ssl_context
         socket.inet_pton = socket.__dict__["inet_pton"] = true_inet_pton
+        urllib3.util.ssl_.ssl_wrap_socket = urllib3.util.ssl_.__dict__[
+            "ssl_wrap_socket"
+        ] = true_urllib3_ssl_wrap_socket
         urllib3.util.ssl_wrap_socket = urllib3.util.__dict__[
             "ssl_wrap_socket"
         ] = true_urllib3_ssl_wrap_socket
