@@ -72,6 +72,7 @@ class SuperFakeSSLContext:
         def __set__(self, *args):
             pass
 
+    minimum_version = FakeSetter()
     options = FakeSetter()
     verify_mode = FakeSetter(ssl.CERT_NONE)
 
@@ -168,7 +169,7 @@ class MocketSocket:
     _secure_socket = False
 
     def __init__(
-        self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, *args, **kwargs
+        self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, **kwargs
     ):
         self.true_socket = true_socket(family, type, proto)
         self._buflen = 65536
@@ -520,7 +521,7 @@ class Mocket:
         ] = FakeSSLContext.wrap_socket
         urllib3.connection.match_hostname = urllib3.connection.__dict__[
             "match_hostname"
-        ] = lambda cert, hostname: None
+        ] = lambda *args: None
         if pyopenssl_override:  # pragma: no cover
             # Take out the pyopenssl version - use the default implementation
             extract_from_urllib3()

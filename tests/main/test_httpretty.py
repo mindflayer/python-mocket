@@ -54,7 +54,10 @@ def test_httpretty_provides_easy_access_to_querystrings():
 
     requests.get("http://yipit.com/?foo=bar&foo=baz&chuck=norris")
     expect(HTTPretty.last_request.querystring).to.equal(
-        {"foo": ["bar", "baz"], "chuck": ["norris"],}
+        {
+            "foo": ["bar", "baz"],
+            "chuck": ["norris"],
+        }
     )
 
 
@@ -118,13 +121,19 @@ def test_httpretty_should_allow_forcing_headers_requests():
         HTTPretty.GET,
         "http://github.com/foo",
         body="<root><baz /</root>",
-        forcing_headers={"Content-Type": "application/xml", "Content-Length": "19",},
+        forcing_headers={
+            "Content-Type": "application/xml",
+            "Content-Length": "19",
+        },
     )
 
     response = requests.get("http://github.com/foo")
 
     expect(dict(response.headers)).to.equal(
-        {"content-type": "application/xml", "content-length": "19",}
+        {
+            "content-type": "application/xml",
+            "content-length": "19",
+        }
     )
 
 
@@ -195,12 +204,18 @@ def test_can_inspect_last_request():
     response = requests.post(
         "http://api.github.com",
         '{"username": "gabrielfalcao"}',
-        headers={"content-type": "text/json",},
+        headers={
+            "content-type": "text/json",
+        },
     )
 
     expect(HTTPretty.last_request.method).to.equal("POST")
-    expect(HTTPretty.last_request.body).to.equal(b'{"username": "gabrielfalcao"}',)
-    expect(HTTPretty.last_request.headers["content-type"]).to.equal("text/json",)
+    expect(HTTPretty.last_request.body).to.equal(
+        b'{"username": "gabrielfalcao"}',
+    )
+    expect(HTTPretty.last_request.headers["content-type"]).to.equal(
+        "text/json",
+    )
     expect(response.json()).to.equal({"repositories": ["HTTPretty", "lettuce"]})
 
 
@@ -216,12 +231,18 @@ def test_can_inspect_last_request_with_ssl():
     response = requests.post(
         "https://secure.github.com",
         '{"username": "gabrielfalcao"}',
-        headers={"content-type": "text/json",},
+        headers={
+            "content-type": "text/json",
+        },
     )
 
     expect(HTTPretty.last_request.method).to.equal("POST")
-    expect(HTTPretty.last_request.body).to.equal(b'{"username": "gabrielfalcao"}',)
-    expect(HTTPretty.last_request.headers["content-type"]).to.equal("text/json",)
+    expect(HTTPretty.last_request.body).to.equal(
+        b'{"username": "gabrielfalcao"}',
+    )
+    expect(HTTPretty.last_request.headers["content-type"]).to.equal(
+        "text/json",
+    )
     expect(response.json()).to.equal({"repositories": ["HTTPretty", "lettuce"]})
 
 
@@ -240,14 +261,15 @@ def test_httpretty_ignores_querystrings_from_registered_uri():
 
 @httprettified
 def test_multiline():
-    url = "http://httpbin.org/post"
+    url = "http://httpbin.local/post"
     data = b"content=Im\r\na multiline\r\n\r\nsentence\r\n"
     headers = {
         "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
         "Accept": "text/plain",
     }
     HTTPretty.register_uri(
-        HTTPretty.POST, url,
+        HTTPretty.POST,
+        url,
     )
     response = requests.post(url, data=data, headers=headers)
 
@@ -264,7 +286,7 @@ def test_multiline():
 
 @httprettified
 def test_multipart():
-    url = "http://httpbin.org/post"
+    url = "http://httpbin.local/post"
     data = b'--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="content"\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 68\r\n\r\nAction: comment\nText: Comment with attach\nAttachment: x1.txt, x2.txt\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_2"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_1"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz--\r\n'
     headers = {
         "Content-Length": "495",
@@ -272,7 +294,8 @@ def test_multipart():
         "Accept": "text/plain",
     }
     HTTPretty.register_uri(
-        HTTPretty.POST, url,
+        HTTPretty.POST,
+        url,
     )
     response = requests.post(url, data=data, headers=headers)
     expect(response.status_code).to.equal(200)

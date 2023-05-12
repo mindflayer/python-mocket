@@ -28,7 +28,7 @@ class HttpTestCase(TestCase):
 class TrueHttpEntryTestCase(HttpTestCase):
     @mocketize
     def test_truesendall(self):
-        url = "http://httpbin.org/ip"
+        url = "http://httpbin.local/ip"
         resp = urlopen(url)
         self.assertEqual(resp.code, 200)
         resp = requests.get(url)
@@ -37,7 +37,7 @@ class TrueHttpEntryTestCase(HttpTestCase):
     def test_truesendall_with_recording(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             with Mocketizer(truesocket_recording_dir=temp_dir):
-                url = "http://httpbin.org/ip"
+                url = "http://httpbin.local/ip"
 
                 urlopen(url)
                 requests.get(url)
@@ -54,12 +54,12 @@ class TrueHttpEntryTestCase(HttpTestCase):
                 with io.open(dump_filename) as f:
                     responses = json.load(f)
 
-                self.assertEqual(len(responses["httpbin.org"]["80"].keys()), 2)
+        self.assertEqual(len(responses["httpbin.local"]["80"].keys()), 2)
 
     def test_truesendall_with_gzip_recording(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             with Mocketizer(truesocket_recording_dir=temp_dir):
-                url = "http://httpbin.org/gzip"
+                url = "http://httpbin.local/gzip"
 
                 requests.get(url)
                 resp = requests.get(url)
@@ -72,12 +72,12 @@ class TrueHttpEntryTestCase(HttpTestCase):
                 with io.open(dump_filename) as f:
                     responses = json.load(f)
 
-                assert len(responses["httpbin.org"]["80"].keys()) == 1
+        assert len(responses["httpbin.local"]["80"].keys()) == 1
 
     def test_truesendall_with_chunk_recording(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             with Mocketizer(truesocket_recording_dir=temp_dir):
-                url = "http://httpbin.org/range/70000?chunk_size=65536"
+                url = "http://httpbin.local/range/70000?chunk_size=65536"
 
                 requests.get(url)
                 resp = requests.get(url)
@@ -90,12 +90,14 @@ class TrueHttpEntryTestCase(HttpTestCase):
                 with io.open(dump_filename) as f:
                     responses = json.load(f)
 
-                assert len(responses["httpbin.org"]["80"].keys()) == 1
+        assert len(responses["httpbin.local"]["80"].keys()) == 1
 
     @mocketize
     def test_wrongpath_truesendall(self):
-        Entry.register(Entry.GET, "http://httpbin.org/user.agent", Response(status=404))
-        response = urlopen("http://httpbin.org/ip")
+        Entry.register(
+            Entry.GET, "http://httpbin.local/user.agent", Response(status=404)
+        )
+        response = urlopen("http://httpbin.local/ip")
         self.assertEqual(response.code, 200)
 
 
@@ -209,7 +211,7 @@ class HttpEntryTestCase(HttpTestCase):
 
     @mocketize
     def test_multipart(self):
-        url = "http://httpbin.org/post"
+        url = "http://httpbin.local/post"
         data = '--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="content"\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 68\r\n\r\nAction: comment\nText: Comment with attach\nAttachment: x1.txt, x2.txt\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_2"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_1"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz--\r\n'
         headers = {
             "Content-Length": "495",
@@ -233,7 +235,7 @@ class HttpEntryTestCase(HttpTestCase):
                 "accept-encoding": "identity",
                 "content-length": "495",
                 "content-type": "multipart/form-data; boundary=xXXxXXyYYzzz",
-                "host": "httpbin.org",
+                "host": "httpbin.local",
                 "user-agent": "Mocket",
                 "connection": "keep-alive",
             },
@@ -304,9 +306,11 @@ class HttpEntryTestCase(HttpTestCase):
 
     @mocketize(truesocket_recording_dir=os.path.dirname(__file__))
     def test_truesendall_with_dump_from_recording(self):
-        requests.get("http://httpbin.org/ip", headers={"user-agent": "Fake-User-Agent"})
         requests.get(
-            "http://httpbin.org/gzip", headers={"user-agent": "Fake-User-Agent"}
+            "http://httpbin.local/ip", headers={"user-agent": "Fake-User-Agent"}
+        )
+        requests.get(
+            "http://httpbin.local/gzip", headers={"user-agent": "Fake-User-Agent"}
         )
 
         dump_filename = os.path.join(
@@ -315,7 +319,7 @@ class HttpEntryTestCase(HttpTestCase):
         with io.open(dump_filename) as f:
             responses = json.load(f)
 
-        self.assertEqual(len(responses["httpbin.org"]["80"].keys()), 2)
+        self.assertEqual(len(responses["httpbin.local"]["80"].keys()), 2)
 
     @mocketize
     def test_post_file_object(self):

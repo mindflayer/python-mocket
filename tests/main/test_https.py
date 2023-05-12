@@ -38,9 +38,6 @@ def test_json(response):
     assert response == mocked_response
 
 
-recording_directory = tempfile.mkdtemp()
-
-
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
 def test_truesendall_with_recording_https():
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -58,7 +55,7 @@ def test_truesendall_with_recording_https():
             with io.open(dump_filename) as f:
                 responses = json.load(f)
 
-            assert len(responses["httpbin.org"]["443"].keys()) == 1
+    assert len(responses["httpbin.org"]["443"].keys()) == 1
 
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')

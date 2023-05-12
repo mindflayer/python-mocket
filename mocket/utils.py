@@ -5,7 +5,7 @@ import ssl
 
 from .compat import decode_from_bytes, encode_to_bytes
 
-SSL_PROTOCOL = ssl.PROTOCOL_SSLv23
+SSL_PROTOCOL = ssl.PROTOCOL_TLSv1_2
 
 
 class MocketSocketCore(io.BytesIO):
