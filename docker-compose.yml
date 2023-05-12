@@ -1,0 +1,15 @@
+services:
+  proxy:
+    container_name: proxy
+    image: shroomlife/docker-https-proxy:latest
+    hostname: "httpbin.local"
+    ports:
+      - "80:80"
+      - "443:443"
+  httpbin:
+    container_name: httpbin.local.proxy
+    image: kennethreitz/httpbin:latest
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
