@@ -20,21 +20,6 @@ jobs:
       matrix:
         python-version: ['3.5', '3.6', '3.7', '3.8', '3.9', '3.10', '3.11', 'pypy3.9']
 
-    services:
-      # https://docs.github.com/en/actions/using-containerized-services/about-service-containers
-      redis:
-        # Docker Hub image
-        image: redis
-        # Set health checks to wait until redis has started
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          # Maps port 6379 on service container to the host
-          - 6379:6379
-
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -45,12 +30,24 @@ jobs:
         cache-dependency-path: |
           Pipfile
           setup.py
+    - uses: isbang/compose-action@v1.4.1
+      with:
+        compose-file: "./docker-compose.yml"
+        down-flags: "--remove-orphans"
+        up-flags: "--no-start"
     - name: Install dependencies
       run: |
         make develop
+        make services-up
+    - name: Setup hostname
+      run: |
+        export CONTAINER_ID=$(docker-compose ps -q proxy)
+        export CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_ID)
+        echo "$CONTAINER_IP httpbin.local" | sudo tee -a /etc/hosts
     - name: Test
       run: |
         make test
+        make services-down
     - name: Push Coveralls
       run: |
         pip install -q coveralls coveralls[yaml]

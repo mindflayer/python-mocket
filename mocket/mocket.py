@@ -15,7 +15,11 @@ from json.decoder import JSONDecodeError
 import urllib3
 from urllib3.connection import match_hostname as urllib3_match_hostname
 from urllib3.util.ssl_ import ssl_wrap_socket as urllib3_ssl_wrap_socket
-from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
+
+try:
+    from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
+except ImportError:
+    urllib3_wrap_socket = None
 
 from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, text_type
 from .exceptions import StrictMocketException
@@ -68,6 +72,7 @@ class SuperFakeSSLContext:
         def __set__(self, *args):
             pass
 
+    minimum_version = FakeSetter()
     options = FakeSetter()
     verify_mode = FakeSetter(ssl.CERT_NONE)
 
@@ -164,7 +169,7 @@ class MocketSocket:
     _secure_socket = False
 
     def __init__(
-        self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, *args, **kwargs
+        self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, **kwargs
     ):
         self.true_socket = true_socket(family, type, proto)
         self._buflen = 65536
@@ -380,7 +385,6 @@ class MocketSocket:
 
             # dump the resulting dictionary to a JSON file
             if Mocket.get_truesocket_recording_dir():
-
                 # update the dictionary with request and response lines
                 response_dict["request"] = req
                 response_dict["response"] = hexdump(encoded_response)
@@ -509,12 +513,15 @@ class Mocket:
         urllib3.util.ssl_.ssl_wrap_socket = urllib3.util.ssl_.__dict__[
             "ssl_wrap_socket"
         ] = FakeSSLContext.wrap_socket
+        urllib3.util.ssl_wrap_socket = urllib3.util.__dict__[
+            "ssl_wrap_socket"
+        ] = FakeSSLContext.wrap_socket
         urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
             "ssl_wrap_socket"
         ] = FakeSSLContext.wrap_socket
         urllib3.connection.match_hostname = urllib3.connection.__dict__[
             "match_hostname"
-        ] = lambda cert, hostname: None
+        ] = lambda *args: None
         if pyopenssl_override:  # pragma: no cover
             # Take out the pyopenssl version - use the default implementation
             extract_from_urllib3()
@@ -538,6 +545,9 @@ class Mocket:
             "wrap_socket"
         ] = true_urllib3_wrap_socket
         urllib3.util.ssl_.ssl_wrap_socket = urllib3.util.ssl_.__dict__[
+            "ssl_wrap_socket"
+        ] = true_urllib3_ssl_wrap_socket
+        urllib3.util.ssl_wrap_socket = urllib3.util.__dict__[
             "ssl_wrap_socket"
         ] = true_urllib3_ssl_wrap_socket
         urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[

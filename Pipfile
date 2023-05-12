@@ -30,6 +30,8 @@ wheel = "*"
 twine = "*"
 anaconda-client = "*"
 fastapi = "*"
+docker-compose = "*"
+wait-for-it = "*"
 
 [requires]
 python_version = "3"

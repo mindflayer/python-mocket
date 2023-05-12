@@ -13,7 +13,7 @@ from mocket.plugins.httpretty import HTTPretty, async_httprettified
 
 class AioHttpEntryTestCase(IsolatedAsyncioTestCase):
     timeout = aiohttp.ClientTimeout(total=3)
-    target_url = "http://httpbin.org/ip"
+    target_url = "http://httpbin.local/ip"
 
     @async_mocketize
     async def test_http_session(self):

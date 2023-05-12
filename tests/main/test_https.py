@@ -38,14 +38,11 @@ def test_json(response):
     assert response == mocked_response
 
 
-recording_directory = tempfile.mkdtemp()
-
-
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
 def test_truesendall_with_recording_https():
     with tempfile.TemporaryDirectory() as temp_dir:
         with Mocketizer(truesocket_recording_dir=temp_dir):
-            url = "https://httpbin.org/ip"
+            url = "https://mockbin.org/ip"
 
             requests.get(url, headers={"Accept": "application/json"})
             resp = requests.get(url, headers={"Accept": "application/json"})
@@ -58,7 +55,7 @@ def test_truesendall_with_recording_https():
             with io.open(dump_filename) as f:
                 responses = json.load(f)
 
-            assert len(responses["httpbin.org"]["443"].keys()) == 1
+    assert len(responses["mockbin.org"]["443"].keys()) == 1
 
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
@@ -66,7 +63,7 @@ def test_truesendall_after_mocket_session():
     Mocket.enable()
     Mocket.disable()
 
-    url = "https://httpbin.org/ip"
+    url = "https://mockbin.org/ip"
     resp = requests.get(url)
     assert resp.status_code == 200
 
@@ -75,7 +72,7 @@ def test_truesendall_after_mocket_session():
 def test_real_request_session():
     session = requests.Session()
 
-    url1 = "https://httpbin.org/ip"
+    url1 = "https://mockbin.org/ip"
     url2 = "http://httpbin.org/headers"
 
     with Mocketizer():

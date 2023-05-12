@@ -2,15 +2,21 @@
 
 install-dev-requirements:
 	pip install -U pip
-	pip install pipenv pre-commit
+	pip install pipenv
 
 install-test-requirements:
 	pipenv install --dev
 	pipenv run python -c "import pipfile; pf = pipfile.load('Pipfile'); print('\n'.join(package+version if version != '*' else package for package, version in pf.data['default'].items()))" > requirements.txt
 
+services-up:
+	pipenv run docker-compose up -d
+
+services-down:
+	pipenv run docker-compose down --remove-orphans
+
 test-python:
 	@echo "Running Python tests"
-	pipenv run python run_tests.py || exit 1
+	pipenv run wait-for-it --service httpbin.local:443 --service localhost:6379 --timeout 5 -- pipenv run python run_tests.py || exit 1
 	@echo ""
 
 lint-python:
@@ -37,4 +43,5 @@ clean:
 	rm -rf *.egg-info dist/ requirements.txt Pipfile.lock
 	find . -type d -name __pycache__ -exec rm -rf {} \;
 
-.PHONY: clean publish safetest test setup develop lint-python test-python install-test-requirements install-dev-requirements
+.PHONY: clean publish safetest test setup develop lint-python test-python
+.PHONY: services-up services-down install-test-requirements install-dev-requirements

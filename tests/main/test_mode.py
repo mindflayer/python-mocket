@@ -7,7 +7,7 @@ from mocket.exceptions import StrictMocketException
 
 @mocketize(strict_mode=True)
 def test_strict_mode_fails():
-    url = "https://httpbin.org/ip"
+    url = "http://httpbin.local/ip"
 
     with pytest.raises(StrictMocketException):
         requests.get(url)
@@ -15,7 +15,7 @@ def test_strict_mode_fails():
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
 def test_intermittent_strict_mode():
-    url = "https://httpbin.org/ip"
+    url = "http://httpbin.local/ip"
 
     with Mocketizer(strict_mode=False):
         requests.get(url)
