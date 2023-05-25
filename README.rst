@@ -27,7 +27,7 @@ Outside GitHub
 Thanks to `@felixonmars`_, Mocket is available in the `Arch Linux repository`_. It's also packaged for `openSUSE`_, `NixOS`_ and `ALT Linux`_.
 
 .. _`@felixonmars`: https://github.com/felixonmars
-.. _`Arch Linux repository`: https://www.archlinux.org/packages/community/any/python-mocket/
+.. _`Arch Linux repository`: https://archlinux.org/packages/extra/any/python-mocket/
 .. _`openSUSE`: https://software.opensuse.org/package/python-mocket
 .. _`NixOS`: https://search.nixos.org/packages?query=mocket
 .. _`ALT Linux`: https://packages.altlinux.org/en/sisyphus/srpms/python3-module-mocket/
