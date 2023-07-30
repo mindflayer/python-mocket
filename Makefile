@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 install-dev-requirements:
-	pip install -U pip
+	pip install -U pip hatch
 
 install-test-requirements:
 	pip install .[test]

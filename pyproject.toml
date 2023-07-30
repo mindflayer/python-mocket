@@ -65,3 +65,16 @@ pook = [
 
 [tool.hatch.version]
 path = "mocket/__init__.py"
+
+[tool.hatch.build]
+ignore-vcs = true
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "run_tests.py",
+    "README.rst",
+    "LICENSE",
+    "pyproject.toml",
+    "mocket/",
+    "tests/",
+]
