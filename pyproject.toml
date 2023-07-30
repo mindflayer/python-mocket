@@ -1,12 +1,11 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 requires-python = ">=3.5"
 name = "mocket"
 description = "Socket Mock Framework - for all kinds of socket animals, web-clients included - with gevent/asyncio/SSL support"
-version = "3.11.1"
 readme = { file = "README.rst", content-type = "text/x-rst" }
 license = { file = "LICENSE" }
 authors = [{ name = "Giorgio Salluzzo", email = "giorgio.salluzzo@gmail.com" }]
@@ -65,3 +64,6 @@ speedups = [
 pook = [
     "pook>=0.2.1",
 ]
+
+[tool.hatch.version]
+path = "mocket/__init__.py"
