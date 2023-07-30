@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+requires-python = ">=3.5"
+name = "mocket"
+description = "Socket Mock Framework - for all kinds of socket animals, web-clients included - with gevent/asyncio/SSL support"
+version = "3.11.1"
+readme = { file = "README.rst", content-type = "text/x-rst" }
+license = { file = "LICENSE" }
+authors = [{ name = "Giorgio Salluzzo", email = "giorgio.salluzzo@gmail.com" }]
+urls = { github = "https://github.com/mindflayer/python-mocket" }
+classifiers = [
+    "Development Status :: 6 - Mature",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.5",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Testing",
+    "License :: OSI Approved :: BSD License",
+]
+dependencies = [
+    "python-magic>=0.4.5",
+    "decorator>=4.0.0",
+    "urllib3>=1.25.3",
+    "httptools",
+]
+
+[project.optional-dependencies]
+test = [
+    "pre-commit",
+    "pytest",
+    "pytest-cov",
+    "pytest-asyncio",
+    "asgiref",
+    "requests",
+    "redis",
+    "gevent",
+    "sure",
+    "pook",
+    "flake8",
+    "xxhash",
+    "aiohttp",
+    "httpx",
+    "pipfile",
+    "build",
+    "twine",
+    "fastapi",
+    "docker-compose",
+    "wait-for-it",
+]
+speedups = [
+    'xxhash;platform_python_implementation=="CPython"',
+    'xxhash-cffi;platform_python_implementation=="PyPy"',
+]
+pook = [
+    "pook>=0.2.1",
+]
