@@ -4,7 +4,7 @@ install-dev-requirements:
 	pip install -U pip
 
 install-test-requirements:
-	pip install -e .[test]
+	pip install .[test]
 
 services-up:
 	docker-compose up -d
