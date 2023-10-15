@@ -71,7 +71,6 @@ ignore-vcs = true
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "run_tests.py",
     "README.rst",
     "LICENSE",
     "pyproject.toml",

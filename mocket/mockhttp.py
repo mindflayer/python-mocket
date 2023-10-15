@@ -16,6 +16,7 @@ except ImportError:
 
 STATUS = {k: v[0] for k, v in BaseHTTPRequestHandler.responses.items()}
 CRLF = "\r\n"
+ASCII = "ascii"
 
 
 class Protocol:
@@ -25,7 +26,7 @@ class Protocol:
         self.headers = {}
 
     def on_header(self, name: bytes, value: bytes):
-        self.headers[name.decode("ascii")] = value.decode("ascii")
+        self.headers[name.decode(ASCII)] = value.decode(ASCII)
 
     def on_body(self, body: bytes):
         try:
@@ -34,7 +35,7 @@ class Protocol:
             self.body = body
 
     def on_url(self, url: bytes):
-        self.url = url.decode("ascii")
+        self.url = url.decode(ASCII)
 
 
 class Request:
@@ -51,7 +52,7 @@ class Request:
 
     @property
     def method(self):
-        return self._parser.get_method().decode("ascii")
+        return self._parser.get_method().decode(ASCII)
 
     @property
     def path(self):
@@ -110,7 +111,7 @@ class Response:
                 for k, v in self.headers.items()
             )
         )
-        return "{0}\r\n{1}\r\n\r\n".format(status_line, header_lines).encode("utf-8")
+        return "{0}\r\n{1}\r\n\r\n".format(status_line, header_lines).encode(ENCODING)
 
     def set_base_headers(self):
         self.headers = {
@@ -121,7 +122,7 @@ class Response:
             "Content-Length": str(len(self.body)),
         }
         if not self.is_file_object:
-            self.headers["Content-Type"] = "text/plain; charset=utf-8"
+            self.headers["Content-Type"] = f"text/plain; charset={ENCODING}"
         elif self.magic:
             self.headers["Content-Type"] = do_the_magic(self.magic, self.body)
 
@@ -237,7 +238,6 @@ class Entry(MocketEntry):
 
     @classmethod
     def register(cls, method, uri, *responses, **config):
-
         if "body" in config or "status" in config:
             raise AttributeError("Did you mean `Entry.single_register(...)`?")
 
@@ -263,7 +263,6 @@ class Entry(MocketEntry):
         match_querystring=True,
         exception=None,
     ):
-
         response = (
             exception
             if exception

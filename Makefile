@@ -14,7 +14,7 @@ services-down:
 
 test-python:
 	@echo "Running Python tests"
-	wait-for-it --service httpbin.local:443 --service localhost:6379 --timeout 5 -- python run_tests.py || exit 1
+	wait-for-it --service httpbin.local:443 --service localhost:6379 --timeout 5 -- pytest tests/ || exit 1
 	@echo ""
 
 lint-python:
