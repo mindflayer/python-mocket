@@ -45,7 +45,7 @@ test = [
     "gevent",
     "sure",
     "pook",
-    "flake8",
+    "flake8>5",
     "xxhash",
     "aiohttp",
     "httpx",
