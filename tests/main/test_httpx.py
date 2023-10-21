@@ -1,6 +1,5 @@
 import json
 
-import aiohttp
 import httpx
 import pytest
 from asgiref.sync import async_to_sync
@@ -8,8 +7,6 @@ from asgiref.sync import async_to_sync
 from mocket.mocket import Mocket, mocketize
 from mocket.mockhttp import Entry
 from mocket.plugins.httpretty import httprettified, httpretty
-
-timeout = aiohttp.ClientTimeout(total=3)
 
 
 @mocketize
