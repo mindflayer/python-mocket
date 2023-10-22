@@ -602,9 +602,7 @@ class MocketEntry:
         else:
             self.responses = []
             for r in responses:
-                if isinstance(r, BaseException):
-                    pass
-                elif not getattr(r, "data", False):
+                if not isinstance(r, BaseException) and not getattr(r, "data", False):
                     if isinstance(r, text_type):
                         r = encode_to_bytes(r)
                     r = self.response_cls(r)
