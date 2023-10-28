@@ -57,7 +57,7 @@ true_gethostname = socket.gethostname
 true_getaddrinfo = socket.getaddrinfo
 true_socketpair = socket.socketpair
 true_ssl_wrap_socket = getattr(
-    ssl, "wrap_socket", default=None
+    ssl, "wrap_socket", None
 )  # in Py3.12 it's only under SSLContext
 true_ssl_socket = ssl.SSLSocket
 true_ssl_context = ssl.SSLContext
