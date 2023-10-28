@@ -14,11 +14,11 @@ classifiers = [
     "Development Status :: 6 - Mature",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Software Development",
@@ -45,9 +45,9 @@ test = [
     "gevent",
     "sure",
     "pook",
-    "flake8",
+    "flake8>5",
     "xxhash",
-    "aiohttp",
+    "aiohttp;python_version<'3.12'",
     "httpx",
     "pipfile",
     "build",
@@ -56,8 +56,8 @@ test = [
     "wait-for-it",
 ]
 speedups = [
-    'xxhash;platform_python_implementation=="CPython"',
-    'xxhash-cffi;platform_python_implementation=="PyPy"',
+    "xxhash;platform_python_implementation=='CPython'",
+    "xxhash-cffi;platform_python_implementation=='PyPy'",
 ]
 pook = [
     "pook>=0.2.1",
@@ -71,7 +71,6 @@ ignore-vcs = true
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "run_tests.py",
     "README.rst",
     "LICENSE",
     "pyproject.toml",

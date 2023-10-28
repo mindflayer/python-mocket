@@ -1,6 +1,5 @@
 import json
 
-import aiohttp
 import httpx
 import pytest
 from asgiref.sync import async_to_sync
@@ -9,11 +8,9 @@ from mocket.mocket import Mocket, mocketize
 from mocket.mockhttp import Entry
 from mocket.plugins.httpretty import httprettified, httpretty
 
-timeout = aiohttp.ClientTimeout(total=3)
-
 
 @mocketize
-@pytest.mark.parametrize("url", ["http://httpbin.org/ip", "https://httpbin.org/ip"])
+@pytest.mark.parametrize("url", ("http://httpbin.org/ip", "https://httpbin.org/ip"))
 def test_body(url):
     body = "asd" * 100
     Entry.single_register(Entry.GET, url, body=body, status=404)

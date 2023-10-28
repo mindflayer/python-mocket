@@ -12,6 +12,11 @@ from mocket.mockhttp import Entry
 
 
 @pytest.fixture
+def url_to_mock():
+    return "https://httpbin.org/ip"
+
+
+@pytest.fixture
 def response():
     return {
         "integer": 1,
@@ -39,13 +44,11 @@ def test_json(response):
 
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
-def test_truesendall_with_recording_https():
+def test_truesendall_with_recording_https(url_to_mock):
     with tempfile.TemporaryDirectory() as temp_dir:
         with Mocketizer(truesocket_recording_dir=temp_dir):
-            url = "https://mockbin.org/ip"
-
-            requests.get(url, headers={"Accept": "application/json"})
-            resp = requests.get(url, headers={"Accept": "application/json"})
+            requests.get(url_to_mock, headers={"Accept": "application/json"})
+            resp = requests.get(url_to_mock, headers={"Accept": "application/json"})
             assert resp.status_code == 200
 
             dump_filename = os.path.join(
@@ -55,25 +58,25 @@ def test_truesendall_with_recording_https():
             with io.open(dump_filename) as f:
                 responses = json.load(f)
 
-    assert len(responses["mockbin.org"]["443"].keys()) == 1
+    assert len(responses["httpbin.org"]["443"].keys()) == 1
 
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
-def test_truesendall_after_mocket_session():
+def test_truesendall_after_mocket_session(url_to_mock):
     Mocket.enable()
     Mocket.disable()
 
-    url = "https://mockbin.org/ip"
-    resp = requests.get(url)
+    resp = requests.get(url_to_mock)
     assert resp.status_code == 200
 
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
-def test_real_request_session():
+def test_real_request_session(url_to_mock):
     session = requests.Session()
 
-    url1 = "https://mockbin.org/ip"
-    url2 = "http://httpbin.org/headers"
+    url_to_compare = "http://httpbin.org/headers"
 
     with Mocketizer():
-        assert len(session.get(url1).content) < len(session.get(url2).content)
+        assert len(session.get(url_to_mock).content) < len(
+            session.get(url_to_compare).content
+        )

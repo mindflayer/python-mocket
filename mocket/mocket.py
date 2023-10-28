@@ -56,7 +56,9 @@ true_gethostbyname = socket.gethostbyname
 true_gethostname = socket.gethostname
 true_getaddrinfo = socket.getaddrinfo
 true_socketpair = socket.socketpair
-true_ssl_wrap_socket = ssl.wrap_socket
+true_ssl_wrap_socket = getattr(
+    ssl, "wrap_socket", None
+)  # in Py3.12 it's only under SSLContext
 true_ssl_socket = ssl.SSLSocket
 true_ssl_context = ssl.SSLContext
 true_inet_pton = socket.inet_pton
@@ -538,7 +540,8 @@ class Mocket:
         socket.gethostbyname = socket.__dict__["gethostbyname"] = true_gethostbyname
         socket.getaddrinfo = socket.__dict__["getaddrinfo"] = true_getaddrinfo
         socket.socketpair = socket.__dict__["socketpair"] = true_socketpair
-        ssl.wrap_socket = ssl.__dict__["wrap_socket"] = true_ssl_wrap_socket
+        if true_ssl_wrap_socket:
+            ssl.wrap_socket = ssl.__dict__["wrap_socket"] = true_ssl_wrap_socket
         ssl.SSLContext = ssl.__dict__["SSLContext"] = true_ssl_context
         socket.inet_pton = socket.__dict__["inet_pton"] = true_inet_pton
         urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__[
@@ -602,9 +605,7 @@ class MocketEntry:
         else:
             self.responses = []
             for r in responses:
-                if isinstance(r, BaseException):
-                    pass
-                elif not getattr(r, "data", False):
+                if not isinstance(r, BaseException) and not getattr(r, "data", False):
                     if isinstance(r, text_type):
                         r = encode_to_bytes(r)
                     r = self.response_cls(r)
