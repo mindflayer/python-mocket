@@ -26,3 +26,14 @@ def test_intermittent_strict_mode():
 
     with Mocketizer(strict_mode=False):
         requests.get(url)
+
+
+@pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
+def test_strict_mode_exceptions():
+    url = "http://httpbin.local/ip"
+
+    with Mocketizer(strict_mode=True, strict_mode_allowed=["httpbin.local"]):
+        requests.get(url)
+
+    with Mocketizer(strict_mode=True, strict_mode_allowed=[("httpbin.local", 80)]):
+        requests.get(url)
