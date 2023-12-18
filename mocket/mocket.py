@@ -312,8 +312,19 @@ class MocketSocket:
     def true_sendall(self, data, *args, **kwargs):
         if MocketMode().STRICT:
             if not MocketMode().allowed((self._host, self._port)):
+                current_entries = [
+                    (location, "\n    ".join(map(str, entries)))
+                    for location, entries in Mocket._entries.items()
+                ]
+                formatted_entries = "\n".join(
+                    [
+                        f"  {location}:\n    {entries}"
+                        for location, entries in current_entries
+                    ]
+                )
                 raise StrictMocketException(
-                    "Mocket tried to use the real `socket` module."
+                    "Mocket tried to use the real `socket` module while strict mode is active.\n"
+                    f"Registered entries:\n{formatted_entries}"
                 )
 
         req = decode_from_bytes(data)
@@ -613,6 +624,9 @@ class MocketEntry:
                         r = encode_to_bytes(r)
                     r = self.response_cls(r)
                 self.responses.append(r)
+
+    def __repr__(self):
+        return "{}(location={})".format(self.__class__.__name__, self.location)
 
     @staticmethod
     def can_handle(data):

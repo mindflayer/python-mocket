@@ -175,6 +175,18 @@ class Entry(MocketEntry):
         self._sent_data = b""
         self._match_querystring = match_querystring
 
+    def __repr__(self):
+        return (
+            "{}(method={!r}, schema={!r}, location={!r}, path={!r}, query={!r})".format(
+                self.__class__.__name__,
+                self.method,
+                self.schema,
+                self.location,
+                self.path,
+                self.query,
+            )
+        )
+
     def collect(self, data):
         consume_response = True
 
