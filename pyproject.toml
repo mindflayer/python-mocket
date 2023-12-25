@@ -77,3 +77,6 @@ include = [
     "mocket/",
     "tests/",
 ]
+exclude = [
+  ".*",
+]
