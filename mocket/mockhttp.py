@@ -160,13 +160,14 @@ class Entry(MocketEntry):
     def __init__(self, uri, method, responses, match_querystring=True):
         uri = urlsplit(uri)
 
-        if not uri.port:
+        port = uri.port
+        if not port:
             if uri.scheme == "https":
                 port = 443
             else:
                 port = 80
 
-        super(Entry, self).__init__((uri.hostname, uri.port or port), responses)
+        super(Entry, self).__init__((uri.hostname, port), responses)
         self.schema = uri.scheme
         self.path = uri.path
         self.query = uri.query

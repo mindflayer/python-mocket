@@ -4,7 +4,7 @@ install-dev-requirements:
 	pip install -U pip hatch
 
 install-test-requirements:
-	pip install .[test]
+	pip install -U .[test]
 
 services-up:
 	docker-compose up -d
