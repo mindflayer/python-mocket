@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-requires-python = ">=3.5"
+requires-python = ">=3.8"
 name = "mocket"
 description = "Socket Mock Framework - for all kinds of socket animals, web-clients included - with gevent/asyncio/SSL support"
 readme = { file = "README.rst", content-type = "text/x-rst" }
