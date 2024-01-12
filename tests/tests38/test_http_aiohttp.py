@@ -1,8 +1,6 @@
 import json
 from unittest import IsolatedAsyncioTestCase
 
-import pytest
-
 from mocket.async_mocket import async_mocketize
 from mocket.mocket import Mocket
 from mocket.mockhttp import Entry
@@ -45,6 +43,23 @@ if ENABLE_TEST_CLASS:
 
             self.assertEqual(len(Mocket.request_list()), 2)
 
+        @async_httprettified
+        async def test_httprettish_session(self):
+            HTTPretty.register_uri(
+                HTTPretty.GET,
+                self.target_url,
+                body=json.dumps(dict(origin="127.0.0.1")),
+            )
+
+            async with aiohttp.ClientSession(timeout=self.timeout) as session:
+                async with session.get(self.target_url) as get_response:
+                    assert get_response.status == 200
+                    assert await get_response.text() == '{"origin": "127.0.0.1"}'
+
+    class AioHttpsEntryTestCase(IsolatedAsyncioTestCase):
+        timeout = aiohttp.ClientTimeout(total=3)
+        target_url = "https://httpbin.localhost/anything/"
+
         @async_mocketize
         async def test_https_session(self):
             body = "asd" * 100
@@ -66,7 +81,6 @@ if ENABLE_TEST_CLASS:
 
             self.assertEqual(len(Mocket.request_list()), 2)
 
-        @pytest.mark.xfail
         @async_httprettified
         async def test_httprettish_session(self):
             HTTPretty.register_uri(
