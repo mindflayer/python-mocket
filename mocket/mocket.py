@@ -49,6 +49,13 @@ try:  # pragma: no cover
 except ImportError:
     pyopenssl_override = False
 
+try:  # pragma: no cover
+    from aiohttp import TCPConnector
+
+    aiohttp_make_ssl_context_cache_clear = TCPConnector._make_ssl_context.cache_clear
+except (ImportError, AttributeError):
+    aiohttp_make_ssl_context_cache_clear = None
+
 
 true_socket = socket.socket
 true_create_connection = socket.create_connection
@@ -548,6 +555,8 @@ class Mocket:
         if pyopenssl_override:  # pragma: no cover
             # Take out the pyopenssl version - use the default implementation
             extract_from_urllib3()
+        if aiohttp_make_ssl_context_cache_clear:  # pragma: no cover
+            aiohttp_make_ssl_context_cache_clear()
 
     @staticmethod
     def disable():
@@ -584,6 +593,8 @@ class Mocket:
         if pyopenssl_override:  # pragma: no cover
             # Put the pyopenssl version back in place
             inject_into_urllib3()
+        if aiohttp_make_ssl_context_cache_clear:  # pragma: no cover
+            aiohttp_make_ssl_context_cache_clear()
 
     @classmethod
     def get_namespace(cls):
