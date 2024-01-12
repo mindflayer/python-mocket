@@ -81,6 +81,14 @@ if ENABLE_TEST_CLASS:
 
             self.assertEqual(len(Mocket.request_list()), 2)
 
+        @async_mocketize
+        async def test_no_verify(self):
+            Entry.single_register(Entry.GET, self.target_url, status=404)
+
+            async with aiohttp.ClientSession(timeout=self.timeout) as session:
+                async with session.get(self.target_url, ssl=False) as get_response:
+                    assert get_response.status == 404
+
         @async_httprettified
         async def test_httprettish_session(self):
             HTTPretty.register_uri(
