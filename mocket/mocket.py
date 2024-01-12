@@ -257,6 +257,8 @@ class MocketSocket:
 
     @staticmethod
     def fileno():
+        if Mocket.r_fd is not None:
+            return Mocket.r_fd
         Mocket.r_fd, Mocket.w_fd = os.pipe()
         return Mocket.r_fd
 
@@ -455,8 +457,12 @@ class Mocket:
 
     @classmethod
     def reset(cls):
-        cls.r_fd = None
-        cls.w_fd = None
+        if cls.r_fd is not None:
+            os.close(cls.r_fd)
+            cls.r_fd = None
+        if cls.w_fd is not None:
+            os.close(cls.w_fd)
+            cls.w_fd = None
         cls._entries = collections.defaultdict(list)
         cls._requests = []
 
