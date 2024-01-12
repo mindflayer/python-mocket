@@ -304,7 +304,14 @@ class MocketSocket:
         return rv
 
     def recv_into(self, buffer, buffersize=None, flags=None):
-        return buffer.write(self.read(buffersize))
+        if hasattr(buffer, "write"):
+            return buffer.write(self.read(buffersize))
+        else:
+            # buffer is a memoryview
+            data = self.read(buffersize)
+            if data:
+                buffer[: len(data)] = data
+            return len(data)
 
     def recv(self, buffersize, flags=None):
         if Mocket.r_fd and Mocket.w_fd:
