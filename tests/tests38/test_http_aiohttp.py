@@ -1,8 +1,10 @@
 import json
 from unittest import IsolatedAsyncioTestCase
 
+import pytest
+
 from mocket.async_mocket import async_mocketize
-from mocket.mocket import Mocket
+from mocket.mocket import Mocket, Mocketizer
 from mocket.mockhttp import Entry
 from mocket.plugins.httpretty import HTTPretty, async_httprettified
 
@@ -101,3 +103,16 @@ if ENABLE_TEST_CLASS:
                 async with session.get(self.target_url) as get_response:
                     assert get_response.status == 200
                     assert await get_response.text() == '{"origin": "127.0.0.1"}'
+
+        @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
+        async def test_mocked_https_request_after_unmocked_https_request(self):
+            async with aiohttp.ClientSession(timeout=self.timeout) as session:
+                response = await session.get(self.target_url + "real", ssl=False)
+                assert response.status == 200
+
+            async with Mocketizer(None):
+                Entry.single_register(Entry.GET, self.target_url + "mocked", status=404)
+                async with aiohttp.ClientSession(timeout=self.timeout) as session:
+                    response = await session.get(self.target_url + "mocked", ssl=False)
+                    assert response.status == 404
+                    self.assertEqual(len(Mocket.request_list()), 1)
