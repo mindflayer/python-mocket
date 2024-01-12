@@ -180,6 +180,8 @@ class MocketSocket:
         self.type = int(type)
         self.proto = int(proto)
         self._truesocket_recording_dir = None
+        self._did_handshake = False
+        self._sent_non_empty_bytes = False
         self.kwargs = kwargs
 
     def __str__(self):
@@ -218,7 +220,7 @@ class MocketSocket:
         return socket.SOCK_STREAM
 
     def do_handshake(self):
-        pass
+        self._did_handshake = True
 
     def getpeername(self):
         return self._address
@@ -294,7 +296,12 @@ class MocketSocket:
             self.fd.seek(0)
 
     def read(self, buffersize):
-        return self.fd.read(buffersize)
+        rv = self.fd.read(buffersize)
+        if rv:
+            self._sent_non_empty_bytes = True
+        if self._did_handshake and not self._sent_non_empty_bytes:
+            raise ssl.SSLWantReadError("The operation did not complete (read)")
+        return rv
 
     def recv_into(self, buffer, buffersize=None, flags=None):
         return buffer.write(self.read(buffersize))
