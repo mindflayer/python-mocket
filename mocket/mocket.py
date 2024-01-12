@@ -85,6 +85,7 @@ class FakeSSLContext(SuperFakeSSLContext):
         "load_verify_locations",
         "set_alpn_protocols",
         "set_ciphers",
+        "set_default_verify_paths",
     )
     sock = None
     post_handshake_auth = None
