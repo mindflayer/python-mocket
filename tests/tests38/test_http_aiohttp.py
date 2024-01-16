@@ -1,10 +1,11 @@
+import asyncio
 import json
-from unittest import IsolatedAsyncioTestCase
+from unittest import IsolatedAsyncioTestCase, TestCase
 
 import pytest
 
 from mocket.async_mocket import async_mocketize
-from mocket.mocket import Mocket, Mocketizer
+from mocket.mocket import Mocket, Mocketizer, mocketize
 from mocket.mockhttp import Entry
 from mocket.plugins.httpretty import HTTPretty, async_httprettified
 
@@ -18,7 +19,30 @@ except ImportError:
 
 if ENABLE_TEST_CLASS:
 
-    class AioHttpEntryTestCase(IsolatedAsyncioTestCase):
+    class AioHttpEntryTestCase(TestCase):
+        @mocketize
+        def test_https_session(self):
+            url = "https://httpbin.org/ip"
+            body = "asd" * 100
+            Entry.single_register(Entry.GET, url, body=body, status=404)
+            Entry.single_register(Entry.POST, url, body=body * 2, status=201)
+
+            async def main(l):
+                async with aiohttp.ClientSession(
+                    loop=l, timeout=aiohttp.ClientTimeout(total=3)
+                ) as session:
+                    async with session.get(url) as get_response:
+                        assert get_response.status == 404
+                        assert await get_response.text() == body
+
+                    async with session.post(url, data=body * 6) as post_response:
+                        assert post_response.status == 201
+                        assert await post_response.text() == body * 2
+
+            loop = asyncio.new_event_loop()
+            loop.run_until_complete(main(loop))
+
+    class AioHttpEntryAsyncTestCase(IsolatedAsyncioTestCase):
         timeout = aiohttp.ClientTimeout(total=3)
         target_url = "http://httpbin.local/ip"
 
