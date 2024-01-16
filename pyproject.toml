@@ -36,6 +36,7 @@ dynamic = ["version"]
 [project.optional-dependencies]
 test = [
     "pre-commit",
+    "psutil",
     "pytest",
     "pytest-cov",
     "pytest-asyncio",

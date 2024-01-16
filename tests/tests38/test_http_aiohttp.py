@@ -1,11 +1,10 @@
 import json
 from unittest import IsolatedAsyncioTestCase
 
-import httpx
 import pytest
 
 from mocket.async_mocket import async_mocketize
-from mocket.mocket import Mocket
+from mocket.mocket import Mocket, Mocketizer
 from mocket.mockhttp import Entry
 from mocket.plugins.httpretty import HTTPretty, async_httprettified
 
@@ -46,6 +45,23 @@ if ENABLE_TEST_CLASS:
 
             self.assertEqual(len(Mocket.request_list()), 2)
 
+        @async_httprettified
+        async def test_httprettish_session(self):
+            HTTPretty.register_uri(
+                HTTPretty.GET,
+                self.target_url,
+                body=json.dumps(dict(origin="127.0.0.1")),
+            )
+
+            async with aiohttp.ClientSession(timeout=self.timeout) as session:
+                async with session.get(self.target_url) as get_response:
+                    assert get_response.status == 200
+                    assert await get_response.text() == '{"origin": "127.0.0.1"}'
+
+    class AioHttpsEntryTestCase(IsolatedAsyncioTestCase):
+        timeout = aiohttp.ClientTimeout(total=3)
+        target_url = "https://httpbin.localhost/anything/"
+
         @async_mocketize
         async def test_https_session(self):
             body = "asd" * 100
@@ -67,7 +83,14 @@ if ENABLE_TEST_CLASS:
 
             self.assertEqual(len(Mocket.request_list()), 2)
 
-        @pytest.mark.xfail
+        @async_mocketize
+        async def test_no_verify(self):
+            Entry.single_register(Entry.GET, self.target_url, status=404)
+
+            async with aiohttp.ClientSession(timeout=self.timeout) as session:
+                async with session.get(self.target_url, ssl=False) as get_response:
+                    assert get_response.status == 404
+
         @async_httprettified
         async def test_httprettish_session(self):
             HTTPretty.register_uri(
@@ -81,21 +104,15 @@ if ENABLE_TEST_CLASS:
                     assert get_response.status == 200
                     assert await get_response.text() == '{"origin": "127.0.0.1"}'
 
+        @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
+        async def test_mocked_https_request_after_unmocked_https_request(self):
+            async with aiohttp.ClientSession(timeout=self.timeout) as session:
+                response = await session.get(self.target_url + "real", ssl=False)
+                assert response.status == 200
 
-class HttpxEntryTestCase(IsolatedAsyncioTestCase):
-    target_url = "http://httpbin.local/ip"
-
-    @async_httprettified
-    async def test_httprettish_httpx_session(self):
-        expected_response = {"origin": "127.0.0.1"}
-
-        HTTPretty.register_uri(
-            HTTPretty.GET,
-            self.target_url,
-            body=json.dumps(expected_response),
-        )
-
-        async with httpx.AsyncClient() as client:
-            response = await client.get(self.target_url)
-            assert response.status_code == 200
-            assert response.json() == expected_response
+            async with Mocketizer(None):
+                Entry.single_register(Entry.GET, self.target_url + "mocked", status=404)
+                async with aiohttp.ClientSession(timeout=self.timeout) as session:
+                    response = await session.get(self.target_url + "mocked", ssl=False)
+                    assert response.status == 404
+                    self.assertEqual(len(Mocket.request_list()), 1)
