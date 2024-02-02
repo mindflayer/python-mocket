@@ -49,6 +49,13 @@ try:  # pragma: no cover
 except ImportError:
     pyopenssl_override = False
 
+try:  # pragma: no cover
+    from aiohttp import TCPConnector
+
+    aiohttp_make_ssl_context_cache_clear = TCPConnector._make_ssl_context.cache_clear
+except (ImportError, AttributeError):
+    aiohttp_make_ssl_context_cache_clear = None
+
 
 true_socket = socket.socket
 true_create_connection = socket.create_connection
@@ -85,6 +92,7 @@ class FakeSSLContext(SuperFakeSSLContext):
         "load_verify_locations",
         "set_alpn_protocols",
         "set_ciphers",
+        "set_default_verify_paths",
     )
     sock = None
     post_handshake_auth = None
@@ -180,6 +188,8 @@ class MocketSocket:
         self.type = int(type)
         self.proto = int(proto)
         self._truesocket_recording_dir = None
+        self._did_handshake = False
+        self._sent_non_empty_bytes = False
         self.kwargs = kwargs
 
     def __str__(self):
@@ -218,7 +228,7 @@ class MocketSocket:
         return socket.SOCK_STREAM
 
     def do_handshake(self):
-        pass
+        self._did_handshake = True
 
     def getpeername(self):
         return self._address
@@ -257,6 +267,8 @@ class MocketSocket:
 
     @staticmethod
     def fileno():
+        if Mocket.r_fd is not None:
+            return Mocket.r_fd
         Mocket.r_fd, Mocket.w_fd = os.pipe()
         return Mocket.r_fd
 
@@ -292,10 +304,21 @@ class MocketSocket:
             self.fd.seek(0)
 
     def read(self, buffersize):
-        return self.fd.read(buffersize)
+        rv = self.fd.read(buffersize)
+        if rv:
+            self._sent_non_empty_bytes = True
+        if self._did_handshake and not self._sent_non_empty_bytes:
+            raise ssl.SSLWantReadError("The operation did not complete (read)")
+        return rv
 
     def recv_into(self, buffer, buffersize=None, flags=None):
-        return buffer.write(self.read(buffersize))
+        if hasattr(buffer, "write"):
+            return buffer.write(self.read(buffersize))
+        # buffer is a memoryview
+        data = self.read(buffersize)
+        if data:
+            buffer[: len(data)] = data
+        return len(data)
 
     def recv(self, buffersize, flags=None):
         if Mocket.r_fd and Mocket.w_fd:
@@ -469,8 +492,12 @@ class Mocket:
 
     @classmethod
     def reset(cls):
-        cls.r_fd = None
-        cls.w_fd = None
+        if cls.r_fd is not None:
+            os.close(cls.r_fd)
+            cls.r_fd = None
+        if cls.w_fd is not None:
+            os.close(cls.w_fd)
+            cls.w_fd = None
         cls._entries = collections.defaultdict(list)
         cls._requests = []
 
@@ -541,6 +568,8 @@ class Mocket:
         if pyopenssl_override:  # pragma: no cover
             # Take out the pyopenssl version - use the default implementation
             extract_from_urllib3()
+        if aiohttp_make_ssl_context_cache_clear:  # pragma: no cover
+            aiohttp_make_ssl_context_cache_clear()
 
     @staticmethod
     def disable():
@@ -577,6 +606,8 @@ class Mocket:
         if pyopenssl_override:  # pragma: no cover
             # Put the pyopenssl version back in place
             inject_into_urllib3()
+        if aiohttp_make_ssl_context_cache_clear:  # pragma: no cover
+            aiohttp_make_ssl_context_cache_clear()
 
     @classmethod
     def get_namespace(cls):

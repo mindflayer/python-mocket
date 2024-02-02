@@ -6,6 +6,8 @@ import socket
 from unittest import TestCase
 from unittest.mock import patch
 
+import httpx
+import psutil
 import pytest
 
 from mocket import Mocket, MocketEntry, Mocketizer, mocketize
@@ -190,3 +192,19 @@ def test_patch(
 ):
     method_patch.return_value = "foo"
     assert os.getcwd() == "foo"
+
+
+@pytest.mark.skipif(not psutil.POSIX, reason="Uses a POSIX-only API to test")
+@pytest.mark.asyncio
+async def test_no_dangling_fds():
+    url = "http://httpbin.local/ip"
+
+    proc = psutil.Process(os.getpid())
+
+    prev_num_fds = proc.num_fds()
+
+    async with Mocketizer(strict_mode=False):
+        async with httpx.AsyncClient() as client:
+            await client.get(url)
+
+    assert proc.num_fds() == prev_num_fds
