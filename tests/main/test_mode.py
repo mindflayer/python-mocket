@@ -9,7 +9,7 @@ from mocket.utils import MocketMode
 
 @mocketize(strict_mode=True)
 def test_strict_mode_fails():
-    url = "https://httpbin.local/ip"
+    url = "http://httpbin.local/ip"
 
     with pytest.raises(StrictMocketException):
         requests.get(url)
@@ -17,7 +17,7 @@ def test_strict_mode_fails():
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
 def test_intermittent_strict_mode():
-    url = "https://httpbin.local/ip"
+    url = "http://httpbin.local/ip"
 
     with Mocketizer(strict_mode=False):
         requests.get(url)
@@ -32,7 +32,7 @@ def test_intermittent_strict_mode():
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
 def test_strict_mode_exceptions():
-    url = "https://httpbin.local/ip"
+    url = "http://httpbin.local/ip"
 
     with Mocketizer(strict_mode=True, strict_mode_allowed=["httpbin.local"]):
         requests.get(url)
@@ -42,9 +42,9 @@ def test_strict_mode_exceptions():
 
 
 def test_strict_mode_error_message():
-    url = "https://httpbin.local/ip"
+    url = "http://httpbin.local/ip"
 
-    Entry.register(Entry.GET, "https://httpbin.local/user.agent", Response(status=404))
+    Entry.register(Entry.GET, "http://httpbin.local/user.agent", Response(status=404))
 
     with Mocketizer(strict_mode=True):
         with pytest.raises(StrictMocketException) as exc_info:
