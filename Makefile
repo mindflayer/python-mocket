@@ -7,10 +7,10 @@ install-test-requirements:
 	pip install -U .[test]
 
 services-up:
-	docker-compose up -d
+	docker compose up -d
 
 services-down:
-	docker-compose down --remove-orphans
+	docker compose down --remove-orphans
 
 test-python:
 	@echo "Running Python tests"
