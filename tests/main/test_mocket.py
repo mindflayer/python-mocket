@@ -146,6 +146,36 @@ class MocketTestCase(TestCase):
             self.assertEqual(fp.read().strip(), encode_to_bytes("Show me."))
             self.assertEqual(len(Mocket.request_list()), 1)
 
+    @pytest.mark.skipif(
+        'os.getenv("SKIP_TRUE_HTTP", False) or os.getenv("SKIP_TRUE_REDIS", False)'
+    )
+    def test_multiple_socket_connections(self):
+        redis_addr = ("localhost", 6379)
+        httpbin_addr = ("localhost", 80)
+
+        redis_buffer = io.BytesIO()
+        httpbin_buffer = io.BytesIO()
+
+        with Mocketizer():
+            redis_so = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            redis_so.connect(redis_addr)
+
+            httpbin_so = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            httpbin_so.connect(httpbin_addr)
+
+            # Creating another socket that connects to a different address
+            # should not cause the first connection to go awry.
+            redis_so.sendall(b"ping\r\n")
+            redis_so.recv_into(redis_buffer)
+
+            httpbin_so.sendall(b"GET / HTTP/1.1\r\nHost: localhost\r\n\r\n")
+            httpbin_so.recv_into(httpbin_buffer)
+
+        redis_buffer.seek(0)
+        assert redis_buffer.read() == b"+PONG\r\n"
+        httpbin_buffer.seek(0)
+        assert httpbin_buffer.read().startswith(b"HTTP/1.1 200 OK\r\n")
+
     def test_socket_as_context_manager(self):
         addr = ("localhost", 80)
         Mocket.register(MocketEntry(addr, ["Show me.\r\n"]))
