@@ -40,7 +40,7 @@ jobs:
         make services-up
     - name: Setup hostname
       run: |
-        export CONTAINER_ID=$(docker-compose ps -q proxy)
+        export CONTAINER_ID=$(docker compose ps -q proxy)
         export CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_ID)
         echo "$CONTAINER_IP httpbin.local" | sudo tee -a /etc/hosts
     - name: Test
