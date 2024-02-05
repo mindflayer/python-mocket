@@ -379,7 +379,7 @@ class MocketSocket:
             encoded_response = hexload(response_dict["response"])
         # if not available, call the real sendall
         except KeyError:
-            host, port = Mocket._address
+            host, port = self._host, self._port
             host = true_gethostbyname(host)
 
             if isinstance(self.true_socket, true_socket) and self._secure_socket:
