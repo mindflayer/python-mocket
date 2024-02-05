@@ -8,7 +8,7 @@ async def wrapper(
     strict_mode=False,
     strict_mode_allowed=None,
     *args,
-    **kwargs
+    **kwargs,
 ):
     async with Mocketizer.factory(
         test, truesocket_recording_dir, strict_mode, strict_mode_allowed, args

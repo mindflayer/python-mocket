@@ -4,6 +4,7 @@ import requests
 from mocket import Mocketizer, mocketize
 from mocket.exceptions import StrictMocketException
 from mocket.mockhttp import Entry, Response
+from mocket.utils import MocketMode
 
 
 @mocketize(strict_mode=True)
@@ -51,9 +52,20 @@ def test_strict_mode_error_message():
         assert (
             str(exc_info.value)
             == """
-Mocket tried to use the real `socket` module while strict mode is active.
+Mocket tried to use the real `socket` module while STRICT mode was active.
 Registered entries:
   ('httpbin.local', 80):
     Entry(method='GET', schema='http', location=('httpbin.local', 80), path='/user.agent', query='')
 """.strip()
         )
+
+
+def test_strict_mode_false_with_allowed_hosts():
+    with pytest.raises(ValueError):
+        Mocketizer(strict_mode=False, strict_mode_allowed=["foobar.local"])
+
+
+def test_strict_mode_false_always_allowed():
+    with Mocketizer(strict_mode=False):
+        assert MocketMode().is_allowed("foobar.com")
+        assert MocketMode().is_allowed(("foobar.com", 443))

@@ -65,9 +65,11 @@ class Request:
     @property
     def querystring(self):
         parts = self._protocol.url.split("?", 1)
-        if len(parts) == 2:
-            return parse_qs(unquote(parts[1]), keep_blank_values=True)
-        return {}
+        return (
+            parse_qs(unquote(parts[1]), keep_blank_values=True)
+            if len(parts) == 2
+            else {}
+        )
 
     @property
     def body(self):

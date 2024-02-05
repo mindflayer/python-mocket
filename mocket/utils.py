@@ -2,8 +2,10 @@ import binascii
 import io
 import os
 import ssl
+from typing import Tuple, Union
 
 from .compat import decode_from_bytes, encode_to_bytes
+from .exceptions import StrictMocketException
 
 SSL_PROTOCOL = ssl.PROTOCOL_TLSv1_2
 
@@ -52,13 +54,28 @@ class MocketMode:
     def __init__(self):
         self.__dict__ = self.__shared_state
 
-    def allowed(self, location):
-        if not self.STRICT_ALLOWED:
-            return False
-        host, port = location
-        for allowed in self.STRICT_ALLOWED:
-            if isinstance(allowed, str) and host == allowed:
-                return True
-            elif location == allowed:
-                return True
-        return False
+    def is_allowed(self, location: Union[str, Tuple[str, int]]) -> bool:
+        """
+        Checks if (`host`, `port`) or at least `host`
+        are allowed locationsto perform real `socket` calls
+        """
+        if not self.STRICT:
+            return True
+        host, _ = location
+        return location in self.STRICT_ALLOWED or host in self.STRICT_ALLOWED
+
+    @staticmethod
+    def raise_not_allowed():
+        from .mocket import Mocket
+
+        current_entries = [
+            (location, "\n    ".join(map(str, entries)))
+            for location, entries in Mocket._entries.items()
+        ]
+        formatted_entries = "\n".join(
+            [f"  {location}:\n    {entries}" for location, entries in current_entries]
+        )
+        raise StrictMocketException(
+            "Mocket tried to use the real `socket` module while STRICT mode was active.\n"
+            f"Registered entries:\n{formatted_entries}"
+        )

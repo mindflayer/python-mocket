@@ -70,9 +70,8 @@ def register_uri(
     responses=None,
     match_querystring=False,
     priority=0,
-    **headers
+    **headers,
 ):
-
     headers = httprettifier_headers(headers)
 
     if adding_headers is not None:
@@ -101,7 +100,6 @@ def register_uri(
 
 
 class MocketHTTPretty:
-
     Response = Response
 
     def __getattr__(self, name):

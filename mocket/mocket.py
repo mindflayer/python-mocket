@@ -22,7 +22,6 @@ except ImportError:
     urllib3_wrap_socket = None
 
 from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, text_type
-from .exceptions import StrictMocketException
 from .utils import (
     SSL_PROTOCOL,
     MocketMode,
@@ -333,22 +332,8 @@ class MocketSocket:
         raise exc
 
     def true_sendall(self, data, *args, **kwargs):
-        if MocketMode().STRICT:
-            if not MocketMode().allowed((self._host, self._port)):
-                current_entries = [
-                    (location, "\n    ".join(map(str, entries)))
-                    for location, entries in Mocket._entries.items()
-                ]
-                formatted_entries = "\n".join(
-                    [
-                        f"  {location}:\n    {entries}"
-                        for location, entries in current_entries
-                    ]
-                )
-                raise StrictMocketException(
-                    "Mocket tried to use the real `socket` module while strict mode is active.\n"
-                    f"Registered entries:\n{formatted_entries}"
-                )
+        if not MocketMode().is_allowed((self._host, self._port)):
+            MocketMode.raise_not_allowed()
 
         req = decode_from_bytes(data)
         # make request unique again
@@ -693,7 +678,12 @@ class Mocketizer:
         self.truesocket_recording_dir = truesocket_recording_dir
         self.namespace = namespace or text_type(id(self))
         MocketMode().STRICT = strict_mode
-        MocketMode().STRICT_ALLOWED = strict_mode_allowed
+        if strict_mode:
+            MocketMode().STRICT_ALLOWED = strict_mode_allowed or []
+        elif strict_mode_allowed:
+            raise ValueError(
+                "Allowed locations are only accepted when STRICT mode is active."
+            )
 
     def enter(self):
         Mocket.enable(
@@ -755,7 +745,7 @@ def wrapper(
     strict_mode=False,
     strict_mode_allowed=None,
     *args,
-    **kwargs
+    **kwargs,
 ):
     with Mocketizer.factory(
         test, truesocket_recording_dir, strict_mode, strict_mode_allowed, args
