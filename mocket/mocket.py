@@ -334,7 +334,21 @@ class MocketSocket:
 
     def true_sendall(self, data, *args, **kwargs):
         if MocketMode().STRICT:
-            raise StrictMocketException("Mocket tried to use the real `socket` module.")
+            if not MocketMode().allowed((self._host, self._port)):
+                current_entries = [
+                    (location, "\n    ".join(map(str, entries)))
+                    for location, entries in Mocket._entries.items()
+                ]
+                formatted_entries = "\n".join(
+                    [
+                        f"  {location}:\n    {entries}"
+                        for location, entries in current_entries
+                    ]
+                )
+                raise StrictMocketException(
+                    "Mocket tried to use the real `socket` module while strict mode is active.\n"
+                    f"Registered entries:\n{formatted_entries}"
+                )
 
         req = decode_from_bytes(data)
         # make request unique again
@@ -642,6 +656,9 @@ class MocketEntry:
                     r = self.response_cls(r)
                 self.responses.append(r)
 
+    def __repr__(self):
+        return "{}(location={})".format(self.__class__.__name__, self.location)
+
     @staticmethod
     def can_handle(data):
         return True
@@ -670,11 +687,13 @@ class Mocketizer:
         namespace=None,
         truesocket_recording_dir=None,
         strict_mode=False,
+        strict_mode_allowed=None,
     ):
         self.instance = instance
         self.truesocket_recording_dir = truesocket_recording_dir
         self.namespace = namespace or text_type(id(self))
         MocketMode().STRICT = strict_mode
+        MocketMode().STRICT_ALLOWED = strict_mode_allowed
 
     def enter(self):
         Mocket.enable(
@@ -709,7 +728,7 @@ class Mocketizer:
             method()
 
     @staticmethod
-    def factory(test, truesocket_recording_dir, strict_mode, args):
+    def factory(test, truesocket_recording_dir, strict_mode, strict_mode_allowed, args):
         instance = args[0] if args else None
         namespace = None
         if truesocket_recording_dir:
@@ -726,11 +745,21 @@ class Mocketizer:
             namespace=namespace,
             truesocket_recording_dir=truesocket_recording_dir,
             strict_mode=strict_mode,
+            strict_mode_allowed=strict_mode_allowed,
         )
 
 
-def wrapper(test, truesocket_recording_dir=None, strict_mode=False, *args, **kwargs):
-    with Mocketizer.factory(test, truesocket_recording_dir, strict_mode, args):
+def wrapper(
+    test,
+    truesocket_recording_dir=None,
+    strict_mode=False,
+    strict_mode_allowed=None,
+    *args,
+    **kwargs
+):
+    with Mocketizer.factory(
+        test, truesocket_recording_dir, strict_mode, strict_mode_allowed, args
+    ):
         return test(*args, **kwargs)
 
 

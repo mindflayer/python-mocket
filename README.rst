@@ -169,6 +169,20 @@ NEW!!! Sometimes you just want your tests to fail when they attempt to use the n
         with pytest.raises(StrictMocketException):
             requests.get("https://duckduckgo.com/")
 
+You can specify exceptions as a list of hosts or host-port pairs.
+
+.. code-block:: python
+
+    with Mocketizer(strict_mode=True, strict_mode_allowed=["localhost", ("intake.ourmetrics.net", 443)]):
+        ...
+
+    # OR
+
+    @mocketize(strict_mode=True, strict_mode_allowed=["localhost", ("intake.ourmetrics.net", 443)])
+    def test_get():
+        ...
+
+
 How to be sure that all the Entry instances have been served?
 =============================================================
 Add this instruction at the end of the test execution:

@@ -47,6 +47,18 @@ def get_mocketize(wrapper_):
 class MocketMode:
     __shared_state = {}
     STRICT = None
+    STRICT_ALLOWED = None
 
     def __init__(self):
         self.__dict__ = self.__shared_state
+
+    def allowed(self, location):
+        if not self.STRICT_ALLOWED:
+            return False
+        host, port = location
+        for allowed in self.STRICT_ALLOWED:
+            if isinstance(allowed, str) and host == allowed:
+                return True
+            elif location == allowed:
+                return True
+        return False
