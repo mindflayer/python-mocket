@@ -65,9 +65,11 @@ class Request:
     @property
     def querystring(self):
         parts = self._protocol.url.split("?", 1)
-        if len(parts) == 2:
-            return parse_qs(unquote(parts[1]), keep_blank_values=True)
-        return {}
+        return (
+            parse_qs(unquote(parts[1]), keep_blank_values=True)
+            if len(parts) == 2
+            else {}
+        )
 
     @property
     def body(self):
@@ -174,6 +176,18 @@ class Entry(MocketEntry):
         self.method = method.upper()
         self._sent_data = b""
         self._match_querystring = match_querystring
+
+    def __repr__(self):
+        return (
+            "{}(method={!r}, schema={!r}, location={!r}, path={!r}, query={!r})".format(
+                self.__class__.__name__,
+                self.method,
+                self.schema,
+                self.location,
+                self.path,
+                self.query,
+            )
+        )
 
     def collect(self, data):
         consume_response = True
