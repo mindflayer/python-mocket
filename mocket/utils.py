@@ -1,6 +1,4 @@
 import binascii
-import io
-import os
 import ssl
 from typing import Tuple, Union
 
@@ -8,16 +6,6 @@ from .compat import decode_from_bytes, encode_to_bytes
 from .exceptions import StrictMocketException
 
 SSL_PROTOCOL = ssl.PROTOCOL_TLSv1_2
-
-
-class MocketSocketCore(io.BytesIO):
-    def write(self, content):
-        super(MocketSocketCore, self).write(content)
-
-        from mocket import Mocket
-
-        if Mocket.r_fd and Mocket.w_fd:
-            os.write(Mocket.w_fd, content)
 
 
 def hexdump(binary_string):
