@@ -22,7 +22,14 @@ except ImportError:
     urllib3_wrap_socket = None
 
 from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, text_type
-from .utils import SSL_PROTOCOL, MocketMode, get_mocketize, hexdump, hexload
+from .utils import (
+    SSL_PROTOCOL,
+    MocketMode,
+    MocketSocketCore,
+    get_mocketize,
+    hexdump,
+    hexload,
+)
 
 xxh32 = None
 try:
@@ -171,8 +178,8 @@ class MocketSocket:
     _secure_socket = False
     _did_handshake = False
     _sent_non_empty_bytes = False
-    r_fd = None
-    w_fd = None
+    read_fd = None
+    write_fd = None
 
     def __init__(
         self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, **kwargs
@@ -200,7 +207,7 @@ class MocketSocket:
     @property
     def fd(self):
         if self._fd is None:
-            self._fd = io.BytesIO()
+            self._fd = MocketSocketCore(w_fd=self.write_fd)
         return self._fd
 
     def gettimeout(self):
@@ -260,10 +267,10 @@ class MocketSocket:
         return self.send(encode_to_bytes(data))
 
     def fileno(self):
-        if self.r_fd:
-            return self.r_fd
-        self.r_fd, self.w_fd = os.pipe()
-        return self.r_fd
+        if self.read_fd:
+            return self.read_fd
+        self.read_fd, self.write_fd = os.pipe()
+        return self.read_fd
 
     def connect(self, address):
         self._address = self._host, self._port = address
@@ -291,8 +298,6 @@ class MocketSocket:
             response = self.true_sendall(data, *args, **kwargs)
 
         if response is not None:
-            if self.r_fd and self.w_fd:
-                os.write(self.w_fd, response)
             self.fd.seek(0)
             self.fd.write(response)
             self.fd.truncate()
@@ -316,8 +321,8 @@ class MocketSocket:
         return len(data)
 
     def recv(self, buffersize, flags=None):
-        if self.r_fd and self.w_fd:
-            return os.read(self.r_fd, buffersize)
+        if self.read_fd:
+            return os.read(self.read_fd, buffersize)
         data = self.read(buffersize)
         if data:
             return data
@@ -434,10 +439,6 @@ class MocketSocket:
         if self.true_socket and not self.true_socket._closed:
             self.true_socket.close()
         self._fd = None
-        if self.r_fd:
-            os.close(self.r_fd)
-        if self.w_fd:
-            os.close(self.w_fd)
 
     def __getattr__(self, name):
         """Do nothing catchall function, for methods like shutdown()"""

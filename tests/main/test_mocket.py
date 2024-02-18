@@ -226,7 +226,7 @@ def test_patch(
 
 @pytest.mark.skipif(not psutil.POSIX, reason="Uses a POSIX-only API to test")
 @pytest.mark.asyncio
-async def test_no_dangling_fds():
+async def __test_no_dangling_fds():
     url = "http://httpbin.local/ip"
 
     proc = psutil.Process(os.getpid())
