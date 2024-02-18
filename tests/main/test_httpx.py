@@ -1,10 +1,11 @@
+import datetime
 import json
 
 import httpx
 import pytest
 from asgiref.sync import async_to_sync
 
-from mocket.mocket import Mocket, mocketize
+from mocket import Mocket, async_mocketize, mocketize
 from mocket.mockhttp import Entry
 from mocket.plugins.httpretty import httprettified, httpretty
 
@@ -55,3 +56,71 @@ def test_httprettish_session():
 
     perform_async_transactions()
     assert len(httpretty.latest_requests) == 1
+
+
+@mocketize(strict_mode=True)
+def test_sync_case():
+    test_uri = "https://abc.de/testdata/"
+    base_timestamp = int(datetime.datetime.now().timestamp())
+    response = [
+        {"timestamp": base_timestamp + i, "value": 1337 + 42 * i} for i in range(30_000)
+    ]
+    Entry.single_register(
+        method=Entry.POST,
+        uri=test_uri,
+        body=json.dumps(
+            response,
+        ),
+        headers={"content-type": "application/json"},
+    )
+
+    with httpx.Client() as client:
+        response = client.post(test_uri)
+
+    assert len(response.json())
+
+
+@pytest.mark.asyncio
+@async_mocketize(strict_mode=True)
+async def test_async_case_low_number():
+    test_uri = "https://abc.de/testdata/"
+    base_timestamp = int(datetime.datetime.now().timestamp())
+    response = [
+        {"timestamp": base_timestamp + i, "value": 1337 + 42 * i} for i in range(100)
+    ]
+    Entry.single_register(
+        method=Entry.POST,
+        uri=test_uri,
+        body=json.dumps(
+            response,
+        ),
+        headers={"content-type": "application/json"},
+    )
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(test_uri)
+
+    assert len(response.json())
+
+
+@pytest.mark.asyncio
+@async_mocketize(strict_mode=True)
+async def test_async_case_high_number():
+    test_uri = "https://abc.de/testdata/"
+    base_timestamp = int(datetime.datetime.now().timestamp())
+    response = [
+        {"timestamp": base_timestamp + i, "value": 1337 + 42 * i} for i in range(30_000)
+    ]
+    Entry.single_register(
+        method=Entry.POST,
+        uri=test_uri,
+        body=json.dumps(
+            response,
+        ),
+        headers={"content-type": "application/json"},
+    )
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(test_uri)
+
+    assert len(response.json())

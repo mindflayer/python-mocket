@@ -11,13 +11,17 @@ SSL_PROTOCOL = ssl.PROTOCOL_TLSv1_2
 
 
 class MocketSocketCore(io.BytesIO):
+    write_fd = None
+
+    def __init__(self, initial_bytes=None, w_fd=None):
+        super().__init__(initial_bytes)
+        self.write_fd = w_fd
+
     def write(self, content):
         super(MocketSocketCore, self).write(content)
 
-        from mocket import Mocket
-
-        if Mocket.r_fd and Mocket.w_fd:
-            os.write(Mocket.w_fd, content)
+        if self.write_fd:
+            os.write(self.write_fd, content)
 
 
 def hexdump(binary_string):
