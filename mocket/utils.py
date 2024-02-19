@@ -20,6 +20,15 @@ class MocketSocketCore(io.BytesIO):
     def write(self, content):
         super(MocketSocketCore, self).write(content)
 
+        import sys
+
+        print(
+            __name__,
+            "MocketSocketCore.write",
+            "write_fd",
+            type(self.write_fd),
+            file=sys.stderr,
+        )
         if self.write_fd:
             os.write(self.write_fd, content)
 

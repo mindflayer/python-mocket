@@ -111,6 +111,26 @@ if ENABLE_TEST_CLASS:
         async def test_no_verify(self):
             Entry.single_register(Entry.GET, self.target_url, status=404)
 
+            import hunter
+            from hunter import Q
+            from hunter.actions import CallPrinter, StackPrinter
+
+            # Predicates for tracing relevant function calls
+            # hunter_predicates = Q(module_startswith="ssl") | Q(module_startswith="aiohttp") | Q(module_startswith="asyncio") | Q(module_startswith="mocket") | Q(module_startswith="http")
+            # hunter.trace(hunter_predicates, action=CallPrinter())
+
+            def is_interesting_call(event):
+                if event.kind != "call":
+                    return False
+                if event.function in ("__init__", "fileno", "fd", "write"):
+                    return True
+                return False
+
+            hunter_predicates = Q(is_interesting_call, module_startswith="mocket")
+            hunter.trace(
+                hunter_predicates, actions=[StackPrinter(depth=5), CallPrinter()]
+            )
+
             async with aiohttp.ClientSession(timeout=self.timeout) as session:
                 async with session.get(self.target_url, ssl=False) as get_response:
                     assert get_response.status == 404
