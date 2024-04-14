@@ -235,6 +235,9 @@ class MocketSocket:
     def setblocking(self, block):
         self.settimeout(None) if block else self.settimeout(0.0)
 
+    def getblocking(self):
+        return self.gettimeout() is None
+
     def getsockname(self):
         return socket.gethostbyname(self._address[0]), self._address[1]
 
