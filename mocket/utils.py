@@ -47,7 +47,7 @@ def hexload(string: str) -> bytes:
     return encode_to_bytes(binascii.unhexlify(string_no_spaces))
 
 
-def get_mocketize(wrapper_: T) -> T:
+def get_mocketize(wrapper_: Callable) -> Callable:
     import decorator
 
     if decorator.__version__ < "5":   # type: ignore[attr-defined] # pragma: no cover
