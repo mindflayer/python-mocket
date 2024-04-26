@@ -85,7 +85,10 @@ exclude = [
 
 [tool.mypy]
 python_version = "3.8"
-files = ["mocket/", "tests/"]
+files = [
+    "mocket/utils.py", 
+    # "tests/"
+    ]
 strict = true
 warn_unused_configs = true
 ignore_missing_imports = true
@@ -94,6 +97,7 @@ warn_unused_ignores = true
 show_error_codes = true
 implicit_reexport = false
 disallow_any_generics = true
+follow_imports = "silent"  # enable this once majority is typed
 enable_error_code = ['ignore-without-code', 'explicit-override']
 
 [[tool.mypy.overrides]]
