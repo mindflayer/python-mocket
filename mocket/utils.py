@@ -6,8 +6,6 @@ import os
 import ssl
 from typing import TYPE_CHECKING, Any, Callable, ClassVar, Tuple, TypeVar, Union
 
-from typing_extensions import override
-
 from .compat import decode_from_bytes, encode_to_bytes
 from .exceptions import StrictMocketException
 
@@ -21,8 +19,10 @@ T = TypeVar("T")
 
 
 class MocketSocketCore(io.BytesIO):
-    @override
-    def write(self, content: ReadableBuffer) -> None:  # type: ignore[override] # BytesIO returns int
+    def write(  # type: ignore[override] # BytesIO returns int
+        self,
+        content: ReadableBuffer,
+    ) -> None:
         super(MocketSocketCore, self).write(content)
 
         from mocket import Mocket
