@@ -54,7 +54,7 @@ def get_mocketize(wrapper_: Callable) -> Callable:
 
     if decorator.__version__ < "5":  # type: ignore[attr-defined] # pragma: no cover
         return decorator.decorator(wrapper_)
-    return decorator.decorator(wrapper_, kwsyntax=True)
+    return decorator.decorator(wrapper_, kwsyntax=True)  # type: ignore[call-arg] # kwsyntax
 
 
 class MocketMode:
@@ -65,14 +65,14 @@ class MocketMode:
     def __init__(self) -> None:
         self.__dict__ = self.__shared_state
 
-    def is_allowed(self, location: Union[str, Tuple[str, int]]) -> bool:
+    def is_allowed(self, location: str | Tuple[str, int]) -> bool:
         """
         Checks if (`host`, `port`) or at least `host`
         are allowed locationsto perform real `socket` calls
         """
         if not self.STRICT:
             return True
-        host, _ = location
+        host, _ = location  # type: ignore[misc] # can't unpack a string
         return location in self.STRICT_ALLOWED or host in self.STRICT_ALLOWED
 
     @staticmethod
