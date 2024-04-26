@@ -55,6 +55,7 @@ test = [
     "twine",
     "fastapi",
     "wait-for-it",
+    "mypy",
 ]
 speedups = [
     "xxhash;platform_python_implementation=='CPython'",
@@ -81,3 +82,20 @@ include = [
 exclude = [
   ".*",
 ]
+
+[tool.mypy]
+python_version = "3.8"
+files = ["mocket/", "tests/"]
+strict = true
+warn_unused_configs = true
+ignore_missing_imports = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true
+implicit_reexport = false
+disallow_any_generics = true
+enable_error_code = ['ignore-without-code', 'explicit-override']
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disable_error_code = ['type-arg', 'no-untyped-def']
