@@ -65,7 +65,8 @@ def test_strict_mode_false_with_allowed_hosts():
         Mocketizer(strict_mode=False, strict_mode_allowed=["foobar.local"])
 
 
-def test_strict_mode_false_always_allowed():
-    with Mocketizer(strict_mode=False):
-        assert MocketMode().is_allowed("foobar.com")
-        assert MocketMode().is_allowed(("foobar.com", 443))
+@pytest.mark.parametrize("strict_mode_on", (False, True))
+def test_strict_mode_allowed_or_not(strict_mode_on):
+    with Mocketizer(strict_mode=strict_mode_on):
+        assert MocketMode().is_allowed("foobar.com") is not strict_mode_on
+        assert MocketMode().is_allowed(("foobar.com", 443)) is not strict_mode_on
