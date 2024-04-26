@@ -4,7 +4,7 @@ import binascii
 import io
 import os
 import ssl
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Tuple, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, ClassVar
 
 from .compat import decode_from_bytes, encode_to_bytes
 from .exceptions import StrictMocketException
@@ -14,9 +14,6 @@ if TYPE_CHECKING:
     from typing_extensions import NoReturn
 
 SSL_PROTOCOL = ssl.PROTOCOL_TLSv1_2
-
-T = TypeVar("T")
-
 
 class MocketSocketCore(io.BytesIO):
     def write(  # type: ignore[override] # BytesIO returns int
@@ -65,7 +62,7 @@ class MocketMode:
     def __init__(self) -> None:
         self.__dict__ = self.__shared_state
 
-    def is_allowed(self, location: str | Tuple[str, int]) -> bool:
+    def is_allowed(self, location: str | tuple[str, int]) -> bool:
         """
         Checks if (`host`, `port`) or at least `host`
         are allowed locationsto perform real `socket` calls
