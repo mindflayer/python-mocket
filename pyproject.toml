@@ -87,6 +87,7 @@ exclude = [
 [tool.mypy]
 python_version = "3.8"
 files = [
+    "mocket/exceptions.py",
     "mocket/compat.py",
     "mocket/utils.py",
     # "tests/"
