@@ -4,7 +4,8 @@ import binascii
 import io
 import os
 import ssl
-from typing import Tuple, Union, Callable, TYPE_CHECKING, TypeVar, Any, ClassVar
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Tuple, TypeVar, Union
+
 from typing_extensions import override
 
 from .compat import decode_from_bytes, encode_to_bytes
@@ -18,6 +19,7 @@ SSL_PROTOCOL = ssl.PROTOCOL_TLSv1_2
 
 T = TypeVar("T")
 
+
 class MocketSocketCore(io.BytesIO):
     @override
     def write(self, content: ReadableBuffer) -> None:  # type: ignore[override] # BytesIO returns int
@@ -29,7 +31,7 @@ class MocketSocketCore(io.BytesIO):
             os.write(Mocket.w_fd, content)
 
 
-def hexdump(binary_string: bytes)  -> str:
+def hexdump(binary_string: bytes) -> str:
     r"""
     >>> hexdump(b"bar foobar foo") == decode_from_bytes(encode_to_bytes("62 61 72 20 66 6F 6F 62 61 72 20 66 6F 6F"))
     True
@@ -50,7 +52,7 @@ def hexload(string: str) -> bytes:
 def get_mocketize(wrapper_: Callable) -> Callable:
     import decorator
 
-    if decorator.__version__ < "5":   # type: ignore[attr-defined] # pragma: no cover
+    if decorator.__version__ < "5":  # type: ignore[attr-defined] # pragma: no cover
         return decorator.decorator(wrapper_)
     return decorator.decorator(wrapper_, kwsyntax=True)
 

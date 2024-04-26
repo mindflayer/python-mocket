@@ -3,7 +3,7 @@ from __future__ import annotations
 import codecs
 import os
 import shlex
-from typing import Final, Any
+from typing import Any, Final
 
 ENCODING: Final[str] = os.getenv("MOCKET_ENCODING", "utf-8")
 
