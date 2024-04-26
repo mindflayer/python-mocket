@@ -32,7 +32,7 @@ setup: develop
 
 develop: install-dev-requirements install-test-requirements
 
-test: lint-python test-python
+test: lint-python types test-python
 
 safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
