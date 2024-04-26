@@ -22,6 +22,11 @@ lint-python:
 	flake8 --ignore=E501,E731,W503 --exclude=.git,compat.py --per-file-ignores='mocket/async_mocket.py:E999' mocket
 	@echo ""
 
+types:
+	@echo "Type checking Python files"
+	mypy --pretty
+	@echo ""
+
 setup: develop
 	pre-commit install
 
