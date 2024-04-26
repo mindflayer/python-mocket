@@ -1,17 +1,26 @@
+from __future__ import annotations
+
 import binascii
 import io
 import os
 import ssl
-from typing import Tuple, Union
+from typing import Tuple, Union, Callable, TYPE_CHECKING, TypeVar, Any, ClassVar
+from typing_extensions import override
 
 from .compat import decode_from_bytes, encode_to_bytes
 from .exceptions import StrictMocketException
 
+if TYPE_CHECKING:
+    from _typeshed import ReadableBuffer
+    from typing_extensions import NoReturn
+
 SSL_PROTOCOL = ssl.PROTOCOL_TLSv1_2
 
+T = TypeVar("T")
 
 class MocketSocketCore(io.BytesIO):
-    def write(self, content):
+    @override
+    def write(self, content: ReadableBuffer) -> None:  # type: ignore[override] # BytesIO returns int
         super(MocketSocketCore, self).write(content)
 
         from mocket import Mocket
@@ -20,7 +29,7 @@ class MocketSocketCore(io.BytesIO):
             os.write(Mocket.w_fd, content)
 
 
-def hexdump(binary_string):
+def hexdump(binary_string: bytes)  -> str:
     r"""
     >>> hexdump(b"bar foobar foo") == decode_from_bytes(encode_to_bytes("62 61 72 20 66 6F 6F 62 61 72 20 66 6F 6F"))
     True
@@ -29,7 +38,7 @@ def hexdump(binary_string):
     return " ".join(a + b for a, b in zip(bs[::2], bs[1::2]))
 
 
-def hexload(string):
+def hexload(string: str) -> bytes:
     r"""
     >>> hexload("62 61 72 20 66 6F 6F 62 61 72 20 66 6F 6F") == encode_to_bytes("bar foobar foo")
     True
@@ -38,20 +47,20 @@ def hexload(string):
     return encode_to_bytes(binascii.unhexlify(string_no_spaces))
 
 
-def get_mocketize(wrapper_):
+def get_mocketize(wrapper_: T) -> T:
     import decorator
 
-    if decorator.__version__ < "5":  # pragma: no cover
+    if decorator.__version__ < "5":   # type: ignore[attr-defined] # pragma: no cover
         return decorator.decorator(wrapper_)
     return decorator.decorator(wrapper_, kwsyntax=True)
 
 
 class MocketMode:
-    __shared_state = {}
-    STRICT = None
-    STRICT_ALLOWED = None
+    __shared_state: ClassVar[dict[str, Any]] = {}
+    STRICT: ClassVar = None
+    STRICT_ALLOWED: ClassVar = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.__dict__ = self.__shared_state
 
     def is_allowed(self, location: Union[str, Tuple[str, int]]) -> bool:
@@ -65,7 +74,7 @@ class MocketMode:
         return location in self.STRICT_ALLOWED or host in self.STRICT_ALLOWED
 
     @staticmethod
-    def raise_not_allowed():
+    def raise_not_allowed() -> NoReturn:
         from .mocket import Mocket
 
         current_entries = [
