@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
 SSL_PROTOCOL = ssl.PROTOCOL_TLSv1_2
 
+
 class MocketSocketCore(io.BytesIO):
     def write(  # type: ignore[override] # BytesIO returns int
         self,
@@ -51,7 +52,10 @@ def get_mocketize(wrapper_: Callable) -> Callable:
 
     if decorator.__version__ < "5":  # type: ignore[attr-defined] # pragma: no cover
         return decorator.decorator(wrapper_)
-    return decorator.decorator(wrapper_, kwsyntax=True)  # type: ignore[call-arg] # kwsyntax
+    return decorator.decorator(  # type: ignore[call-arg] # kwsyntax
+        wrapper_,
+        kwsyntax=True,
+    )
 
 
 class MocketMode:
