@@ -56,6 +56,7 @@ test = [
     "fastapi",
     "wait-for-it",
     "mypy",
+    "types-decorator",
 ]
 speedups = [
     "xxhash;platform_python_implementation=='CPython'",
