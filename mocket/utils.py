@@ -69,12 +69,17 @@ class MocketMode:
     def is_allowed(self, location: str | tuple[str, int]) -> bool:
         """
         Checks if (`host`, `port`) or at least `host`
-        are allowed locationsto perform real `socket` calls
+        are allowed locations to perform real `socket` calls
         """
         if not self.STRICT:
             return True
-        host, _ = location  # type: ignore[misc] # can't unpack a string
-        return location in self.STRICT_ALLOWED or host in self.STRICT_ALLOWED
+        try:
+            host, _ = location
+        except ValueError:
+            host = None
+        return location in self.STRICT_ALLOWED or (
+            host is not None and host in self.STRICT_ALLOWED
+        )
 
     @staticmethod
     def raise_not_allowed() -> NoReturn:
