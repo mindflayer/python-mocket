@@ -5,7 +5,7 @@ install-dev-requirements:
 	uv venv && uv pip install hatch
 
 install-test-requirements:
-	uv pip install .[test]
+	uv pip install --editable .[test]
 
 services-up:
 	docker compose up -d
