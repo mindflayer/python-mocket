@@ -1,10 +1,10 @@
 #!/usr/bin/make -f
 
 install-dev-requirements:
-	pip install -U pip hatch
+	pip install -U uv hatch
 
 install-test-requirements:
-	pip install -U .[test]
+	uv pip install .[test]
 
 services-up:
 	docker compose up -d
