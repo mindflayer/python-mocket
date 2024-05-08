@@ -20,7 +20,7 @@ develop: install-dev-requirements install-test-requirements
 
 types:
 	@echo "Type checking Python files"
-	mypy --pretty
+	.venv/bin/mypy --pretty
 	@echo ""
 
 test: types
