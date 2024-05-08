@@ -73,13 +73,11 @@ class MocketMode:
         """
         if not self.STRICT:
             return True
-        try:
-            host, _ = location
-        except ValueError:
-            host = None
-        return location in self.STRICT_ALLOWED or (
-            host is not None and host in self.STRICT_ALLOWED
-        )
+
+        host_allowed = False
+        if isinstance(location, tuple):
+            host_allowed = location[0] in self.STRICT_ALLOWED
+        return host_allowed or location in self.STRICT_ALLOWED
 
     @staticmethod
     def raise_not_allowed() -> NoReturn:
