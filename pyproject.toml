@@ -55,6 +55,8 @@ test = [
     "twine",
     "fastapi",
     "wait-for-it",
+    "mypy",
+    "types-decorator",
 ]
 speedups = [
     "xxhash;platform_python_implementation=='CPython'",
@@ -81,3 +83,27 @@ include = [
 exclude = [
   ".*",
 ]
+
+[tool.mypy]
+python_version = "3.8"
+files = [
+    "mocket/exceptions.py",
+    "mocket/compat.py",
+    "mocket/utils.py",
+    # "tests/"
+    ]
+strict = true
+warn_unused_configs = true
+ignore_missing_imports = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true
+implicit_reexport = true
+disallow_any_generics = false
+follow_imports = "silent"  # enable this once majority is typed
+enable_error_code = ['ignore-without-code']
+disable_error_code = ["no-untyped-def"] # enable this once full type-coverage is reached
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disable_error_code = ['type-arg', 'no-untyped-def']
