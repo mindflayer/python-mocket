@@ -1,4 +1,3 @@
-import io
 import json
 import os
 import tempfile
@@ -45,18 +44,19 @@ def test_json(response):
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
 def test_truesendall_with_recording_https(url_to_mock):
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with Mocketizer(truesocket_recording_dir=temp_dir):
-            requests.get(url_to_mock, headers={"Accept": "application/json"})
-            resp = requests.get(url_to_mock, headers={"Accept": "application/json"})
-            assert resp.status_code == 200
+    with tempfile.TemporaryDirectory() as temp_dir, Mocketizer(
+        truesocket_recording_dir=temp_dir
+    ):
+        requests.get(url_to_mock, headers={"Accept": "application/json"})
+        resp = requests.get(url_to_mock, headers={"Accept": "application/json"})
+        assert resp.status_code == 200
 
-            dump_filename = os.path.join(
-                Mocket.get_truesocket_recording_dir(),
-                Mocket.get_namespace() + ".json",
-            )
-            with io.open(dump_filename) as f:
-                responses = json.load(f)
+        dump_filename = os.path.join(
+            Mocket.get_truesocket_recording_dir(),
+            Mocket.get_namespace() + ".json",
+        )
+        with open(dump_filename) as f:
+            responses = json.load(f)
 
     assert len(responses["httpbin.org"]["443"].keys()) == 1
 

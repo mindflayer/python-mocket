@@ -1,8 +1,8 @@
 import collections
 import collections.abc as collections_abc
+import contextlib
 import errno
 import hashlib
-import io
 import itertools
 import json
 import os
@@ -21,6 +21,7 @@ try:
 except ImportError:
     urllib3_wrap_socket = None
 
+
 from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, text_type
 from .utils import (
     SSL_PROTOCOL,
@@ -35,10 +36,8 @@ xxh32 = None
 try:
     from xxhash import xxh32
 except ImportError:  # pragma: no cover
-    try:
+    with contextlib.suppress(ImportError):
         from xxhash_cffi import xxh32
-    except ImportError:
-        pass
 hasher = xxh32 or hashlib.md5
 
 try:  # pragma: no cover
@@ -192,9 +191,7 @@ class MocketSocket:
         self.kwargs = kwargs
 
     def __str__(self):
-        return "({})(family={} type={} protocol={})".format(
-            self.__class__.__name__, self.family, self.type, self.proto
-        )
+        return f"({self.__class__.__name__})(family={self.family} type={self.type} protocol={self.proto})"
 
     def __enter__(self):
         return self
@@ -250,14 +247,14 @@ class MocketSocket:
         return {
             "notAfter": shift.strftime("%b %d %H:%M:%S GMT"),
             "subjectAltName": (
-                ("DNS", "*.%s" % self._host),
+                ("DNS", f"*.{self._host}"),
                 ("DNS", self._host),
                 ("DNS", "*"),
             ),
             "subject": (
-                (("organizationName", "*.%s" % self._host),),
+                (("organizationName", f"*.{self._host}"),),
                 (("organizationalUnitName", "Domain Control Validated"),),
-                (("commonName", "*.%s" % self._host),),
+                (("commonName", f"*.{self._host}"),),
             ),
         }
 
@@ -292,10 +289,7 @@ class MocketSocket:
 
         if entry:
             consume_response = entry.collect(data)
-            if consume_response is not False:
-                response = entry.get_response()
-            else:
-                response = None
+            response = entry.get_response() if consume_response is not False else None
         else:
             response = self.true_sendall(data, *args, **kwargs)
 
@@ -353,7 +347,7 @@ class MocketSocket:
             )
             # check if there's already a recorded session dumped to a JSON file
             try:
-                with io.open(path) as f:
+                with open(path) as f:
                     responses = json.load(f)
             # if not, create a new dictionary
             except (FileNotFoundError, JSONDecodeError):
@@ -390,11 +384,9 @@ class MocketSocket:
                     **self.kwargs,
                 )
 
-            try:
-                self.true_socket.connect((host, port))
-            except (OSError, socket.error, ValueError):
+            with contextlib.suppress(OSError, ValueError):
                 # already connected
-                pass
+                self.true_socket.connect((host, port))
             self.true_socket.sendall(data, *args, **kwargs)
             encoded_response = b""
             # https://github.com/kennethreitz/requests/blob/master/tests/testserver/server.py#L13
@@ -416,7 +408,7 @@ class MocketSocket:
                 response_dict["request"] = req
                 response_dict["response"] = hexdump(encoded_response)
 
-                with io.open(path, mode="w") as f:
+                with open(path, mode="w") as f:
                     f.write(
                         decode_from_bytes(
                             json.dumps(responses, indent=4, sort_keys=True)
@@ -428,8 +420,9 @@ class MocketSocket:
 
     def send(self, data, *args, **kwargs):  # pragma: no cover
         entry = self.get_entry(data)
+        kwargs["entry"] = entry
         if not entry or (entry and self._entry != entry):
-            self.sendall(data, entry=entry, *args, **kwargs)
+            self.sendall(data, *args, **kwargs)
         else:
             req = Mocket.last_request()
             if hasattr(req, "add_data"):
@@ -512,41 +505,40 @@ class Mocket:
         Mocket._namespace = namespace
         Mocket._truesocket_recording_dir = truesocket_recording_dir
 
-        if truesocket_recording_dir:
+        if truesocket_recording_dir and not os.path.isdir(truesocket_recording_dir):
             # JSON dumps will be saved here
-            if not os.path.isdir(truesocket_recording_dir):
-                raise AssertionError
+            raise AssertionError
 
         socket.socket = socket.__dict__["socket"] = MocketSocket
         socket._socketobject = socket.__dict__["_socketobject"] = MocketSocket
         socket.SocketType = socket.__dict__["SocketType"] = MocketSocket
-        socket.create_connection = socket.__dict__[
-            "create_connection"
-        ] = create_connection
+        socket.create_connection = socket.__dict__["create_connection"] = (
+            create_connection
+        )
         socket.gethostname = socket.__dict__["gethostname"] = lambda: "localhost"
-        socket.gethostbyname = socket.__dict__[
-            "gethostbyname"
-        ] = lambda host: "127.0.0.1"
-        socket.getaddrinfo = socket.__dict__[
-            "getaddrinfo"
-        ] = lambda host, port, family=None, socktype=None, proto=None, flags=None: [
-            (2, 1, 6, "", (host, port))
-        ]
+        socket.gethostbyname = socket.__dict__["gethostbyname"] = (
+            lambda host: "127.0.0.1"
+        )
+        socket.getaddrinfo = socket.__dict__["getaddrinfo"] = (
+            lambda host, port, family=None, socktype=None, proto=None, flags=None: [
+                (2, 1, 6, "", (host, port))
+            ]
+        )
         socket.socketpair = socket.__dict__["socketpair"] = socketpair
         ssl.wrap_socket = ssl.__dict__["wrap_socket"] = FakeSSLContext.wrap_socket
         ssl.SSLContext = ssl.__dict__["SSLContext"] = FakeSSLContext
         socket.inet_pton = socket.__dict__["inet_pton"] = lambda family, ip: byte_type(
             "\x7f\x00\x00\x01", "utf-8"
         )
-        urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__[
-            "wrap_socket"
-        ] = FakeSSLContext.wrap_socket
+        urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__["wrap_socket"] = (
+            FakeSSLContext.wrap_socket
+        )
         urllib3.util.ssl_.ssl_wrap_socket = urllib3.util.ssl_.__dict__[
             "ssl_wrap_socket"
         ] = FakeSSLContext.wrap_socket
-        urllib3.util.ssl_wrap_socket = urllib3.util.__dict__[
-            "ssl_wrap_socket"
-        ] = FakeSSLContext.wrap_socket
+        urllib3.util.ssl_wrap_socket = urllib3.util.__dict__["ssl_wrap_socket"] = (
+            FakeSSLContext.wrap_socket
+        )
         urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
             "ssl_wrap_socket"
         ] = FakeSSLContext.wrap_socket
@@ -564,9 +556,9 @@ class Mocket:
         socket.socket = socket.__dict__["socket"] = true_socket
         socket._socketobject = socket.__dict__["_socketobject"] = true_socket
         socket.SocketType = socket.__dict__["SocketType"] = true_socket
-        socket.create_connection = socket.__dict__[
-            "create_connection"
-        ] = true_create_connection
+        socket.create_connection = socket.__dict__["create_connection"] = (
+            true_create_connection
+        )
         socket.gethostname = socket.__dict__["gethostname"] = true_gethostname
         socket.gethostbyname = socket.__dict__["gethostbyname"] = true_gethostbyname
         socket.getaddrinfo = socket.__dict__["getaddrinfo"] = true_getaddrinfo
@@ -575,15 +567,15 @@ class Mocket:
             ssl.wrap_socket = ssl.__dict__["wrap_socket"] = true_ssl_wrap_socket
         ssl.SSLContext = ssl.__dict__["SSLContext"] = true_ssl_context
         socket.inet_pton = socket.__dict__["inet_pton"] = true_inet_pton
-        urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__[
-            "wrap_socket"
-        ] = true_urllib3_wrap_socket
+        urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__["wrap_socket"] = (
+            true_urllib3_wrap_socket
+        )
         urllib3.util.ssl_.ssl_wrap_socket = urllib3.util.ssl_.__dict__[
             "ssl_wrap_socket"
         ] = true_urllib3_ssl_wrap_socket
-        urllib3.util.ssl_wrap_socket = urllib3.util.__dict__[
-            "ssl_wrap_socket"
-        ] = true_urllib3_ssl_wrap_socket
+        urllib3.util.ssl_wrap_socket = urllib3.util.__dict__["ssl_wrap_socket"] = (
+            true_urllib3_ssl_wrap_socket
+        )
         urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
             "ssl_wrap_socket"
         ] = true_urllib3_ssl_wrap_socket
@@ -645,7 +637,7 @@ class MocketEntry:
                 self.responses.append(r)
 
     def __repr__(self):
-        return "{}(location={})".format(self.__class__.__name__, self.location)
+        return f"{self.__class__.__name__}(location={self.location})"
 
     @staticmethod
     def can_handle(data):

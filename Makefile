@@ -7,8 +7,13 @@ install-dev-requirements:
 install-test-requirements:
 	uv pip install --editable .[test]
 
-services-up:
+prepare-hosts: _services-up
+	@bash scripts/patch_hosts.sh
+
+_services-up:
 	docker compose up -d
+
+services-up: _services-up prepare-hosts
 
 services-down:
 	docker compose down --remove-orphans
@@ -39,5 +44,5 @@ clean:
 	rm -rf *.egg-info dist/ requirements.txt Pipfile.lock
 	find . -type d -name __pycache__ -exec rm -rf {} \;
 
-.PHONY: clean publish safetest test setup develop lint-python test-python
-.PHONY: services-up services-down install-test-requirements install-dev-requirements
+.PHONY: clean publish safetest test setup develop lint-python test-python _services-up
+.PHONY: prepare-hosts services-up services-down install-test-requirements install-dev-requirements

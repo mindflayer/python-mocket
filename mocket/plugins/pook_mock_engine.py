@@ -10,7 +10,7 @@ class MocketPookEntry(Entry):
     pook_engine = None
 
     def can_handle(self, data):
-        can_handle = super(MocketPookEntry, self).can_handle(data)
+        can_handle = super().can_handle(data)
 
         if can_handle:
             self.pook_engine.match(self.pook_request)

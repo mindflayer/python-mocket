@@ -10,8 +10,9 @@ from .compat import decode_from_bytes, encode_to_bytes
 from .exceptions import StrictMocketException
 
 if TYPE_CHECKING:
+    from typing import NoReturn
+
     from _typeshed import ReadableBuffer
-    from typing_extensions import NoReturn
 
 SSL_PROTOCOL = ssl.PROTOCOL_TLSv1_2
 
@@ -21,7 +22,7 @@ class MocketSocketCore(io.BytesIO):
         self,
         content: ReadableBuffer,
     ) -> None:
-        super(MocketSocketCore, self).write(content)
+        super().write(content)
 
         from mocket import Mocket
 
