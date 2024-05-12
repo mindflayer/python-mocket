@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
-import io
 import json
 import os
 
@@ -25,7 +21,7 @@ class HttpEntryTestCase(HttpTestCase):
             Mocket.get_truesocket_recording_dir(),
             Mocket.get_namespace() + ".json",
         )
-        with io.open(dump_filename) as f:
+        with open(dump_filename) as f:
             responses = json.load(f)
 
         self.assertEqual(len(responses["httpbin.local"]["80"].keys()), 2)

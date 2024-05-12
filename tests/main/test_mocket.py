@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import io
 import os
 import socket
@@ -91,7 +89,7 @@ class MocketTestCase(TestCase):
         self.assertEqual(entry.get_response(), encode_to_bytes(""))
 
     def test_raise_exception(self):
-        entry = MocketEntry(("localhost", 8080), [IOError()])
+        entry = MocketEntry(("localhost", 8080), [OSError()])
 
         with self.assertRaises(IOError):
             entry.get_response()
@@ -179,13 +177,12 @@ class MocketTestCase(TestCase):
     def test_socket_as_context_manager(self):
         addr = ("localhost", 80)
         Mocket.register(MocketEntry(addr, ["Show me.\r\n"]))
-        with Mocketizer():
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as _so:
-                _so.connect(addr)
-                _so.sendall(encode_to_bytes("Whatever..."))
-                data = _so.recv(4096)
-                self.assertEqual(data, encode_to_bytes("Show me.\r\n"))
-                self.assertEqual(str(_so), "(MocketSocket)(family=2 type=1 protocol=0)")
+        with Mocketizer(), socket.socket(socket.AF_INET, socket.SOCK_STREAM) as _so:
+            _so.connect(addr)
+            _so.sendall(encode_to_bytes("Whatever..."))
+            data = _so.recv(4096)
+            self.assertEqual(data, encode_to_bytes("Show me.\r\n"))
+            self.assertEqual(str(_so), "(MocketSocket)(family=2 type=1 protocol=0)")
 
 
 class MocketizeTestCase(TestCase):
@@ -212,7 +209,7 @@ def two():
 
 @mocketize
 def test_mocketize_with_fixture(two):
-    assert 2 == two
+    assert two == 2
 
 
 @mocketize
@@ -233,8 +230,7 @@ async def test_no_dangling_fds():
 
     prev_num_fds = proc.num_fds()
 
-    async with Mocketizer(strict_mode=False):
-        async with httpx.AsyncClient() as client:
-            await client.get(url)
+    async with Mocketizer(strict_mode=False), httpx.AsyncClient() as client:
+        await client.get(url)
 
     assert proc.num_fds() == prev_num_fds

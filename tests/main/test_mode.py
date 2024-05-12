@@ -22,9 +22,8 @@ def test_intermittent_strict_mode():
     with Mocketizer(strict_mode=False):
         requests.get(url)
 
-    with Mocketizer(strict_mode=True):
-        with pytest.raises(StrictMocketException):
-            requests.get(url)
+    with Mocketizer(strict_mode=True), pytest.raises(StrictMocketException):
+        requests.get(url)
 
     with Mocketizer(strict_mode=False):
         requests.get(url)

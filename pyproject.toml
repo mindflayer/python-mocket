@@ -84,6 +84,31 @@ exclude = [
   ".*",
 ]
 
+[tool.ruff]
+src = ["mocket", "tests"]
+
+[tool.ruff.lint]
+extend-ignore = ["E731", "E501"]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+]
+
+[tool.ruff.lint.mccabe]
+# Unlike Flake8, default to a complexity level of 10.
+# https://en.wikipedia.org/wiki/Cyclomatic_complexity#Limiting_complexity_during_development
+max-complexity = 8
+
 [tool.mypy]
 python_version = "3.8"
 files = [

@@ -27,9 +27,9 @@ if ENABLE_TEST_CLASS:
             Entry.single_register(Entry.GET, url, body=body, status=404)
             Entry.single_register(Entry.POST, url, body=body * 2, status=201)
 
-            async def main(l):
+            async def main(loop_):
                 async with aiohttp.ClientSession(
-                    loop=l, timeout=aiohttp.ClientTimeout(total=3)
+                    loop=loop_, timeout=aiohttp.ClientTimeout(total=3)
                 ) as session:
                     async with session.get(url) as get_response:
                         assert get_response.status == 404
@@ -77,10 +77,11 @@ if ENABLE_TEST_CLASS:
                 body=json.dumps(dict(origin="127.0.0.1")),
             )
 
-            async with aiohttp.ClientSession(timeout=self.timeout) as session:
-                async with session.get(self.target_url) as get_response:
-                    assert get_response.status == 200
-                    assert await get_response.text() == '{"origin": "127.0.0.1"}'
+            async with aiohttp.ClientSession(
+                timeout=self.timeout
+            ) as session, session.get(self.target_url) as get_response:
+                assert get_response.status == 200
+                assert await get_response.text() == '{"origin": "127.0.0.1"}'
 
     class AioHttpsEntryTestCase(IsolatedAsyncioTestCase):
         timeout = aiohttp.ClientTimeout(total=3)
@@ -111,9 +112,10 @@ if ENABLE_TEST_CLASS:
         async def test_no_verify(self):
             Entry.single_register(Entry.GET, self.target_url, status=404)
 
-            async with aiohttp.ClientSession(timeout=self.timeout) as session:
-                async with session.get(self.target_url, ssl=False) as get_response:
-                    assert get_response.status == 404
+            async with aiohttp.ClientSession(
+                timeout=self.timeout
+            ) as session, session.get(self.target_url, ssl=False) as get_response:
+                assert get_response.status == 404
 
         @async_httprettified
         async def test_httprettish_session(self):
@@ -123,10 +125,11 @@ if ENABLE_TEST_CLASS:
                 body=json.dumps(dict(origin="127.0.0.1")),
             )
 
-            async with aiohttp.ClientSession(timeout=self.timeout) as session:
-                async with session.get(self.target_url) as get_response:
-                    assert get_response.status == 200
-                    assert await get_response.text() == '{"origin": "127.0.0.1"}'
+            async with aiohttp.ClientSession(
+                timeout=self.timeout
+            ) as session, session.get(self.target_url) as get_response:
+                assert get_response.status == 200
+                assert await get_response.text() == '{"origin": "127.0.0.1"}'
 
         @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
         async def test_mocked_https_request_after_unmocked_https_request(self):

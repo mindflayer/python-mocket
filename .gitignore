@@ -20,7 +20,6 @@ Documentation/
 .tox/
 .ropeproject/
 .idea/
-*.sh
 doc/build
 .buildinfo
 .coverage
