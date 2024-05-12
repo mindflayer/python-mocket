@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Callable, ClassVar
 from .compat import decode_from_bytes, encode_to_bytes
 from .exceptions import StrictMocketException
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from typing import NoReturn
 
     from _typeshed import ReadableBuffer
