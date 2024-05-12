@@ -5,7 +5,7 @@ mocket /mɔˈkɛt/
 .. image:: https://github.com/mindflayer/python-mocket/workflows/Mocket's%20CI/badge.svg
     :target: https://github.com/mindflayer/python-mocket/actions?query=workflow%3A%22Mocket%27s+CI%22
 
-.. image:: https://coveralls.io/repos/github/mindflayer/python-mocket/badge.svg?branch=master
+.. image:: https://coveralls.io/repos/github/mindflayer/python-mocket/badge.svg?branch=main
     :target: https://coveralls.io/github/mindflayer/python-mocket?branch=master
 
 .. image:: https://app.codacy.com/project/badge/Grade/6327640518ce42adaf59368217028f14
