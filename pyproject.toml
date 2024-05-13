@@ -48,7 +48,6 @@ test = [
     "pook",
     "flake8>5",
     "xxhash",
-    "aiohttp;python_version<'3.12'",
     "httpx",
     "pipfile",
     "build",
