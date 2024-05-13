@@ -56,6 +56,8 @@ async def test_aiohttp():
         headers={"content-type": "application/json"},
     )
 
-    async with aiohttp.ClientSession() as session, session.get(url) as response:
+    async with aiohttp.ClientSession(
+        timeout=aiohttp.ClientTimeout(total=3)
+    ) as session, session.get(url) as response:
         response = await response.json()
         assert response == data
