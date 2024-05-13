@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals
-
-import socket
+import contextlib
 from unittest import TestCase
 
 import pytest
@@ -135,9 +131,9 @@ class TrueRedisTestCase(TestCase):
 
     @mocketize
     def test_lrange(self):
-        l = [b"one", b"two", b"three"]
-        self.rclient.rpush("list", *l)
-        self.assertEqual(self.rclient.lrange("list", 0, -1), l)
+        list_ = [b"one", b"two", b"three"]
+        self.rclient.rpush("list", *list_)
+        self.assertEqual(self.rclient.lrange("list", 0, -1), list_)
 
     @mocketize
     def test_err(self):
@@ -146,10 +142,8 @@ class TrueRedisTestCase(TestCase):
     @mocketize
     def test_shutdown(self):
         rc = redis.StrictRedis(host="127.1.1.1")
-        try:
+        with contextlib.suppress(redis.ConnectionError):
             rc.get("foo")
-        except redis.ConnectionError:
-            pass
 
     @mocketize
     def test_select_db(self):
@@ -238,9 +232,9 @@ class RedisTestCase(TestCase):
 
     @mocketize
     def test_lrange(self):
-        l = [b"one", b"two", b"three"]
-        Entry.register_response("LRANGE list 0 -1", l)
-        self.assertEqual(self.rclient.lrange("list", 0, -1), l)
+        list_ = [b"one", b"two", b"three"]
+        Entry.register_response("LRANGE list 0 -1", list_)
+        self.assertEqual(self.rclient.lrange("list", 0, -1), list_)
         self.assertEqual(len(Mocket.request_list()), 1)
         self.assertEqual(
             Mocket.last_request().data,
@@ -261,7 +255,7 @@ class RedisTestCase(TestCase):
 
     @mocketize
     def test_raise_exception(self):
-        Entry.register_response("INCRBY counter one", socket.error("Mocket rulez!"))
+        Entry.register_response("INCRBY counter one", OSError("Mocket rulez!"))
         self.assertRaises(
             redis.exceptions.ConnectionError, self.rclient.incr, "counter", "one"
         )

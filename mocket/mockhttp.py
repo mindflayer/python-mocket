@@ -76,7 +76,7 @@ class Request:
         return self._protocol.body
 
     def __str__(self):
-        return "{} - {} - {}".format(self.method, self.path, self.headers)
+        return f"{self.method} - {self.path} - {self.headers}"
 
 
 class Response:
@@ -104,16 +104,14 @@ class Response:
         self.data = self.get_protocol_data() + self.body
 
     def get_protocol_data(self, str_format_fun_name="capitalize"):
-        status_line = "HTTP/1.1 {status_code} {status}".format(
-            status_code=self.status, status=STATUS[self.status]
-        )
+        status_line = f"HTTP/1.1 {self.status} {STATUS[self.status]}"
         header_lines = CRLF.join(
             (
-                "{0}: {1}".format(getattr(k, str_format_fun_name)(), v)
+                f"{getattr(k, str_format_fun_name)()}: {v}"
                 for k, v in self.headers.items()
             )
         )
-        return "{0}\r\n{1}\r\n\r\n".format(status_line, header_lines).encode(ENCODING)
+        return f"{status_line}\r\n{header_lines}\r\n\r\n".encode(ENCODING)
 
     def set_base_headers(self):
         self.headers = {
@@ -140,7 +138,7 @@ class Response:
         True
         """
         for k, v in headers.items():
-            self.headers["-".join((token.capitalize() for token in k.split("-")))] = v
+            self.headers["-".join(token.capitalize() for token in k.split("-"))] = v
 
 
 class Entry(MocketEntry):
@@ -164,12 +162,9 @@ class Entry(MocketEntry):
 
         port = uri.port
         if not port:
-            if uri.scheme == "https":
-                port = 443
-            else:
-                port = 80
+            port = 443 if uri.scheme == "https" else 80
 
-        super(Entry, self).__init__((uri.hostname, port), responses)
+        super().__init__((uri.hostname, port), responses)
         self.schema = uri.scheme
         self.path = uri.path
         self.query = uri.query
@@ -178,16 +173,7 @@ class Entry(MocketEntry):
         self._match_querystring = match_querystring
 
     def __repr__(self):
-        return (
-            "{}(method={!r}, schema={!r}, location={!r}, path={!r}, query={!r})".format(
-                self.__class__.__name__,
-                self.method,
-                self.schema,
-                self.location,
-                self.path,
-                self.query,
-            )
-        )
+        return f"{self.__class__.__name__}(method={self.method!r}, schema={self.schema!r}, location={self.location!r}, path={self.path!r}, query={self.query!r})"
 
     def collect(self, data):
         consume_response = True
@@ -200,7 +186,7 @@ class Entry(MocketEntry):
         else:
             self._sent_data = data
 
-        super(Entry, self).collect(self._sent_data)
+        super().collect(self._sent_data)
 
         return consume_response
 

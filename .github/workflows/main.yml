@@ -1,12 +1,16 @@
 name: Mocket's CI
 
 on:
-
-  # Run on all push events.
   push:
-
-  # Allow job to be triggered manually.
-  workflow_dispatch:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+  schedule:
+    # cron every week on monday
+    - cron: "0 0 * * 1"
 
 # Cancel in-progress jobs when pushing to the same branch.
 concurrency:
@@ -18,7 +22,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', 'pypy3.10']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']  # , 'pypy3.10'
 
     steps:
     - uses: actions/checkout@v3
@@ -38,11 +42,6 @@ jobs:
       run: |
         make develop
         make services-up
-    - name: Setup hostname
-      run: |
-        export CONTAINER_ID=$(docker compose ps -q proxy)
-        export CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_ID)
-        echo "$CONTAINER_IP httpbin.local" | sudo tee -a /etc/hosts
     - name: Test
       run: |
         make test

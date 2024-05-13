@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-import io
 import json
 import os
 import socket
@@ -35,60 +33,63 @@ class TrueHttpEntryTestCase(HttpTestCase):
         self.assertEqual(resp.status_code, 200)
 
     def test_truesendall_with_recording(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            with Mocketizer(truesocket_recording_dir=temp_dir):
-                url = "http://httpbin.local/ip"
+        with tempfile.TemporaryDirectory() as temp_dir, Mocketizer(
+            truesocket_recording_dir=temp_dir
+        ):
+            url = "http://httpbin.local/ip"
 
-                urlopen(url)
-                requests.get(url)
-                resp = urlopen(url)
-                self.assertEqual(resp.code, 200)
-                resp = requests.get(url)
-                self.assertEqual(resp.status_code, 200)
-                assert "origin" in resp.json()
+            urlopen(url)
+            requests.get(url)
+            resp = urlopen(url)
+            self.assertEqual(resp.code, 200)
+            resp = requests.get(url)
+            self.assertEqual(resp.status_code, 200)
+            assert "origin" in resp.json()
 
-                dump_filename = os.path.join(
-                    Mocket.get_truesocket_recording_dir(),
-                    Mocket.get_namespace() + ".json",
-                )
-                with io.open(dump_filename) as f:
-                    responses = json.load(f)
+            dump_filename = os.path.join(
+                Mocket.get_truesocket_recording_dir(),
+                Mocket.get_namespace() + ".json",
+            )
+            with open(dump_filename) as f:
+                responses = json.load(f)
 
         self.assertEqual(len(responses["httpbin.local"]["80"].keys()), 2)
 
     def test_truesendall_with_gzip_recording(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            with Mocketizer(truesocket_recording_dir=temp_dir):
-                url = "http://httpbin.local/gzip"
+        with tempfile.TemporaryDirectory() as temp_dir, Mocketizer(
+            truesocket_recording_dir=temp_dir
+        ):
+            url = "http://httpbin.local/gzip"
 
-                requests.get(url)
-                resp = requests.get(url)
-                self.assertEqual(resp.status_code, 200)
+            requests.get(url)
+            resp = requests.get(url)
+            self.assertEqual(resp.status_code, 200)
 
-                dump_filename = os.path.join(
-                    Mocket.get_truesocket_recording_dir(),
-                    Mocket.get_namespace() + ".json",
-                )
-                with io.open(dump_filename) as f:
-                    responses = json.load(f)
+            dump_filename = os.path.join(
+                Mocket.get_truesocket_recording_dir(),
+                Mocket.get_namespace() + ".json",
+            )
+            with open(dump_filename) as f:
+                responses = json.load(f)
 
         assert len(responses["httpbin.local"]["80"].keys()) == 1
 
     def test_truesendall_with_chunk_recording(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            with Mocketizer(truesocket_recording_dir=temp_dir):
-                url = "http://httpbin.local/range/70000?chunk_size=65536"
+        with tempfile.TemporaryDirectory() as temp_dir, Mocketizer(
+            truesocket_recording_dir=temp_dir
+        ):
+            url = "http://httpbin.local/range/70000?chunk_size=65536"
 
-                requests.get(url)
-                resp = requests.get(url)
-                self.assertEqual(resp.status_code, 200)
+            requests.get(url)
+            resp = requests.get(url)
+            self.assertEqual(resp.status_code, 200)
 
-                dump_filename = os.path.join(
-                    Mocket.get_truesocket_recording_dir(),
-                    Mocket.get_namespace() + ".json",
-                )
-                with io.open(dump_filename) as f:
-                    responses = json.load(f)
+            dump_filename = os.path.join(
+                Mocket.get_truesocket_recording_dir(),
+                Mocket.get_namespace() + ".json",
+            )
+            with open(dump_filename) as f:
+                responses = json.load(f)
 
         assert len(responses["httpbin.local"]["80"].keys()) == 1
 
@@ -246,12 +247,12 @@ class HttpEntryTestCase(HttpTestCase):
     def test_file_object(self):
         url = "http://github.com/fluidicon.png"
         filename = "tests/fluidicon.png"
-        file_obj = open(filename, "rb")
-        Entry.single_register(Entry.GET, url, body=file_obj)
+        with open(filename, "rb") as file_obj:
+            Entry.single_register(Entry.GET, url, body=file_obj)
         r = requests.get(url)
         remote_content = r.content
-        local_file_obj = open(filename, "rb")
-        local_content = local_file_obj.read()
+        with open(filename, "rb") as local_file_obj:
+            local_content = local_file_obj.read()
         self.assertEqual(remote_content, local_content)
         self.assertEqual(len(remote_content), len(local_content))
         self.assertEqual(int(r.headers["Content-Length"]), len(local_content))
@@ -261,12 +262,12 @@ class HttpEntryTestCase(HttpTestCase):
     def test_file_object_with_no_lib_magic(self):
         url = "http://github.com/fluidicon.png"
         filename = "tests/fluidicon.png"
-        file_obj = open(filename, "rb")
-        Entry.register(Entry.GET, url, Response(body=file_obj, lib_magic=None))
+        with open(filename, "rb") as file_obj:
+            Entry.register(Entry.GET, url, Response(body=file_obj, lib_magic=None))
         r = requests.get(url)
         remote_content = r.content
-        local_file_obj = open(filename, "rb")
-        local_content = local_file_obj.read()
+        with open(filename, "rb") as local_file_obj:
+            local_content = local_file_obj.read()
         self.assertEqual(remote_content, local_content)
         self.assertEqual(len(remote_content), len(local_content))
         self.assertEqual(int(r.headers["Content-Length"]), len(local_content))
@@ -299,7 +300,7 @@ class HttpEntryTestCase(HttpTestCase):
         for e in range(5):
             u = url.format(e)
             Entry.single_register(Entry.POST, u, body=str(e))
-            request_body = urlencode({"key-{0}".format(e): "value={0}".format(e)})
+            request_body = urlencode({f"key-{e}": f"value={e}"})
             urlopen(u, request_body.encode("utf-8"))
             last_request = Mocket.last_request()
             assert last_request.body == request_body
@@ -316,7 +317,7 @@ class HttpEntryTestCase(HttpTestCase):
         dump_filename = os.path.join(
             Mocket.get_truesocket_recording_dir(), Mocket.get_namespace() + ".json"
         )
-        with io.open(dump_filename) as f:
+        with open(dump_filename) as f:
             responses = json.load(f)
 
         self.assertEqual(len(responses["httpbin.local"]["80"].keys()), 2)
@@ -325,15 +326,15 @@ class HttpEntryTestCase(HttpTestCase):
     def test_post_file_object(self):
         url = "http://github.com/fluidicon.png"
         Entry.single_register(Entry.POST, url, status=201)
-        file_obj = open("tests/fluidicon.png", "rb")
-        files = {"content": file_obj}
-        r = requests.post(url, files=files, data={})
+        with open("tests/fluidicon.png", "rb") as file_obj:
+            files = {"content": file_obj}
+            r = requests.post(url, files=files, data={})
         self.assertEqual(r.status_code, 201)
 
     @mocketize
     def test_raise_exception(self):
         url = "http://github.com/fluidicon.png"
-        Entry.single_register(Entry.GET, url, exception=socket.error())
+        Entry.single_register(Entry.GET, url, exception=OSError())
         with self.assertRaises(requests.exceptions.ConnectionError):
             requests.get(url)
 
@@ -359,8 +360,8 @@ class HttpEntryTestCase(HttpTestCase):
         sock = socket.socket(address[0], address[1], address[2])
 
         sock.connect(address[-1])
-        sock.write("%s %s HTTP/1.0\r\n" % (method, path))
-        sock.write("Host: %s\r\n" % host)
+        sock.write(f"{method} {path} HTTP/1.0\r\n")
+        sock.write(f"Host: {host}\r\n")
         sock.write("Content-Type: application/json\r\n")
         sock.write("Content-Length: %d\r\n" % len(data))
         sock.write("Connection: close\r\n\r\n")

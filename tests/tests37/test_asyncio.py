@@ -1,6 +1,5 @@
 import asyncio
 import glob
-import io
 import json
 import socket
 import tempfile
@@ -34,7 +33,7 @@ def test_asyncio_record_replay(event_loop):
         files = glob.glob(f"{temp_dir}/*.json")
         assert len(files) == 1
 
-        with io.open(files[0]) as f:
+        with open(files[0]) as f:
             responses = json.load(f)
 
         assert len(responses["google.com"]["80"].keys()) == 1

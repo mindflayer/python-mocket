@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # <HTTPretty - HTTP client mock for Python>
 # Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
@@ -24,7 +22,6 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-from __future__ import unicode_literals
 
 import requests
 from sure import expect

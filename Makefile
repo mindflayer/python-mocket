@@ -1,33 +1,37 @@
 #!/usr/bin/make -f
 
 install-dev-requirements:
-	pip install -U pip hatch
+	curl -LsSf https://astral.sh/uv/install.sh | sh
+	uv venv && uv pip install hatch
 
 install-test-requirements:
-	pip install -U .[test]
+	uv pip install --editable .[test]
 
-services-up:
+prepare-hosts: _services-up
+	@bash scripts/patch_hosts.sh
+
+_services-up:
 	docker compose up -d
+
+services-up: _services-up prepare-hosts
 
 services-down:
 	docker compose down --remove-orphans
-
-test-python:
-	@echo "Running Python tests"
-	wait-for-it --service httpbin.local:443 --service localhost:6379 --timeout 5 -- pytest --doctest-modules || exit 1
-	@echo ""
-
-lint-python:
-	@echo "Linting Python files"
-	flake8 --ignore=E501,E731,W503 --exclude=.git,compat.py --per-file-ignores='mocket/async_mocket.py:E999' mocket
-	@echo ""
 
 setup: develop
 	pre-commit install
 
 develop: install-dev-requirements install-test-requirements
 
-test: lint-python test-python
+types:
+	@echo "Type checking Python files"
+	.venv/bin/mypy --pretty
+	@echo ""
+
+test: types
+	@echo "Running Python tests"
+	export VIRTUAL_ENV=.venv; .venv/bin/wait-for-it --service httpbin.local:443 --service localhost:6379 --timeout 5 -- .venv/bin/pytest tests/ || exit 1
+	@echo ""
 
 safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
@@ -40,5 +44,5 @@ clean:
 	rm -rf *.egg-info dist/ requirements.txt Pipfile.lock
 	find . -type d -name __pycache__ -exec rm -rf {} \;
 
-.PHONY: clean publish safetest test setup develop lint-python test-python
-.PHONY: services-up services-down install-test-requirements install-dev-requirements
+.PHONY: clean publish safetest test setup develop lint-python test-python _services-up
+.PHONY: prepare-hosts services-up services-down install-test-requirements install-dev-requirements
