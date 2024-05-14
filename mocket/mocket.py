@@ -10,6 +10,7 @@ import select
 import socket
 import ssl
 from datetime import datetime, timedelta
+from io import BytesIO
 from json.decoder import JSONDecodeError
 
 import urllib3
@@ -26,7 +27,6 @@ from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, t
 from .utils import (
     SSL_PROTOCOL,
     MocketMode,
-    MocketSocketCore,
     get_mocketize,
     hexdump,
     hexload,
@@ -175,6 +175,8 @@ class MocketSocket:
     _mode = None
     _bufsize = None
     _secure_socket = False
+    _did_handshake = False
+    _sent_non_empty_bytes = False
 
     def __init__(
         self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, **kwargs
@@ -186,8 +188,6 @@ class MocketSocket:
         self.type = int(type)
         self.proto = int(proto)
         self._truesocket_recording_dir = None
-        self._did_handshake = False
-        self._sent_non_empty_bytes = False
         self.kwargs = kwargs
 
     def __str__(self):
@@ -202,7 +202,7 @@ class MocketSocket:
     @property
     def fd(self):
         if self._fd is None:
-            self._fd = MocketSocketCore()
+            self._fd = BytesIO()
         return self._fd
 
     def gettimeout(self):
@@ -264,12 +264,10 @@ class MocketSocket:
     def write(self, data):
         return self.send(encode_to_bytes(data))
 
-    @staticmethod
-    def fileno():
-        if Mocket.r_fd is not None:
-            return Mocket.r_fd
-        Mocket.r_fd, Mocket.w_fd = os.pipe()
-        return Mocket.r_fd
+    def fileno(self):
+        if self.true_socket:
+            return self.true_socket.fileno()
+        return self.fd.fileno()
 
     def connect(self, address):
         self._address = self._host, self._port = address
@@ -317,8 +315,6 @@ class MocketSocket:
         return len(data)
 
     def recv(self, buffersize, flags=None):
-        if Mocket.r_fd and Mocket.w_fd:
-            return os.read(Mocket.r_fd, buffersize)
         data = self.read(buffersize)
         if data:
             return data
@@ -436,7 +432,7 @@ class MocketSocket:
         self._fd = None
 
     def __getattr__(self, name):
-        """Do nothing catchall function, for methods like close() and shutdown()"""
+        """Do nothing catchall function, for methods like shutdown()"""
 
         def do_nothing(*args, **kwargs):
             pass
@@ -450,8 +446,6 @@ class Mocket:
     _requests = []
     _namespace = text_type(id(_entries))
     _truesocket_recording_dir = None
-    r_fd = None
-    w_fd = None
 
     @classmethod
     def register(cls, *entries):
@@ -473,12 +467,6 @@ class Mocket:
 
     @classmethod
     def reset(cls):
-        if cls.r_fd is not None:
-            os.close(cls.r_fd)
-            cls.r_fd = None
-        if cls.w_fd is not None:
-            os.close(cls.w_fd)
-            cls.w_fd = None
         cls._entries = collections.defaultdict(list)
         cls._requests = []
 

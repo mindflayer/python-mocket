@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import binascii
-import io
-import os
 import ssl
 from typing import TYPE_CHECKING, Any, Callable, ClassVar
 
@@ -12,22 +10,8 @@ from .exceptions import StrictMocketException
 if TYPE_CHECKING:  # pragma: no cover
     from typing import NoReturn
 
-    from _typeshed import ReadableBuffer
 
 SSL_PROTOCOL = ssl.PROTOCOL_TLSv1_2
-
-
-class MocketSocketCore(io.BytesIO):
-    def write(  # type: ignore[override] # BytesIO returns int
-        self,
-        content: ReadableBuffer,
-    ) -> None:
-        super().write(content)
-
-        from mocket import Mocket
-
-        if Mocket.r_fd and Mocket.w_fd:
-            os.write(Mocket.w_fd, content)
 
 
 def hexdump(binary_string: bytes) -> str:

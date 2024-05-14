@@ -2,9 +2,14 @@ import asyncio
 import glob
 import json
 import socket
+import sys
 import tempfile
 
-from mocket import Mocketizer
+import aiohttp
+import pytest
+
+from mocket import Mocketizer, async_mocketize
+from mocket.mockhttp import Entry
 
 
 def test_asyncio_record_replay(event_loop):
@@ -37,3 +42,27 @@ def test_asyncio_record_replay(event_loop):
             responses = json.load(f)
 
         assert len(responses["google.com"]["80"].keys()) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(
+    sys.version_info < (3, 11),
+    reason="Looks like https://github.com/aio-libs/aiohttp/issues/5582",
+)
+@async_mocketize
+async def test_aiohttp():
+    url = "https://bar.foo/"
+    data = {"message": "Hello"}
+
+    Entry.single_register(
+        Entry.GET,
+        url,
+        body=json.dumps(data),
+        headers={"content-type": "application/json"},
+    )
+
+    async with aiohttp.ClientSession(
+        timeout=aiohttp.ClientTimeout(total=3)
+    ) as session, session.get(url) as response:
+        response = await response.json()
+        assert response == data
