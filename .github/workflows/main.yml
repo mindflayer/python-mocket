@@ -33,7 +33,7 @@ jobs:
         cache: 'pip'
         cache-dependency-path: |
           pyproject.toml
-    - uses: isbang/compose-action@v1.4.1
+    - uses: hoverkraft-tech/compose-action@v2.0.0
       with:
         compose-file: "./docker-compose.yml"
         down-flags: "--remove-orphans"
