@@ -45,10 +45,6 @@ def test_asyncio_record_replay(event_loop):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skipif(
-    sys.version_info < (3, 11),
-    reason="Looks like https://github.com/aio-libs/aiohttp/issues/5582",
-)
 @async_mocketize
 async def test_aiohttp():
     url = "https://bar.foo/"
@@ -63,6 +59,7 @@ async def test_aiohttp():
 
     async with aiohttp.ClientSession(
         timeout=aiohttp.ClientTimeout(total=3)
-    ) as session, session.get(url) as response:
-        response = await response.json()
+    ) as session:
+        r = await session.get(url)
+        response = await r.json()
         assert response == data
