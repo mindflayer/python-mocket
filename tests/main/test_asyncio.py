@@ -2,7 +2,6 @@ import asyncio
 import glob
 import json
 import socket
-import sys
 import tempfile
 
 import aiohttp
@@ -45,10 +44,6 @@ def test_asyncio_record_replay(event_loop):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skipif(
-    sys.version_info < (3, 11),
-    reason="Looks like https://github.com/aio-libs/aiohttp/issues/5582",
-)
 @async_mocketize
 async def test_aiohttp():
     url = "https://bar.foo/"

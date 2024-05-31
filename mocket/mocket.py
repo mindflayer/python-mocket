@@ -10,8 +10,8 @@ import select
 import socket
 import ssl
 from datetime import datetime, timedelta
-from io import BytesIO
 from json.decoder import JSONDecodeError
+from typing import Optional, Tuple
 
 import urllib3
 from urllib3.connection import match_hostname as urllib3_match_hostname
@@ -27,6 +27,7 @@ from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, t
 from .utils import (
     SSL_PROTOCOL,
     MocketMode,
+    MocketSocketCore,
     get_mocketize,
     hexdump,
     hexload,
@@ -73,7 +74,7 @@ true_urllib3_match_hostname = urllib3_match_hostname
 
 
 class SuperFakeSSLContext:
-    """For Python 3.6"""
+    """For Python 3.6 and newer."""
 
     class FakeSetter(int):
         def __set__(self, *args):
@@ -81,7 +82,7 @@ class SuperFakeSSLContext:
 
     minimum_version = FakeSetter()
     options = FakeSetter()
-    verify_mode = FakeSetter(ssl.CERT_NONE)
+    verify_mode = FakeSetter()
 
 
 class FakeSSLContext(SuperFakeSSLContext):
@@ -177,6 +178,7 @@ class MocketSocket:
     _secure_socket = False
     _did_handshake = False
     _sent_non_empty_bytes = False
+    _io = None
 
     def __init__(
         self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, **kwargs
@@ -200,10 +202,18 @@ class MocketSocket:
         self.close()
 
     @property
-    def fd(self):
-        if self._fd is None:
-            self._fd = BytesIO()
-        return self._fd
+    def io(self):
+        if self._io is None:
+            self._io = MocketSocketCore((self._host, self._port))
+        return self._io
+
+    def fileno(self):
+        address = (self._host, self._port)
+        r_fd, _ = Mocket.get_pair(address)
+        if not r_fd:
+            r_fd, w_fd = os.pipe()
+            Mocket.set_pair(address, (r_fd, w_fd))
+        return r_fd
 
     def gettimeout(self):
         return self.timeout
@@ -264,11 +274,6 @@ class MocketSocket:
     def write(self, data):
         return self.send(encode_to_bytes(data))
 
-    def fileno(self):
-        if self.true_socket:
-            return self.true_socket.fileno()
-        return self.fd.fileno()
-
     def connect(self, address):
         self._address = self._host, self._port = address
         Mocket._address = address
@@ -276,7 +281,7 @@ class MocketSocket:
     def makefile(self, mode="r", bufsize=-1):
         self._mode = mode
         self._bufsize = bufsize
-        return self.fd
+        return self.io
 
     def get_entry(self, data):
         return Mocket.get_entry(self._host, self._port, data)
@@ -292,13 +297,13 @@ class MocketSocket:
             response = self.true_sendall(data, *args, **kwargs)
 
         if response is not None:
-            self.fd.seek(0)
-            self.fd.write(response)
-            self.fd.truncate()
-            self.fd.seek(0)
+            self.io.seek(0)
+            self.io.write(response)
+            self.io.truncate()
+            self.io.seek(0)
 
     def read(self, buffersize):
-        rv = self.fd.read(buffersize)
+        rv = self.io.read(buffersize)
         if rv:
             self._sent_non_empty_bytes = True
         if self._did_handshake and not self._sent_non_empty_bytes:
@@ -315,6 +320,9 @@ class MocketSocket:
         return len(data)
 
     def recv(self, buffersize, flags=None):
+        r_fd, _ = Mocket.get_pair((self._host, self._port))
+        if r_fd:
+            return os.read(r_fd, buffersize)
         data = self.read(buffersize)
         if data:
             return data
@@ -416,8 +424,8 @@ class MocketSocket:
 
     def send(self, data, *args, **kwargs):  # pragma: no cover
         entry = self.get_entry(data)
-        kwargs["entry"] = entry
         if not entry or (entry and self._entry != entry):
+            kwargs["entry"] = entry
             self.sendall(data, *args, **kwargs)
         else:
             req = Mocket.last_request()
@@ -441,11 +449,28 @@ class MocketSocket:
 
 
 class Mocket:
+    _socket_pairs = {}
     _address = (None, None)
     _entries = collections.defaultdict(list)
     _requests = []
     _namespace = text_type(id(_entries))
     _truesocket_recording_dir = None
+
+    @classmethod
+    def get_pair(cls, address: tuple) -> Tuple[Optional[int], Optional[int]]:
+        """
+        Given the id() of the caller, return a pair of file descriptors
+        as a tuple of two integers: (<read_fd>, <write_fd>)
+        """
+        return cls._socket_pairs.get(address, (None, None))
+
+    @classmethod
+    def set_pair(cls, address: tuple, pair: Tuple[int, int]) -> None:
+        """
+        Store a pair of file descriptors under the key `id_`
+        as a tuple of two integers: (<read_fd>, <write_fd>)
+        """
+        cls._socket_pairs[address] = pair
 
     @classmethod
     def register(cls, *entries):
@@ -467,6 +492,10 @@ class Mocket:
 
     @classmethod
     def reset(cls):
+        for r_fd, w_fd in cls._socket_pairs.values():
+            os.close(r_fd)
+            os.close(w_fd)
+        cls._socket_pairs = {}
         cls._entries = collections.defaultdict(list)
         cls._requests = []
 

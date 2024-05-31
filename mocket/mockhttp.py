@@ -201,7 +201,7 @@ class Entry(MocketEntry):
         """
         try:
             requestline, _ = decode_from_bytes(data).split(CRLF, 1)
-            method, path, version = self._parse_requestline(requestline)
+            method, path, _ = self._parse_requestline(requestline)
         except ValueError:
             return self is getattr(Mocket, "_last_entry", None)
 
