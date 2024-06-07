@@ -80,3 +80,11 @@ def test_real_request_session(url_to_mock):
         assert len(session.get(url_to_mock).content) < len(
             session.get(url_to_compare).content
         )
+
+
+@mocketize
+def test_raise_exception_from_single_register():
+    url = "https://github.com/fluidicon.png"
+    Entry.single_register(Entry.GET, url, exception=OSError())
+    with pytest.raises(requests.exceptions.ConnectionError):
+        requests.get(url)

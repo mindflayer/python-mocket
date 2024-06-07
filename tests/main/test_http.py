@@ -332,7 +332,14 @@ class HttpEntryTestCase(HttpTestCase):
         self.assertEqual(r.status_code, 201)
 
     @mocketize
-    def test_raise_exception(self):
+    def test_raise_exception_from_register(self):
+        url = "http://github.com/fluidicon.png"
+        Entry.register(Entry.GET, url, OSError())
+        with self.assertRaises(requests.exceptions.ConnectionError):
+            requests.get(url)
+
+    @mocketize
+    def test_raise_exception_from_single_register(self):
         url = "http://github.com/fluidicon.png"
         Entry.single_register(Entry.GET, url, exception=OSError())
         with self.assertRaises(requests.exceptions.ConnectionError):
