@@ -30,7 +30,7 @@ types:
 
 test: types
 	@echo "Running Python tests"
-	export VIRTUAL_ENV=.venv; .venv/bin/wait-for-it --service httpbin.local:443 --service localhost:6379 --timeout 5 -- .venv/bin/pytest tests/ || exit 1
+	export VIRTUAL_ENV=.venv; .venv/bin/wait-for-it --service httpbin.local:443 --service localhost:6379 --timeout 5 -- .venv/bin/pytest
 	@echo ""
 
 safetest:
