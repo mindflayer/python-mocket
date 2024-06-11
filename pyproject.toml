@@ -84,6 +84,12 @@ exclude = [
   ".*",
 ]
 
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+addopts = "--doctest-modules --cov=mocket --cov-report=term-missing -v -x"
+
 [tool.ruff]
 src = ["mocket", "tests"]
 
