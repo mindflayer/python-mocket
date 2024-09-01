@@ -1,9 +1,11 @@
 import re
 import time
+from functools import cached_property
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, unquote, urlsplit
 
-from httptools.parser import HttpRequestParser
+from h11 import SERVER, Connection, Data
+from h11 import Request as H11Request
 
 from .compat import ENCODING, decode_from_bytes, do_the_magic, encode_to_bytes
 from .mocket import Mocket, MocketEntry
@@ -19,61 +21,54 @@ CRLF = "\r\n"
 ASCII = "ascii"
 
 
-class Protocol:
-    def __init__(self):
-        self.url = None
-        self.body = None
-        self.headers = {}
-
-    def on_header(self, name: bytes, value: bytes):
-        self.headers[name.decode(ASCII)] = value.decode(ASCII)
-
-    def on_body(self, body: bytes):
-        try:
-            self.body = body.decode(ENCODING)
-        except UnicodeDecodeError:
-            self.body = body
-
-    def on_url(self, url: bytes):
-        self.url = url.decode(ASCII)
-
-
 class Request:
-    _protocol = None
     _parser = None
+    _event = None
 
     def __init__(self, data):
-        self._protocol = Protocol()
-        self._parser = HttpRequestParser(self._protocol)
+        self._parser = Connection(SERVER)
         self.add_data(data)
 
     def add_data(self, data):
-        self._parser.feed_data(data)
+        self._parser.receive_data(data)
 
     @property
+    def event(self):
+        if not self._event:
+            event = self._parser.next_event()
+            self._event = event
+        return self._event
+
+    @cached_property
     def method(self):
-        return self._parser.get_method().decode(ASCII)
+        return self.event.method.decode(ASCII)
 
-    @property
+    @cached_property
     def path(self):
-        return self._protocol.url
+        return self.event.target.decode(ASCII)
 
-    @property
+    @cached_property
     def headers(self):
-        return self._protocol.headers
+        return {k.decode(ASCII): v.decode(ASCII) for k, v in self.event.headers}
 
-    @property
+    @cached_property
     def querystring(self):
-        parts = self._protocol.url.split("?", 1)
+        parts = self.path.split("?", 1)
         return (
             parse_qs(unquote(parts[1]), keep_blank_values=True)
             if len(parts) == 2
             else {}
         )
 
-    @property
+    @cached_property
     def body(self):
-        return self._protocol.body
+        while True:
+            event = self._parser.next_event()
+            if isinstance(event, H11Request):
+                self._event = event
+            elif isinstance(event, Data):
+                break
+        return event.data.decode(ENCODING)
 
     def __str__(self):
         return f"{self.method} - {self.path} - {self.headers}"
