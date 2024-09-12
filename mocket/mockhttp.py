@@ -35,8 +35,7 @@ class Request:
     @property
     def event(self):
         if not self._event:
-            event = self._parser.next_event()
-            self._event = event
+            self._event = self._parser.next_event()
         return self._event
 
     @cached_property
@@ -67,8 +66,7 @@ class Request:
             if isinstance(event, H11Request):
                 self._event = event
             elif isinstance(event, Data):
-                break
-        return event.data.decode(ENCODING)
+                return event.data.decode(ENCODING)
 
     def __str__(self):
         return f"{self.method} - {self.path} - {self.headers}"
