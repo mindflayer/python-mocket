@@ -64,7 +64,7 @@ true_getaddrinfo = socket.getaddrinfo
 true_socketpair = socket.socketpair
 true_ssl_wrap_socket = getattr(
     ssl, "wrap_socket", None
-)  # in Py3.12 it's only under SSLContext
+)  # from Py3.12 it's only under SSLContext
 true_ssl_socket = ssl.SSLSocket
 true_ssl_context = ssl.SSLContext
 true_inet_pton = socket.inet_pton
@@ -83,6 +83,7 @@ class SuperFakeSSLContext:
     minimum_version = FakeSetter()
     options = FakeSetter()
     verify_mode = FakeSetter()
+    verify_flags = FakeSetter()
 
 
 class FakeSSLContext(SuperFakeSSLContext):
@@ -102,7 +103,7 @@ class FakeSSLContext(SuperFakeSSLContext):
         return self._check_hostname
 
     @check_hostname.setter
-    def check_hostname(self, *args):
+    def check_hostname(self, _):
         self._check_hostname = False
 
     def __init__(self, sock=None, server_hostname=None, _context=None, *args, **kwargs):
