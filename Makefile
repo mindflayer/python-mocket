@@ -36,13 +36,13 @@ test: types
 safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
 
-publish: install-test-requirements
-	python -m build --sdist .
-	twine upload --repository mocket dist/mocket-$(shell python -c 'import mocket; print(mocket.__version__)').tar.gz
+publish: clean install-test-requirements
+	uv run python3 -m build --sdist .
+	uv run twine upload --repository mocket dist/*.tar.gz
 
 clean:
-	rm -rf *.egg-info dist/ requirements.txt Pipfile.lock
-	find . -type d -name __pycache__ -exec rm -rf {} \;
+	rm -rf *.egg-info dist/ requirements.txt Pipfile.lock || true
+	find . -type d -name __pycache__ -exec rm -rf {} \; || true
 
 .PHONY: clean publish safetest test setup develop lint-python test-python _services-up
 .PHONY: prepare-hosts services-up services-down install-test-requirements install-dev-requirements
