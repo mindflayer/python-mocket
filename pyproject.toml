@@ -87,7 +87,7 @@ exclude = [
 
 [tool.pytest.ini_options]
 testpaths = [
-    "tests",
+    "tests", "mocket",
 ]
 addopts = "--doctest-modules --cov=mocket --cov-report=term-missing -v -x"
 
