@@ -1,6 +1,6 @@
 from gevent import monkey
 
-from tests.main.test_http import HttpEntryTestCase
+from tests.test_http import HttpEntryTestCase
 
 monkey.patch_socket()
 

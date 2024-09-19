@@ -4,7 +4,7 @@ import os
 import requests
 
 from mocket import Mocket, mocketize
-from tests.main.test_http import HttpTestCase
+from tests.test_http import HttpTestCase
 
 
 class HttpEntryTestCase(HttpTestCase):
