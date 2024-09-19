@@ -41,7 +41,7 @@ publish: clean install-test-requirements
 	uv run twine upload --repository mocket dist/*.tar.gz
 
 clean:
-	rm -rf *.egg-info dist/ requirements.txt Pipfile.lock || true
+	rm -rf *.egg-info dist/ requirements.txt uv.lock || true
 	find . -type d -name __pycache__ -exec rm -rf {} \; || true
 
 .PHONY: clean publish safetest test setup develop lint-python test-python _services-up
