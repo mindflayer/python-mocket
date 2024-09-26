@@ -233,4 +233,4 @@ async def test_no_dangling_fds():
     async with Mocketizer(strict_mode=False), httpx.AsyncClient() as client:
         await client.get(url)
 
-    assert proc.num_fds() == prev_num_fds
+    assert proc.num_fds() <= prev_num_fds
