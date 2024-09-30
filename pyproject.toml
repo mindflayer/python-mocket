@@ -54,7 +54,7 @@ test = [
     "build",
     "twine",
     "fastapi",
-    "aiohttp<3.10.6",
+    "aiohttp<3.10.9",
     "wait-for-it",
     "mypy",
     "types-decorator",
