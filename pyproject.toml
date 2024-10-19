@@ -46,7 +46,6 @@ test = [
     "redis",
     "gevent",
     "sure",
-    "pook",
     "flake8>5",
     "xxhash",
     "httpx",
@@ -54,7 +53,7 @@ test = [
     "build",
     "twine",
     "fastapi",
-    "aiohttp<3.10.6",
+    "aiohttp",
     "wait-for-it",
     "mypy",
     "types-decorator",
@@ -89,7 +88,7 @@ exclude = [
 testpaths = [
     "tests", "mocket",
 ]
-addopts = "--doctest-modules --cov=mocket --cov-report=term-missing -v -x"
+addopts = "--doctest-modules --cov=mocket --cov-report=term-missing --cov-append -v -x"
 
 [tool.ruff]
 src = ["mocket", "tests"]
