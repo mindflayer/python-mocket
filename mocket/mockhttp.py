@@ -10,12 +10,6 @@ from h11 import Request as H11Request
 from .compat import ENCODING, decode_from_bytes, do_the_magic, encode_to_bytes
 from .mocket import Mocket, MocketEntry
 
-try:
-    import magic
-except ImportError:
-    magic = None
-
-
 STATUS = {k: v[0] for k, v in BaseHTTPRequestHandler.responses.items()}
 CRLF = "\r\n"
 ASCII = "ascii"
@@ -76,10 +70,7 @@ class Response:
     headers = None
     is_file_object = False
 
-    def __init__(self, body="", status=200, headers=None, lib_magic=magic):
-        # needed for testing libmagic import failure
-        self.magic = lib_magic
-
+    def __init__(self, body="", status=200, headers=None):
         headers = headers or {}
         try:
             #  File Objects
@@ -116,8 +107,8 @@ class Response:
         }
         if not self.is_file_object:
             self.headers["Content-Type"] = f"text/plain; charset={ENCODING}"
-        elif self.magic:
-            self.headers["Content-Type"] = do_the_magic(self.magic, self.body)
+        else:
+            self.headers["Content-Type"] = do_the_magic(self.body)
 
     def set_extra_headers(self, headers):
         r"""

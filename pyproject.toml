@@ -27,7 +27,7 @@ classifiers = [
     "License :: OSI Approved :: BSD License",
 ]
 dependencies = [
-    "python-magic>=0.4.5",
+    "puremagic",
     "decorator>=4.0.0",
     "urllib3>=1.25.3",
     "h11",
