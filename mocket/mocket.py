@@ -25,7 +25,6 @@ except ImportError:
 
 from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, text_type
 from .utils import (
-    SSL_PROTOCOL,
     MocketMode,
     MocketSocketCore,
     get_mocketize,
@@ -98,19 +97,8 @@ class FakeSSLContext(SuperFakeSSLContext):
     def check_hostname(self, _):
         self._check_hostname = False
 
-    def __init__(self, sock=None, server_hostname=None, _context=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         self._set_dummy_methods()
-
-        if isinstance(sock, MocketSocket):
-            self.sock = sock
-            self.sock._host = server_hostname
-            self.sock.true_socket = true_ssl_socket(
-                sock=self.sock.true_socket,
-                server_hostname=server_hostname,
-                _context=true_ssl_context(protocol=SSL_PROTOCOL),
-            )
-        elif isinstance(sock, int) and true_ssl_context:
-            self.context = true_ssl_context(sock)
 
     def _set_dummy_methods(self):
         def dummy_method(*args, **kwargs):
@@ -120,7 +108,7 @@ class FakeSSLContext(SuperFakeSSLContext):
             setattr(self, m, dummy_method)
 
     @staticmethod
-    def wrap_socket(sock=sock, *args, **kwargs):
+    def wrap_socket(sock, *args, **kwargs):
         sock.kwargs = kwargs
         sock._secure_socket = True
         return sock
@@ -130,10 +118,6 @@ class FakeSSLContext(SuperFakeSSLContext):
         ssl_obj = MocketSocket()
         ssl_obj._host = kwargs["server_hostname"]
         return ssl_obj
-
-    def __getattr__(self, name):
-        if self.sock is not None:
-            return getattr(self.sock, name)
 
 
 def create_connection(address, timeout=None, source_address=None):
