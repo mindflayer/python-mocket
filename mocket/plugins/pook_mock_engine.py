@@ -1,5 +1,7 @@
-from pook.engine import MockEngine
-from pook.interceptors.base import BaseInterceptor
+try:
+    from pook.engine import MockEngine
+except ModuleNotFoundError:
+    MockEngine = object
 
 from mocket.mocket import Mocket
 from mocket.mockhttp import Entry, Response
@@ -37,17 +39,6 @@ class MocketPookEntry(Entry):
         return entry
 
 
-class MocketInterceptor(BaseInterceptor):
-    @staticmethod
-    def activate():
-        Mocket.disable()
-        Mocket.enable()
-
-    @staticmethod
-    def disable():
-        Mocket.disable()
-
-
 class MocketEngine(MockEngine):
     def __init__(self, engine):
         def mocket_mock_fun(*args, **kwargs):
@@ -67,6 +58,18 @@ class MocketEngine(MockEngine):
             entry.pook_request = request
 
             return mock
+
+        from pook.interceptors.base import BaseInterceptor
+
+        class MocketInterceptor(BaseInterceptor):
+            @staticmethod
+            def activate():
+                Mocket.disable()
+                Mocket.enable()
+
+            @staticmethod
+            def disable():
+                Mocket.disable()
 
         # Store plugins engine
         self.engine = engine

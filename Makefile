@@ -30,7 +30,9 @@ types:
 
 test: types
 	@echo "Running Python tests"
+	uv pip uninstall pook || true
 	export VIRTUAL_ENV=.venv; .venv/bin/wait-for-it --service httpbin.local:443 --service localhost:6379 --timeout 5 -- .venv/bin/pytest
+	uv pip install pook && .venv/bin/pytest tests/test_pook.py && uv pip uninstall pook
 	@echo ""
 
 safetest:
@@ -41,7 +43,7 @@ publish: clean install-test-requirements
 	uv run twine upload --repository mocket dist/*.tar.gz
 
 clean:
-	rm -rf *.egg-info dist/ requirements.txt uv.lock || true
+	rm -rf .coverage *.egg-info dist/ requirements.txt uv.lock || true
 	find . -type d -name __pycache__ -exec rm -rf {} \; || true
 
 .PHONY: clean publish safetest test setup develop lint-python test-python _services-up

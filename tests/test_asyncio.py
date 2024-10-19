@@ -4,7 +4,6 @@ import json
 import socket
 import tempfile
 
-import aiohttp
 import pytest
 
 from mocket import Mocketizer, async_mocketize
@@ -46,6 +45,8 @@ def test_asyncio_record_replay(event_loop):
 @pytest.mark.asyncio
 @async_mocketize
 async def test_aiohttp():
+    import aiohttp
+
     url = "https://bar.foo/"
     data = {"message": "Hello"}
 
