@@ -370,18 +370,15 @@ class MocketSocket:
                 self.true_socket.connect((host, port))
             self.true_socket.sendall(data, *args, **kwargs)
             encoded_response = b""
-            # https://github.com/kennethreitz/requests/blob/master/tests/testserver/server.py#L13
+            # https://github.com/kennethreitz/requests/blob/master/tests/testserver/server.py#L12
             while True:
-                if (
-                    not select.select([self.true_socket], [], [], 0.1)[0]
-                    and encoded_response
-                ):
+                more_to_read = select.select([self.true_socket], [], [], 0.1)[0]
+                if not more_to_read and encoded_response:
                     break
-                recv = self.true_socket.recv(self._buflen)
-
-                if not recv and encoded_response:
+                new_content = self.true_socket.recv(self._buflen)
+                if not new_content:
                     break
-                encoded_response += recv
+                encoded_response += new_content
 
             # dump the resulting dictionary to a JSON file
             if Mocket.get_truesocket_recording_dir():
