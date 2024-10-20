@@ -4,10 +4,12 @@ import json
 import socket
 import tempfile
 
+import aiohttp
 import pytest
 
 from mocket import Mocketizer, async_mocketize
 from mocket.mockhttp import Entry
+from mocket.plugins.aiohttp_connector import MocketTCPConnector
 
 
 def test_asyncio_record_replay(event_loop):
@@ -45,7 +47,10 @@ def test_asyncio_record_replay(event_loop):
 @pytest.mark.asyncio
 @async_mocketize
 async def test_aiohttp():
-    import aiohttp
+    """
+    The alternative to using the custom `connector` would be importing
+    `aiohttp` when Mocket is already in control (inside the decorated test).
+    """
 
     url = "https://bar.foo/"
     data = {"message": "Hello"}
@@ -58,7 +63,7 @@ async def test_aiohttp():
     )
 
     async with aiohttp.ClientSession(
-        timeout=aiohttp.ClientTimeout(total=3)
+        timeout=aiohttp.ClientTimeout(total=3), connector=MocketTCPConnector()
     ) as session, session.get(url) as response:
         response = await response.json()
         assert response == data
