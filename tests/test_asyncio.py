@@ -47,6 +47,11 @@ def test_asyncio_record_replay(event_loop):
 @pytest.mark.asyncio
 @async_mocketize
 async def test_aiohttp():
+    """
+    The alternative to using the custom `connector` would be importing
+    `aiohttp` when Mocket is already in control (inside the decorated test).
+    """
+
     url = "https://bar.foo/"
     data = {"message": "Hello"}
 
