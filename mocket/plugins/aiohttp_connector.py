@@ -1,10 +1,9 @@
 import contextlib
 
-from aiohttp import ClientRequest
-
 from mocket import FakeSSLContext
 
 with contextlib.suppress(ModuleNotFoundError):
+    from aiohttp import ClientRequest
     from aiohttp.connector import TCPConnector
 
     class MocketTCPConnector(TCPConnector):
