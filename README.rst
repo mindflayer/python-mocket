@@ -284,52 +284,44 @@ Example:
 
 .. code-block:: python
 
-    class AioHttpEntryTestCase(TestCase):
-        @mocketize
-        def test_http_session(self):
-            url = 'http://httpbin.org/ip'
-            body = "asd" * 100
-            Entry.single_register(Entry.GET, url, body=body, status=404)
-            Entry.single_register(Entry.POST, url, body=body*2, status=201)
+    # `aiohttp` creates SSLContext instances at import-time
+    # that's why Mocket would get stuck when dealing with HTTP
+    # Importing the module while Mocket is in control (inside a
+    # decorated test function or using its context manager would
+    # be enough for making it work), the alternative is using a
+    # custom TCPConnector which always return a FakeSSLContext
+    # from Mocket like this example is showing.
+    import aiohttp
+    import pytest
 
-            async def main(l):
-                async with aiohttp.ClientSession(
-                    loop=l, timeout=aiohttp.ClientTimeout(total=3)
-                ) as session:
-                    async with session.get(url) as get_response:
-                        assert get_response.status == 404
-                        assert await get_response.text() == body
+    from mocket import async_mocketize
+    from mocket.mockhttp import Entry
+    from mocket.plugins.aiohttp_connector import MocketTCPConnector
 
-                    async with session.post(url, data=body * 6) as post_response:
-                        assert post_response.status == 201
-                        assert await post_response.text() == body * 2
 
-            loop = asyncio.new_event_loop()
-            loop.run_until_complete(main(loop))
+    @pytest.mark.asyncio
+    @async_mocketize
+    async def test_aiohttp():
+        """
+        The alternative to using the custom `connector` would be importing
+        `aiohttp` when Mocket is already in control (inside the decorated test).
+        """
 
-    # or again with a unittest.IsolatedAsyncioTestCase
-    from mocket.async_mocket import async_mocketize
+        url = "https://bar.foo/"
+        data = {"message": "Hello"}
 
-    class AioHttpEntryTestCase(IsolatedAsyncioTestCase):
-        @async_mocketize
-        async def test_http_session(self):
-            url = 'http://httpbin.org/ip'
-            body = "asd" * 100
-            Entry.single_register(Entry.GET, url, body=body, status=404)
-            Entry.single_register(Entry.POST, url, body=body * 2, status=201)
+        Entry.single_register(
+	    Entry.GET,
+	    url,
+	    body=json.dumps(data),
+	    headers={"content-type": "application/json"},
+        )
 
-            async with aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(total=3)
-            ) as session:
-                async with session.get(url) as get_response:
-                    assert get_response.status == 404
-                    assert await get_response.text() == body
-
-                async with session.post(url, data=body * 6) as post_response:
-                    assert post_response.status == 201
-                    assert await post_response.text() == body * 2
-                    assert Mocket.last_request().method == 'POST'
-                    assert Mocket.last_request().body == body * 6
+        async with aiohttp.ClientSession(
+	    timeout=aiohttp.ClientTimeout(total=3), connector=MocketTCPConnector()
+        ) as session, session.get(url) as response:
+	    response = await response.json()
+	    assert response == data
 
 
 Works well with others
