@@ -39,8 +39,8 @@ safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
 
 publish: clean install-test-requirements
-	uv run python3 -m build --sdist .
-	uv run twine upload --repository mocket dist/*.tar.gz
+	uv run python3 -m build --sdist --wheel .
+	uv run twine upload --repository mocket dist/
 
 clean:
 	rm -rf .coverage *.egg-info dist/ requirements.txt uv.lock || true
