@@ -7,8 +7,8 @@ from urllib.parse import parse_qs, unquote, urlsplit
 from h11 import SERVER, Connection, Data
 from h11 import Request as H11Request
 
-from .compat import ENCODING, decode_from_bytes, do_the_magic, encode_to_bytes
-from .mocket import Mocket, MocketEntry
+from mocket.compat import ENCODING, decode_from_bytes, do_the_magic, encode_to_bytes
+from mocket.mocket import Mocket, MocketEntry
 
 STATUS = {k: v[0] for k, v in BaseHTTPRequestHandler.responses.items()}
 CRLF = "\r\n"

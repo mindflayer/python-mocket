@@ -23,8 +23,14 @@ except ImportError:
     urllib3_wrap_socket = None
 
 
-from .compat import basestring, byte_type, decode_from_bytes, encode_to_bytes, text_type
-from .utils import (
+from mocket.compat import (
+    basestring,
+    byte_type,
+    decode_from_bytes,
+    encode_to_bytes,
+    text_type,
+)
+from mocket.utils import (
     MocketMode,
     MocketSocketCore,
     get_mocketize,

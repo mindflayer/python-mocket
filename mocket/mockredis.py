@@ -1,7 +1,13 @@
 from itertools import chain
 
-from .compat import byte_type, decode_from_bytes, encode_to_bytes, shsplit, text_type
-from .mocket import Mocket, MocketEntry
+from mocket.compat import (
+    byte_type,
+    decode_from_bytes,
+    encode_to_bytes,
+    shsplit,
+    text_type,
+)
+from mocket.mocket import Mocket, MocketEntry
 
 
 class Request:
