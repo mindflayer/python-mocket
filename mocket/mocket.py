@@ -24,8 +24,8 @@ except ImportError:
 
 
 from mocket.compat import decode_from_bytes, encode_to_bytes
+from mocket.mode import MocketMode
 from mocket.utils import (
-    MocketMode,
     MocketSocketCore,
     get_mocketize,
     hexdump,
