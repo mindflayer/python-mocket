@@ -53,7 +53,7 @@ class FakeSSLContext(SuperFakeSSLContext):
 
     @staticmethod
     def wrap_socket(sock: MocketSocket, *args: Any, **kwargs: Any) -> MocketSocket:
-        sock.kwargs = kwargs
+        sock._kwargs = kwargs
         sock._secure_socket = True
         return sock
 

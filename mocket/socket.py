@@ -112,19 +112,8 @@ def _hash_request(h, req):
 
 
 class MocketSocket:
-    timeout = None
-    family = None
-    type = None
-    proto = None
-    _host = None
-    _port = None
-    _address = None
     cipher = lambda s: ("ADH", "AES256", "SHA")
     compression = lambda s: ssl.OP_NO_COMPRESSION
-    _secure_socket = False
-    _did_handshake = False
-    _sent_non_empty_bytes = False
-    _io = None
 
     def __init__(
         self,
@@ -134,14 +123,26 @@ class MocketSocket:
         fileno: int | None = None,
         **kwargs: Any,
     ) -> None:
-        self.true_socket = true_socket(family, type, proto)
+        self._family = family
+        self._type = type
+        self._proto = proto
+
+        self._kwargs = kwargs
+        self._true_socket = true_socket(family, type, proto)
+
         self._buflen = 65536
+        self._timeout: float | None = None
+
+        self._secure_socket = False
+        self._did_handshake = False
+        self._sent_non_empty_bytes = False
+
+        self._host = None
+        self._port = None
+        self._address = None
+
+        self._io = None
         self._entry = None
-        self.family = int(family)
-        self.type = int(type)
-        self.proto = int(proto)
-        self._truesocket_recording_dir = None
-        self.kwargs = kwargs
 
     def __str__(self) -> str:
         return f"({self.__class__.__name__})(family={self.family} type={self.type} protocol={self.proto})"
@@ -158,6 +159,18 @@ class MocketSocket:
         self.close()
 
     @property
+    def family(self) -> int:
+        return self._family
+
+    @property
+    def type(self) -> int:
+        return self._type
+
+    @property
+    def proto(self) -> int:
+        return self._proto
+
+    @property
     def io(self) -> MocketSocketCore:
         if self._io is None:
             self._io = MocketSocketCore((self._host, self._port))
@@ -172,19 +185,19 @@ class MocketSocket:
         return r_fd
 
     def gettimeout(self) -> float | None:
-        return self.timeout
+        return self._timeout
 
     # FIXME the arguments here seem wrong. they should be `level: int, optname: int, value: int | ReadableBuffer | None`
     def setsockopt(self, family: int, type: int, proto: int) -> None:
-        self.family = family
-        self.type = type
-        self.proto = proto
+        self._family = family
+        self._type = type
+        self._proto = proto
 
-        if self.true_socket:
-            self.true_socket.setsockopt(family, type, proto)
+        if self._true_socket:
+            self._true_socket.setsockopt(family, type, proto)
 
     def settimeout(self, timeout: float | None) -> None:
-        self.timeout = timeout
+        self._timeout = timeout
 
     @staticmethod
     def getsockopt(level: int, optname: int, buflen: int | None = None) -> int:
@@ -343,23 +356,23 @@ class MocketSocket:
             host, port = self._host, self._port
             host = true_gethostbyname(host)
 
-            if isinstance(self.true_socket, true_socket) and self._secure_socket:
-                self.true_socket = true_urllib3_ssl_wrap_socket(
-                    self.true_socket,
-                    **self.kwargs,
+            if isinstance(self._true_socket, true_socket) and self._secure_socket:
+                self._true_socket = true_urllib3_ssl_wrap_socket(
+                    self._true_socket,
+                    **self._kwargs,
                 )
 
             with contextlib.suppress(OSError, ValueError):
                 # already connected
-                self.true_socket.connect((host, port))
-            self.true_socket.sendall(data, *args, **kwargs)
+                self._true_socket.connect((host, port))
+            self._true_socket.sendall(data, *args, **kwargs)
             encoded_response = b""
             # https://github.com/kennethreitz/requests/blob/master/tests/testserver/server.py#L12
             while True:
-                more_to_read = select.select([self.true_socket], [], [], 0.1)[0]
+                more_to_read = select.select([self._true_socket], [], [], 0.1)[0]
                 if not more_to_read and encoded_response:
                     break
-                new_content = self.true_socket.recv(self._buflen)
+                new_content = self._true_socket.recv(self._buflen)
                 if not new_content:
                     break
                 encoded_response += new_content
@@ -398,8 +411,8 @@ class MocketSocket:
         return len(data)
 
     def close(self) -> None:
-        if self.true_socket and not self.true_socket._closed:
-            self.true_socket.close()
+        if self._true_socket and not self._true_socket._closed:
+            self._true_socket.close()
 
     def __getattr__(self, name: str) -> Any:
         """Do nothing catchall function, for methods like shutdown()"""
