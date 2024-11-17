@@ -49,7 +49,7 @@ class FakeSSLContext(SuperFakeSSLContext):
 
     @staticmethod
     def wrap_bio(incoming, outcoming, *args, **kwargs):
-        from mocket.mocket import MocketSocket
+        from mocket.socket import MocketSocket
 
         ssl_obj = MocketSocket()
         ssl_obj._host = kwargs["server_hostname"]
