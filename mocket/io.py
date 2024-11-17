@@ -1,6 +1,8 @@
 import io
 import os
 
+from mocket.mocket import Mocket
+
 
 class MocketSocketCore(io.BytesIO):
     def __init__(self, address) -> None:
@@ -8,8 +10,6 @@ class MocketSocketCore(io.BytesIO):
         super().__init__()
 
     def write(self, content):
-        from mocket import Mocket
-
         super().write(content)
 
         _, w_fd = Mocket.get_pair(self._address)
