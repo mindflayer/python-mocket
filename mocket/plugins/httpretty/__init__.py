@@ -1,6 +1,6 @@
 from mocket import Mocket, mocketize
 from mocket.async_mocket import async_mocketize
-from mocket.compat import ENCODING, byte_type, text_type
+from mocket.compat import ENCODING
 from mocket.mockhttp import Entry as MocketHttpEntry
 from mocket.mockhttp import Request as MocketHttpRequest
 from mocket.mockhttp import Response as MocketHttpResponse
@@ -129,6 +129,6 @@ __all__ = (
     "HEAD",
     "PATCH",
     "register_uri",
-    "text_type",
-    "byte_type",
+    "str",
+    "bytes",
 )

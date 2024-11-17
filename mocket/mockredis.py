@@ -1,11 +1,9 @@
 from itertools import chain
 
 from mocket.compat import (
-    byte_type,
     decode_from_bytes,
     encode_to_bytes,
     shsplit,
-    text_type,
 )
 from mocket.mocket import Mocket, MocketEntry
 
@@ -20,7 +18,7 @@ class Response:
         self.data = Redisizer.redisize(data or OK)
 
 
-class Redisizer(byte_type):
+class Redisizer(bytes):
     @staticmethod
     def tokens(iterable):
         iterable = [encode_to_bytes(x) for x in iterable]
@@ -36,15 +34,15 @@ class Redisizer(byte_type):
                     Redisizer.tokens(list(chain(*tuple(x.items()))))
                 ),
                 int: lambda x: f":{x}".encode(),
-                text_type: lambda x: "${}\r\n{}".format(
-                    len(x.encode("utf-8")), x
-                ).encode("utf-8"),
+                str: lambda x: "${}\r\n{}".format(len(x.encode("utf-8")), x).encode(
+                    "utf-8"
+                ),
                 list: lambda x: b"\r\n".join(Redisizer.tokens(x)),
             }[t]
 
         if isinstance(data, Redisizer):
             return data
-        if isinstance(data, byte_type):
+        if isinstance(data, bytes):
             data = decode_from_bytes(data)
         return Redisizer(get_conversion(data.__class__)(data) + b"\r\n")
 

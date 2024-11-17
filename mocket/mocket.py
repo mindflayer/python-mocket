@@ -23,13 +23,7 @@ except ImportError:
     urllib3_wrap_socket = None
 
 
-from mocket.compat import (
-    basestring,
-    byte_type,
-    decode_from_bytes,
-    encode_to_bytes,
-    text_type,
-)
+from mocket.compat import decode_from_bytes, encode_to_bytes
 from mocket.utils import (
     MocketMode,
     MocketSocketCore,
@@ -323,7 +317,7 @@ class MocketSocket:
         # make request unique again
         req_signature = _hash_request(hasher, req)
         # port should be always a string
-        port = text_type(self._port)
+        port = str(self._port)
 
         # prepare responses dictionary
         responses = {}
@@ -433,7 +427,7 @@ class Mocket:
     _address = (None, None)
     _entries = collections.defaultdict(list)
     _requests = []
-    _namespace = text_type(id(_entries))
+    _namespace = str(id(_entries))
     _truesocket_recording_dir = None
 
     @classmethod
@@ -524,7 +518,7 @@ class Mocket:
         socket.socketpair = socket.__dict__["socketpair"] = socketpair
         ssl.wrap_socket = ssl.__dict__["wrap_socket"] = FakeSSLContext.wrap_socket
         ssl.SSLContext = ssl.__dict__["SSLContext"] = FakeSSLContext
-        socket.inet_pton = socket.__dict__["inet_pton"] = lambda family, ip: byte_type(
+        socket.inet_pton = socket.__dict__["inet_pton"] = lambda family, ip: bytes(
             "\x7f\x00\x00\x01", "utf-8"
         )
         urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__["wrap_socket"] = (
@@ -598,13 +592,13 @@ class Mocket:
 
 
 class MocketEntry:
-    class Response(byte_type):
+    class Response(bytes):
         @property
         def data(self):
             return self
 
     response_index = 0
-    request_cls = byte_type
+    request_cls = bytes
     response_cls = Response
     responses = None
     _served = None
@@ -613,9 +607,7 @@ class MocketEntry:
         self._served = False
         self.location = location
 
-        if not isinstance(responses, collections_abc.Iterable) or isinstance(
-            responses, basestring
-        ):
+        if not isinstance(responses, collections_abc.Iterable):
             responses = [responses]
 
         if not responses:
@@ -624,7 +616,7 @@ class MocketEntry:
             self.responses = []
             for r in responses:
                 if not isinstance(r, BaseException) and not getattr(r, "data", False):
-                    if isinstance(r, text_type):
+                    if isinstance(r, str):
                         r = encode_to_bytes(r)
                     r = self.response_cls(r)
                 self.responses.append(r)
@@ -664,7 +656,7 @@ class Mocketizer:
     ):
         self.instance = instance
         self.truesocket_recording_dir = truesocket_recording_dir
-        self.namespace = namespace or text_type(id(self))
+        self.namespace = namespace or str(id(self))
         MocketMode().STRICT = strict_mode
         if strict_mode:
             MocketMode().STRICT_ALLOWED = strict_mode_allowed or []

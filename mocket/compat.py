@@ -9,21 +9,17 @@ import puremagic
 
 ENCODING: Final[str] = os.getenv("MOCKET_ENCODING", "utf-8")
 
-text_type = str
-byte_type = bytes
-basestring = (str,)
-
 
 def encode_to_bytes(s: str | bytes, encoding: str = ENCODING) -> bytes:
-    if isinstance(s, text_type):
+    if isinstance(s, str):
         s = s.encode(encoding)
-    return byte_type(s)
+    return bytes(s)
 
 
 def decode_from_bytes(s: str | bytes, encoding: str = ENCODING) -> str:
-    if isinstance(s, byte_type):
+    if isinstance(s, bytes):
         s = codecs.decode(s, encoding, "ignore")
-    return text_type(s)
+    return str(s)
 
 
 def shsplit(s: str | bytes) -> list[str]:
