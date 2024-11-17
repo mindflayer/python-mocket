@@ -1,5 +1,6 @@
 from mocket.async_mocket import async_mocketize
-from mocket.mocket import FakeSSLContext, Mocket, MocketEntry
+from mocket.entry import MocketEntry
+from mocket.mocket import FakeSSLContext, Mocket
 from mocket.mocketizer import Mocketizer, mocketize
 
 __all__ = (
