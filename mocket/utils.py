@@ -1,34 +1,18 @@
 from __future__ import annotations
 
 import binascii
-import io
-import os
 import ssl
-from typing import TYPE_CHECKING, Any, Callable, ClassVar
+from typing import Callable
 
 from mocket.compat import decode_from_bytes, encode_to_bytes
-from mocket.exceptions import StrictMocketException
 
-if TYPE_CHECKING:  # pragma: no cover
-    from typing import NoReturn
+# NOTE this is here for backwards-compat to keep old import-paths working
+from mocket.io import MocketSocketCore as MocketSocketCore
 
+# NOTE this is here for backwards-compat to keep old import-paths working
+from mocket.mode import MocketMode as MocketMode
 
 SSL_PROTOCOL = ssl.PROTOCOL_TLSv1_2
-
-
-class MocketSocketCore(io.BytesIO):
-    def __init__(self, address) -> None:
-        self._address = address
-        super().__init__()
-
-    def write(self, content):
-        from mocket import Mocket
-
-        super().write(content)
-
-        _, w_fd = Mocket.get_pair(self._address)
-        if w_fd:
-            os.write(w_fd, content)
 
 
 def hexdump(binary_string: bytes) -> str:
@@ -58,41 +42,3 @@ def get_mocketize(wrapper_: Callable) -> Callable:
         wrapper_,
         kwsyntax=True,
     )
-
-
-class MocketMode:
-    __shared_state: ClassVar[dict[str, Any]] = {}
-    STRICT: ClassVar = None
-    STRICT_ALLOWED: ClassVar = None
-
-    def __init__(self) -> None:
-        self.__dict__ = self.__shared_state
-
-    def is_allowed(self, location: str | tuple[str, int]) -> bool:
-        """
-        Checks if (`host`, `port`) or at least `host`
-        are allowed locations to perform real `socket` calls
-        """
-        if not self.STRICT:
-            return True
-
-        host_allowed = False
-        if isinstance(location, tuple):
-            host_allowed = location[0] in self.STRICT_ALLOWED
-        return host_allowed or location in self.STRICT_ALLOWED
-
-    @staticmethod
-    def raise_not_allowed() -> NoReturn:
-        from mocket.mocket import Mocket
-
-        current_entries = [
-            (location, "\n    ".join(map(str, entries)))
-            for location, entries in Mocket._entries.items()
-        ]
-        formatted_entries = "\n".join(
-            [f"  {location}:\n    {entries}" for location, entries in current_entries]
-        )
-        raise StrictMocketException(
-            "Mocket tried to use the real `socket` module while STRICT mode was active.\n"
-            f"Registered entries:\n{formatted_entries}"
-        )
