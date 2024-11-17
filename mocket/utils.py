@@ -6,8 +6,8 @@ import os
 import ssl
 from typing import TYPE_CHECKING, Any, Callable, ClassVar
 
-from .compat import decode_from_bytes, encode_to_bytes
-from .exceptions import StrictMocketException
+from mocket.compat import decode_from_bytes, encode_to_bytes
+from mocket.exceptions import StrictMocketException
 
 if TYPE_CHECKING:  # pragma: no cover
     from typing import NoReturn
@@ -83,7 +83,7 @@ class MocketMode:
 
     @staticmethod
     def raise_not_allowed() -> NoReturn:
-        from .mocket import Mocket
+        from mocket.mocket import Mocket
 
         current_entries = [
             (location, "\n    ".join(map(str, entries)))
