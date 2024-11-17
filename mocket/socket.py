@@ -10,6 +10,11 @@ from datetime import datetime, timedelta
 from json.decoder import JSONDecodeError
 
 from mocket.compat import decode_from_bytes, encode_to_bytes
+from mocket.inject import (
+    true_gethostbyname,
+    true_socket,
+    true_urllib3_ssl_wrap_socket,
+)
 from mocket.io import MocketSocketCore
 from mocket.mode import MocketMode
 from mocket.utils import hexdump, hexload
@@ -63,8 +68,6 @@ class MocketSocket:
     def __init__(
         self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, **kwargs
     ):
-        from mocket.mocket import true_socket
-
         self.true_socket = true_socket(family, type, proto)
         self._buflen = 65536
         self._entry = None
@@ -225,12 +228,7 @@ class MocketSocket:
         raise exc
 
     def true_sendall(self, data, *args, **kwargs):
-        from mocket.mocket import (
-            Mocket,
-            true_gethostbyname,
-            true_socket,
-            true_urllib3_ssl_wrap_socket,
-        )
+        from mocket.mocket import Mocket
 
         if not MocketMode().is_allowed((self._host, self._port)):
             MocketMode.raise_not_allowed()
