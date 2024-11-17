@@ -10,15 +10,25 @@ import socket
 import ssl
 from datetime import datetime, timedelta
 from json.decoder import JSONDecodeError
-from typing import Any
+from types import TracebackType
+from typing import Any, Type
 
 import urllib3.connection
 import urllib3.util.ssl_
+from typing_extensions import Self
 
 from mocket.compat import decode_from_bytes, encode_to_bytes
+from mocket.entry import MocketEntry
 from mocket.io import MocketSocketCore
 from mocket.mocket import Mocket
 from mocket.mode import MocketMode
+from mocket.types import (
+    Address,
+    ReadableBuffer,
+    WriteableBuffer,
+    _PeerCertRetDictType,
+    _RetAddress,
+)
 from mocket.utils import hexdump, hexload
 
 true_create_connection = socket.create_connection
@@ -120,8 +130,13 @@ class MocketSocket:
     _io = None
 
     def __init__(
-        self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, **kwargs
-    ):
+        self,
+        family: socket.AddressFamily | int = socket.AF_INET,
+        type: socket.SocketKind | int = socket.SOCK_STREAM,
+        proto: int = 0,
+        fileno: int | None = None,
+        **kwargs: Any,
+    ) -> None:
         self.true_socket = true_socket(family, type, proto)
         self._buflen = 65536
         self._entry = None
@@ -131,22 +146,27 @@ class MocketSocket:
         self._truesocket_recording_dir = None
         self.kwargs = kwargs
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"({self.__class__.__name__})(family={self.family} type={self.type} protocol={self.proto})"
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        type_: Type[BaseException] | None,  # noqa: UP006
+        value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         self.close()
 
     @property
-    def io(self):
+    def io(self) -> MocketSocketCore:
         if self._io is None:
             self._io = MocketSocketCore((self._host, self._port))
         return self._io
 
-    def fileno(self):
+    def fileno(self) -> int:
         address = (self._host, self._port)
         r_fd, _ = Mocket.get_pair(address)
         if not r_fd:
@@ -154,10 +174,11 @@ class MocketSocket:
             Mocket.set_pair(address, (r_fd, w_fd))
         return r_fd
 
-    def gettimeout(self):
+    def gettimeout(self) -> float | None:
         return self.timeout
 
-    def setsockopt(self, family, type, proto):
+    # FIXME the arguments here seem wrong. they should be `level: int, optname: int, value: int | ReadableBuffer | None`
+    def setsockopt(self, family: int, type: int, proto: int) -> None:
         self.family = family
         self.type = type
         self.proto = proto
@@ -165,29 +186,29 @@ class MocketSocket:
         if self.true_socket:
             self.true_socket.setsockopt(family, type, proto)
 
-    def settimeout(self, timeout):
+    def settimeout(self, timeout: float | None) -> None:
         self.timeout = timeout
 
     @staticmethod
-    def getsockopt(level, optname, buflen=None):
+    def getsockopt(level: int, optname: int, buflen: int | None = None) -> int:
         return socket.SOCK_STREAM
 
-    def do_handshake(self):
+    def do_handshake(self) -> None:
         self._did_handshake = True
 
-    def getpeername(self):
+    def getpeername(self) -> _RetAddress:
         return self._address
 
-    def setblocking(self, block):
+    def setblocking(self, block: bool) -> None:
         self.settimeout(None) if block else self.settimeout(0.0)
 
-    def getblocking(self):
+    def getblocking(self) -> bool:
         return self.gettimeout() is None
 
-    def getsockname(self):
+    def getsockname(self) -> _RetAddress:
         return true_gethostbyname(self._address[0]), self._address[1]
 
-    def getpeercert(self, *args, **kwargs):
+    def getpeercert(self, binary_form: bool = False) -> _PeerCertRetDictType:
         if not (self._host and self._port):
             self._address = self._host, self._port = Mocket._address
 
@@ -207,22 +228,22 @@ class MocketSocket:
             ),
         }
 
-    def unwrap(self):
+    def unwrap(self) -> MocketSocket:
         return self
 
-    def write(self, data):
+    def write(self, data: bytes) -> int | None:
         return self.send(encode_to_bytes(data))
 
-    def connect(self, address):
+    def connect(self, address: Address) -> None:
         self._address = self._host, self._port = address
         Mocket._address = address
 
-    def makefile(self, mode="r", bufsize=-1):
+    def makefile(self, mode: str = "r", bufsize: int = -1) -> MocketSocketCore:
         self._mode = mode
         self._bufsize = bufsize
         return self.io
 
-    def get_entry(self, data):
+    def get_entry(self, data: bytes) -> MocketEntry | None:
         return Mocket.get_entry(self._host, self._port, data)
 
     def sendall(self, data, entry=None, *args, **kwargs):
@@ -241,7 +262,7 @@ class MocketSocket:
             self.io.truncate()
             self.io.seek(0)
 
-    def read(self, buffersize):
+    def read(self, buffersize: int | None = None) -> bytes:
         rv = self.io.read(buffersize)
         if rv:
             self._sent_non_empty_bytes = True
@@ -249,7 +270,12 @@ class MocketSocket:
             raise ssl.SSLWantReadError("The operation did not complete (read)")
         return rv
 
-    def recv_into(self, buffer, buffersize=None, flags=None):
+    def recv_into(
+        self,
+        buffer: WriteableBuffer,
+        buffersize: int | None = None,
+        flags: int | None = None,
+    ) -> int:
         if hasattr(buffer, "write"):
             return buffer.write(self.read(buffersize))
         # buffer is a memoryview
@@ -258,7 +284,7 @@ class MocketSocket:
             buffer[: len(data)] = data
         return len(data)
 
-    def recv(self, buffersize, flags=None):
+    def recv(self, buffersize: int, flags: int | None = None) -> bytes:
         r_fd, _ = Mocket.get_pair((self._host, self._port))
         if r_fd:
             return os.read(r_fd, buffersize)
@@ -271,7 +297,7 @@ class MocketSocket:
         exc.args = (0,)
         raise exc
 
-    def true_sendall(self, data, *args, **kwargs):
+    def true_sendall(self, data: ReadableBuffer, *args: Any, **kwargs: Any) -> int:
         if not MocketMode().is_allowed((self._host, self._port)):
             MocketMode.raise_not_allowed()
 
@@ -359,7 +385,12 @@ class MocketSocket:
         # response back to .sendall() which writes it to the Mocket socket and flush the BytesIO
         return encoded_response
 
-    def send(self, data, *args, **kwargs):  # pragma: no cover
+    def send(
+        self,
+        data: ReadableBuffer,
+        *args: Any,
+        **kwargs: Any,
+    ) -> int:  # pragma: no cover
         entry = self.get_entry(data)
         if not entry or (entry and self._entry != entry):
             kwargs["entry"] = entry
@@ -371,15 +402,15 @@ class MocketSocket:
         self._entry = entry
         return len(data)
 
-    def close(self):
+    def close(self) -> None:
         if self.true_socket and not self.true_socket._closed:
             self.true_socket.close()
         self._fd = None
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         """Do nothing catchall function, for methods like shutdown()"""
 
-        def do_nothing(*args, **kwargs):
+        def do_nothing(*args: Any, **kwargs: Any) -> Any:
             pass
 
         return do_nothing
