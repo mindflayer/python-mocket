@@ -44,7 +44,7 @@ def enable(
 ) -> None:
     from mocket.mocket import Mocket
     from mocket.socket import MocketSocket, create_connection, socketpair
-    from mocket.ssl import FakeSSLContext
+    from mocket.ssl.context import FakeSSLContext
 
     Mocket._namespace = namespace
     Mocket._truesocket_recording_dir = truesocket_recording_dir
