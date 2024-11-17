@@ -1,32 +1,18 @@
 from __future__ import annotations
 
 import binascii
-import io
-import os
 import ssl
 from typing import Callable
 
 from mocket.compat import decode_from_bytes, encode_to_bytes
 
 # NOTE this is here for backwards-compat to keep old import-paths working
+from mocket.io import MocketSocketCore as MocketSocketCore
+
+# NOTE this is here for backwards-compat to keep old import-paths working
 from mocket.mode import MocketMode as MocketMode
 
 SSL_PROTOCOL = ssl.PROTOCOL_TLSv1_2
-
-
-class MocketSocketCore(io.BytesIO):
-    def __init__(self, address) -> None:
-        self._address = address
-        super().__init__()
-
-    def write(self, content):
-        from mocket import Mocket
-
-        super().write(content)
-
-        _, w_fd = Mocket.get_pair(self._address)
-        if w_fd:
-            os.write(w_fd, content)
 
 
 def hexdump(binary_string: bytes) -> str:

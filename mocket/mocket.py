@@ -23,12 +23,9 @@ except ImportError:
 
 
 from mocket.compat import decode_from_bytes, encode_to_bytes
+from mocket.io import MocketSocketCore
 from mocket.mode import MocketMode
-from mocket.utils import (
-    MocketSocketCore,
-    hexdump,
-    hexload,
-)
+from mocket.utils import hexdump, hexload
 
 xxh32 = None
 try:
