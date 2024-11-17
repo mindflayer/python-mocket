@@ -5,14 +5,6 @@ import socket
 import ssl
 
 import urllib3
-from urllib3.connection import match_hostname as urllib3_match_hostname
-from urllib3.util.ssl_ import ssl_wrap_socket as urllib3_ssl_wrap_socket
-
-try:
-    from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
-except ImportError:
-    urllib3_wrap_socket = None
-
 
 try:  # pragma: no cover
     from urllib3.contrib.pyopenssl import extract_from_urllib3, inject_into_urllib3
@@ -21,29 +13,22 @@ try:  # pragma: no cover
 except ImportError:
     pyopenssl_override = False
 
-true_socket = socket.socket
-true_create_connection = socket.create_connection
-true_gethostbyname = socket.gethostbyname
-true_gethostname = socket.gethostname
-true_getaddrinfo = socket.getaddrinfo
-true_socketpair = socket.socketpair
-true_ssl_wrap_socket = getattr(
-    ssl, "wrap_socket", None
-)  # from Py3.12 it's only under SSLContext
-true_ssl_socket = ssl.SSLSocket
-true_ssl_context = ssl.SSLContext
-true_inet_pton = socket.inet_pton
-true_urllib3_wrap_socket = urllib3_wrap_socket
-true_urllib3_ssl_wrap_socket = urllib3_ssl_wrap_socket
-true_urllib3_match_hostname = urllib3_match_hostname
-
 
 def enable(
     namespace: str | None = None,
     truesocket_recording_dir: str | None = None,
 ) -> None:
     from mocket.mocket import Mocket
-    from mocket.socket import MocketSocket, create_connection, socketpair
+    from mocket.socket import (
+        MocketSocket,
+        mock_create_connection,
+        mock_getaddrinfo,
+        mock_gethostbyname,
+        mock_gethostname,
+        mock_inet_pton,
+        mock_socketpair,
+        mock_urllib3_match_hostname,
+    )
     from mocket.ssl.context import FakeSSLContext
 
     Mocket._namespace = namespace
@@ -56,20 +41,16 @@ def enable(
     socket.socket = socket.__dict__["socket"] = MocketSocket
     socket._socketobject = socket.__dict__["_socketobject"] = MocketSocket
     socket.SocketType = socket.__dict__["SocketType"] = MocketSocket
-    socket.create_connection = socket.__dict__["create_connection"] = create_connection
-    socket.gethostname = socket.__dict__["gethostname"] = lambda: "localhost"
-    socket.gethostbyname = socket.__dict__["gethostbyname"] = lambda host: "127.0.0.1"
-    socket.getaddrinfo = socket.__dict__["getaddrinfo"] = (
-        lambda host, port, family=None, socktype=None, proto=None, flags=None: [
-            (2, 1, 6, "", (host, port))
-        ]
+    socket.create_connection = socket.__dict__["create_connection"] = (
+        mock_create_connection
     )
-    socket.socketpair = socket.__dict__["socketpair"] = socketpair
+    socket.gethostname = socket.__dict__["gethostname"] = mock_gethostname
+    socket.gethostbyname = socket.__dict__["gethostbyname"] = mock_gethostbyname
+    socket.getaddrinfo = socket.__dict__["getaddrinfo"] = mock_getaddrinfo
+    socket.socketpair = socket.__dict__["socketpair"] = mock_socketpair
     ssl.wrap_socket = ssl.__dict__["wrap_socket"] = FakeSSLContext.wrap_socket
     ssl.SSLContext = ssl.__dict__["SSLContext"] = FakeSSLContext
-    socket.inet_pton = socket.__dict__["inet_pton"] = lambda family, ip: bytes(
-        "\x7f\x00\x00\x01", "utf-8"
-    )
+    socket.inet_pton = socket.__dict__["inet_pton"] = mock_inet_pton
     urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__["wrap_socket"] = (
         FakeSSLContext.wrap_socket
     )
@@ -84,7 +65,7 @@ def enable(
     ] = FakeSSLContext.wrap_socket
     urllib3.connection.match_hostname = urllib3.connection.__dict__[
         "match_hostname"
-    ] = lambda *args: None
+    ] = mock_urllib3_match_hostname
     if pyopenssl_override:  # pragma: no cover
         # Take out the pyopenssl version - use the default implementation
         extract_from_urllib3()
@@ -92,6 +73,22 @@ def enable(
 
 def disable() -> None:
     from mocket.mocket import Mocket
+    from mocket.socket import (
+        true_create_connection,
+        true_getaddrinfo,
+        true_gethostbyname,
+        true_gethostname,
+        true_inet_pton,
+        true_socket,
+        true_socketpair,
+        true_ssl_wrap_socket,
+        true_urllib3_match_hostname,
+        true_urllib3_ssl_wrap_socket,
+        true_urllib3_wrap_socket,
+    )
+    from mocket.ssl.context import (
+        true_ssl_context,
+    )
 
     socket.socket = socket.__dict__["socket"] = true_socket
     socket._socketobject = socket.__dict__["_socketobject"] = true_socket

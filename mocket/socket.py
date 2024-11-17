@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import errno
 import hashlib
@@ -8,17 +10,41 @@ import socket
 import ssl
 from datetime import datetime, timedelta
 from json.decoder import JSONDecodeError
+from typing import Any
+
+import urllib3.connection
+import urllib3.util.ssl_
 
 from mocket.compat import decode_from_bytes, encode_to_bytes
-from mocket.inject import (
-    true_gethostbyname,
-    true_socket,
-    true_urllib3_ssl_wrap_socket,
-)
 from mocket.io import MocketSocketCore
 from mocket.mocket import Mocket
 from mocket.mode import MocketMode
 from mocket.utils import hexdump, hexload
+
+true_create_connection = socket.create_connection
+true_getaddrinfo = socket.getaddrinfo
+true_gethostbyname = socket.gethostbyname
+true_gethostname = socket.gethostname
+true_inet_pton = socket.inet_pton
+true_socket = socket.socket
+true_socketpair = socket.socketpair
+true_ssl_wrap_socket = None
+
+true_urllib3_match_hostname = urllib3.connection.match_hostname
+true_urllib3_ssl_wrap_socket = urllib3.util.ssl_.ssl_wrap_socket
+true_urllib3_wrap_socket = None
+
+with contextlib.suppress(ImportError):
+    # from Py3.12 it's only under SSLContext
+    from ssl import wrap_socket as ssl_wrap_socket
+
+    true_ssl_wrap_socket = ssl_wrap_socket
+
+with contextlib.suppress(ImportError):
+    from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
+
+    true_urllib3_wrap_socket = urllib3_wrap_socket
+
 
 xxh32 = None
 try:
@@ -29,7 +55,7 @@ except ImportError:  # pragma: no cover
 hasher = xxh32 or hashlib.md5
 
 
-def create_connection(address, timeout=None, source_address=None):
+def mock_create_connection(address, timeout=None, source_address=None):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
     if timeout:
         s.settimeout(timeout)
@@ -37,11 +63,38 @@ def create_connection(address, timeout=None, source_address=None):
     return s
 
 
-def socketpair(*args, **kwargs):
+def mock_getaddrinfo(
+    host: str,
+    port: int,
+    family: int = 0,
+    type: int = 0,
+    proto: int = 0,
+    flags: int = 0,
+) -> list[tuple[int, int, int, str, tuple[str, int]]]:
+    return [(2, 1, 6, "", (host, port))]
+
+
+def mock_gethostbyname(hostname: str) -> str:
+    return "127.0.0.1"
+
+
+def mock_gethostname() -> str:
+    return "localhost"
+
+
+def mock_inet_pton(address_family: int, ip_string: str) -> bytes:
+    return bytes("\x7f\x00\x00\x01", "utf-8")
+
+
+def mock_socketpair(*args, **kwargs):
     """Returns a real socketpair() used by asyncio loop for supporting calls made by fastapi and similar services."""
     import _socket
 
     return _socket.socketpair(*args, **kwargs)
+
+
+def mock_urllib3_match_hostname(*args: Any) -> None:
+    return None
 
 
 def _hash_request(h, req):
@@ -132,7 +185,7 @@ class MocketSocket:
         return self.gettimeout() is None
 
     def getsockname(self):
-        return socket.gethostbyname(self._address[0]), self._address[1]
+        return true_gethostbyname(self._address[0]), self._address[1]
 
     def getpeercert(self, *args, **kwargs):
         if not (self._host and self._port):

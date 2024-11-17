@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import ssl
 from typing import Any
 
 from mocket.socket import MocketSocket
+
+true_ssl_context = ssl.SSLContext
 
 
 class SuperFakeSSLContext:
