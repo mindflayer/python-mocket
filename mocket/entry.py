@@ -1,6 +1,7 @@
 import collections.abc
 
 from mocket.compat import encode_to_bytes
+from mocket.mocket import Mocket
 
 
 class MocketEntry:
@@ -41,8 +42,6 @@ class MocketEntry:
         return True
 
     def collect(self, data):
-        from mocket import Mocket
-
         req = self.request_cls(data)
         Mocket.collect(req)
 

@@ -1,3 +1,4 @@
+from mocket.mocket import Mocket
 from mocket.mode import MocketMode
 from mocket.utils import get_mocketize
 
@@ -23,8 +24,6 @@ class Mocketizer:
             )
 
     def enter(self):
-        from mocket import Mocket
-
         Mocket.enable(
             namespace=self.namespace,
             truesocket_recording_dir=self.truesocket_recording_dir,
@@ -39,7 +38,6 @@ class Mocketizer:
     def exit(self):
         if self.instance:
             self.check_and_call("mocketize_teardown")
-        from mocket import Mocket
 
         Mocket.disable()
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from mocket.exceptions import StrictMocketException
+from mocket.mocket import Mocket
 
 if TYPE_CHECKING:  # pragma: no cover
     from typing import NoReturn
@@ -31,8 +32,6 @@ class MocketMode:
 
     @staticmethod
     def raise_not_allowed() -> NoReturn:
-        from mocket.mocket import Mocket
-
         current_entries = [
             (location, "\n    ".join(map(str, entries)))
             for location, entries in Mocket._entries.items()

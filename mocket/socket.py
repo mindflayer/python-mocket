@@ -10,7 +10,13 @@ from datetime import datetime, timedelta
 from json.decoder import JSONDecodeError
 
 from mocket.compat import decode_from_bytes, encode_to_bytes
+from mocket.inject import (
+    true_gethostbyname,
+    true_socket,
+    true_urllib3_ssl_wrap_socket,
+)
 from mocket.io import MocketSocketCore
+from mocket.mocket import Mocket
 from mocket.mode import MocketMode
 from mocket.utils import hexdump, hexload
 
@@ -63,8 +69,6 @@ class MocketSocket:
     def __init__(
         self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, **kwargs
     ):
-        from mocket.mocket import true_socket
-
         self.true_socket = true_socket(family, type, proto)
         self._buflen = 65536
         self._entry = None
@@ -90,8 +94,6 @@ class MocketSocket:
         return self._io
 
     def fileno(self):
-        from mocket.mocket import Mocket
-
         address = (self._host, self._port)
         r_fd, _ = Mocket.get_pair(address)
         if not r_fd:
@@ -133,8 +135,6 @@ class MocketSocket:
         return socket.gethostbyname(self._address[0]), self._address[1]
 
     def getpeercert(self, *args, **kwargs):
-        from mocket.mocket import Mocket
-
         if not (self._host and self._port):
             self._address = self._host, self._port = Mocket._address
 
@@ -161,8 +161,6 @@ class MocketSocket:
         return self.send(encode_to_bytes(data))
 
     def connect(self, address):
-        from mocket.mocket import Mocket
-
         self._address = self._host, self._port = address
         Mocket._address = address
 
@@ -172,8 +170,6 @@ class MocketSocket:
         return self.io
 
     def get_entry(self, data):
-        from mocket.mocket import Mocket
-
         return Mocket.get_entry(self._host, self._port, data)
 
     def sendall(self, data, entry=None, *args, **kwargs):
@@ -210,8 +206,6 @@ class MocketSocket:
         return len(data)
 
     def recv(self, buffersize, flags=None):
-        from mocket.mocket import Mocket
-
         r_fd, _ = Mocket.get_pair((self._host, self._port))
         if r_fd:
             return os.read(r_fd, buffersize)
@@ -225,13 +219,6 @@ class MocketSocket:
         raise exc
 
     def true_sendall(self, data, *args, **kwargs):
-        from mocket.mocket import (
-            Mocket,
-            true_gethostbyname,
-            true_socket,
-            true_urllib3_ssl_wrap_socket,
-        )
-
         if not MocketMode().is_allowed((self._host, self._port)):
             MocketMode.raise_not_allowed()
 
@@ -246,7 +233,8 @@ class MocketSocket:
 
         if Mocket.get_truesocket_recording_dir():
             path = os.path.join(
-                Mocket.get_truesocket_recording_dir(), Mocket.get_namespace() + ".json"
+                Mocket.get_truesocket_recording_dir(),
+                Mocket.get_namespace() + ".json",
             )
             # check if there's already a recorded session dumped to a JSON file
             try:
@@ -319,8 +307,6 @@ class MocketSocket:
         return encoded_response
 
     def send(self, data, *args, **kwargs):  # pragma: no cover
-        from mocket.mocket import Mocket
-
         entry = self.get_entry(data)
         if not entry or (entry and self._entry != entry):
             kwargs["entry"] = entry
