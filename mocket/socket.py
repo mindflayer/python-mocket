@@ -113,7 +113,6 @@ def _hash_request(h, req):
 
 class MocketSocket:
     timeout = None
-    _fd = None
     family = None
     type = None
     proto = None
@@ -122,8 +121,6 @@ class MocketSocket:
     _address = None
     cipher = lambda s: ("ADH", "AES256", "SHA")
     compression = lambda s: ssl.OP_NO_COMPRESSION
-    _mode = None
-    _bufsize = None
     _secure_socket = False
     _did_handshake = False
     _sent_non_empty_bytes = False
@@ -239,8 +236,6 @@ class MocketSocket:
         Mocket._address = address
 
     def makefile(self, mode: str = "r", bufsize: int = -1) -> MocketSocketCore:
-        self._mode = mode
-        self._bufsize = bufsize
         return self.io
 
     def get_entry(self, data: bytes) -> MocketEntry | None:
@@ -405,7 +400,6 @@ class MocketSocket:
     def close(self) -> None:
         if self.true_socket and not self.true_socket._closed:
             self.true_socket.close()
-        self._fd = None
 
     def __getattr__(self, name: str) -> Any:
         """Do nothing catchall function, for methods like shutdown()"""
