@@ -269,9 +269,13 @@ class MocketSocket:
         flags: int | None = None,
     ) -> int:
         if hasattr(buffer, "write"):
-            return buffer.write(self.read(buffersize))
+            return buffer.write(self.recv(buffersize))
+
         # buffer is a memoryview
-        data = self.read(buffersize)
+        if buffersize is None:
+            buffersize = len(buffer)
+
+        data = self.recv(buffersize)
         if data:
             buffer[: len(data)] = data
         return len(data)
@@ -280,7 +284,7 @@ class MocketSocket:
         r_fd, _ = Mocket.get_pair((self._host, self._port))
         if r_fd:
             return os.read(r_fd, buffersize)
-        data = self.read(buffersize)
+        data = self.io.read(buffersize)
         if data:
             return data
         # used by Redis mock
