@@ -1,11 +1,29 @@
 from __future__ import annotations
 
+import contextlib
 import ssl
 from typing import Any
+
+import urllib3.util.ssl_
 
 from mocket.socket import MocketSocket
 
 true_ssl_context = ssl.SSLContext
+
+true_ssl_wrap_socket = None
+true_urllib3_ssl_wrap_socket = urllib3.util.ssl_.ssl_wrap_socket
+true_urllib3_wrap_socket = None
+
+with contextlib.suppress(ImportError):
+    # from Py3.12 it's only under SSLContext
+    from ssl import wrap_socket as ssl_wrap_socket
+
+    true_ssl_wrap_socket = ssl_wrap_socket
+
+with contextlib.suppress(ImportError):
+    from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
+
+    true_urllib3_wrap_socket = urllib3_wrap_socket
 
 
 class SuperFakeSSLContext:

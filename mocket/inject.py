@@ -81,13 +81,13 @@ def disable() -> None:
         true_inet_pton,
         true_socket,
         true_socketpair,
-        true_ssl_wrap_socket,
         true_urllib3_match_hostname,
-        true_urllib3_ssl_wrap_socket,
-        true_urllib3_wrap_socket,
     )
     from mocket.ssl.context import (
         true_ssl_context,
+        true_ssl_wrap_socket,
+        true_urllib3_ssl_wrap_socket,
+        true_urllib3_wrap_socket,
     )
 
     socket.socket = socket.__dict__["socket"] = true_socket

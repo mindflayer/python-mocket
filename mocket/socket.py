@@ -14,7 +14,6 @@ from types import TracebackType
 from typing import Any, Type
 
 import urllib3.connection
-import urllib3.util.ssl_
 from typing_extensions import Self
 
 from mocket.compat import decode_from_bytes, encode_to_bytes
@@ -38,22 +37,7 @@ true_gethostname = socket.gethostname
 true_inet_pton = socket.inet_pton
 true_socket = socket.socket
 true_socketpair = socket.socketpair
-true_ssl_wrap_socket = None
-
 true_urllib3_match_hostname = urllib3.connection.match_hostname
-true_urllib3_ssl_wrap_socket = urllib3.util.ssl_.ssl_wrap_socket
-true_urllib3_wrap_socket = None
-
-with contextlib.suppress(ImportError):
-    # from Py3.12 it's only under SSLContext
-    from ssl import wrap_socket as ssl_wrap_socket
-
-    true_ssl_wrap_socket = ssl_wrap_socket
-
-with contextlib.suppress(ImportError):
-    from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
-
-    true_urllib3_wrap_socket = urllib3_wrap_socket
 
 
 xxh32 = None
@@ -357,6 +341,8 @@ class MocketSocket:
             host = true_gethostbyname(host)
 
             if isinstance(self._true_socket, true_socket) and self._secure_socket:
+                from mocket.ssl.context import true_urllib3_ssl_wrap_socket
+
                 self._true_socket = true_urllib3_ssl_wrap_socket(
                     self._true_socket,
                     **self._kwargs,
