@@ -96,9 +96,6 @@ def _hash_request(h, req):
 
 
 class MocketSocket:
-    cipher = lambda s: ("ADH", "AES256", "SHA")
-    compression = lambda s: ssl.OP_NO_COMPRESSION
-
     def __init__(
         self,
         family: socket.AddressFamily | int = socket.AF_INET,
@@ -116,10 +113,6 @@ class MocketSocket:
 
         self._buflen = 65536
         self._timeout: float | None = None
-
-        self._secure_socket = False
-        self._did_handshake = False
-        self._sent_non_empty_bytes = False
 
         self._host = None
         self._port = None
@@ -187,9 +180,6 @@ class MocketSocket:
     def getsockopt(level: int, optname: int, buflen: int | None = None) -> int:
         return socket.SOCK_STREAM
 
-    def do_handshake(self) -> None:
-        self._did_handshake = True
-
     def getpeername(self) -> _RetAddress:
         return self._address
 
@@ -201,32 +191,6 @@ class MocketSocket:
 
     def getsockname(self) -> _RetAddress:
         return true_gethostbyname(self._address[0]), self._address[1]
-
-    def getpeercert(self, binary_form: bool = False) -> _PeerCertRetDictType:
-        if not (self._host and self._port):
-            self._address = self._host, self._port = Mocket._address
-
-        now = datetime.now()
-        shift = now + timedelta(days=30 * 12)
-        return {
-            "notAfter": shift.strftime("%b %d %H:%M:%S GMT"),
-            "subjectAltName": (
-                ("DNS", f"*.{self._host}"),
-                ("DNS", self._host),
-                ("DNS", "*"),
-            ),
-            "subject": (
-                (("organizationName", f"*.{self._host}"),),
-                (("organizationalUnitName", "Domain Control Validated"),),
-                (("commonName", f"*.{self._host}"),),
-            ),
-        }
-
-    def unwrap(self) -> MocketSocket:
-        return self
-
-    def write(self, data: bytes) -> int | None:
-        return self.send(encode_to_bytes(data))
 
     def connect(self, address: Address) -> None:
         self._address = self._host, self._port = address
@@ -253,14 +217,6 @@ class MocketSocket:
             self.io.write(response)
             self.io.truncate()
             self.io.seek(0)
-
-    def read(self, buffersize: int | None = None) -> bytes:
-        rv = self.io.read(buffersize)
-        if rv:
-            self._sent_non_empty_bytes = True
-        if self._did_handshake and not self._sent_non_empty_bytes:
-            raise ssl.SSLWantReadError("The operation did not complete (read)")
-        return rv
 
     def recv_into(
         self,
@@ -343,14 +299,6 @@ class MocketSocket:
         except KeyError:
             host, port = self._host, self._port
             host = true_gethostbyname(host)
-
-            if isinstance(self._true_socket, true_socket) and self._secure_socket:
-                from mocket.ssl.context import true_urllib3_ssl_wrap_socket
-
-                self._true_socket = true_urllib3_ssl_wrap_socket(
-                    self._true_socket,
-                    **self._kwargs,
-                )
 
             with contextlib.suppress(OSError, ValueError):
                 # already connected
