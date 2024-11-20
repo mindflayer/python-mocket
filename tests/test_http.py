@@ -314,6 +314,37 @@ class HttpEntryTestCase(HttpTestCase):
 
         self.assertEqual(len(responses["httpbin.local"]["80"].keys()), 2)
 
+    # @mocketize(
+    #     truesocket_recording_dir=os.path.dirname(__file__),
+    #     recording_ignored_headers=["Authorization"],
+    # )
+    # def test_truesendall_with_dump_from_recording_and_ignored_headers(self):
+    #     requests.get(
+    #         "http://httpbin.local/ip",
+    #         headers={
+    #             "user-agent": "Fake-User-Agent",
+    #             "Accept-Encoding": "gzip, deflate, zstd",
+    #             "Authorization": "token",
+    #         },
+    #     )
+    #     requests.get(
+    #         "http://httpbin.local/gzip",
+    #         headers={
+    #             "user-agent": "Fake-User-Agent",
+    #             "Accept-Encoding": "gzip, deflate, zstd",
+    #             "Authorization": "token",
+    #         },
+    #     )
+
+    #     dump_filename = os.path.join(
+    #         Mocket.get_truesocket_recording_dir(), Mocket.get_namespace() + ".json"
+    #     )
+    #     with open(dump_filename) as f:
+    #         responses = json.load(f)
+
+    #     print(responses["httpbin.local"]["80"])
+    #     self.assertEqual(len(responses["httpbin.local"]["80"].keys()), 2)
+
     @mocketize
     def test_post_file_object(self):
         url = "http://github.com/fluidicon.png"

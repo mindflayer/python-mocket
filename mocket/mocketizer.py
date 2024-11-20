@@ -11,9 +11,11 @@ class Mocketizer:
         truesocket_recording_dir=None,
         strict_mode=False,
         strict_mode_allowed=None,
+        recording_ignored_headers: list[str] | None = None,
     ):
         self.instance = instance
         self.truesocket_recording_dir = truesocket_recording_dir
+        self.recording_ignored_headers = recording_ignored_headers
         self.namespace = namespace or str(id(self))
         MocketMode().STRICT = strict_mode
         if strict_mode:
@@ -27,6 +29,7 @@ class Mocketizer:
         Mocket.enable(
             namespace=self.namespace,
             truesocket_recording_dir=self.truesocket_recording_dir,
+            recording_ignored_headers=self.recording_ignored_headers,
         )
         if self.instance:
             self.check_and_call("mocketize_setup")
@@ -57,7 +60,14 @@ class Mocketizer:
             method()
 
     @staticmethod
-    def factory(test, truesocket_recording_dir, strict_mode, strict_mode_allowed, args):
+    def factory(
+        test,
+        truesocket_recording_dir,
+        strict_mode,
+        strict_mode_allowed,
+        recording_ignored_headers,
+        args,
+    ):
         instance = args[0] if args else None
         namespace = None
         if truesocket_recording_dir:
@@ -75,6 +85,7 @@ class Mocketizer:
             truesocket_recording_dir=truesocket_recording_dir,
             strict_mode=strict_mode,
             strict_mode_allowed=strict_mode_allowed,
+            recording_ignored_headers=recording_ignored_headers,
         )
 
 
@@ -83,11 +94,17 @@ def wrapper(
     truesocket_recording_dir=None,
     strict_mode=False,
     strict_mode_allowed=None,
+    recording_ignored_headers: list[str] | None = None,
     *args,
     **kwargs,
 ):
     with Mocketizer.factory(
-        test, truesocket_recording_dir, strict_mode, strict_mode_allowed, args
+        test,
+        truesocket_recording_dir,
+        strict_mode,
+        strict_mode_allowed,
+        recording_ignored_headers,
+        args,
     ):
         return test(*args, **kwargs)
 

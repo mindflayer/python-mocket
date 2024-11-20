@@ -22,6 +22,7 @@ class Mocket:
     _requests: ClassVar[list] = []
     _namespace: ClassVar[str] = str(id(_entries))
     _truesocket_recording_dir: ClassVar[str | None] = None
+    _recording_ignored_headers: list[str] | None = None
 
     enable = mocket.inject.enable
     disable = mocket.inject.disable
@@ -95,6 +96,10 @@ class Mocket:
     @classmethod
     def get_truesocket_recording_dir(cls) -> str | None:
         return cls._truesocket_recording_dir
+
+    @classmethod
+    def get_recording_ignored_headers(cls):
+        return cls._recording_ignored_headers
 
     @classmethod
     def assert_fail_if_entries_not_served(cls) -> None:

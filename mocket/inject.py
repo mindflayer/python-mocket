@@ -41,6 +41,7 @@ true_urllib3_match_hostname = urllib3_match_hostname
 def enable(
     namespace: str | None = None,
     truesocket_recording_dir: str | None = None,
+    recording_ignored_headers: list[str] | None = None,
 ) -> None:
     from mocket.mocket import Mocket
     from mocket.socket import MocketSocket, create_connection, socketpair
@@ -48,6 +49,7 @@ def enable(
 
     Mocket._namespace = namespace
     Mocket._truesocket_recording_dir = truesocket_recording_dir
+    Mocket._recording_ignored_headers = recording_ignored_headers or []
 
     if truesocket_recording_dir and not os.path.isdir(truesocket_recording_dir):
         # JSON dumps will be saved here
