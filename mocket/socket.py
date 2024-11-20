@@ -18,7 +18,7 @@ from typing_extensions import Self
 
 from mocket.compat import decode_from_bytes, encode_to_bytes
 from mocket.entry import MocketEntry
-from mocket.io import MocketSocketCore
+from mocket.io import MocketSocketIO
 from mocket.mocket import Mocket
 from mocket.mode import MocketMode
 from mocket.types import (
@@ -148,9 +148,9 @@ class MocketSocket:
         return self._proto
 
     @property
-    def io(self) -> MocketSocketCore:
+    def io(self) -> MocketSocketIO:
         if self._io is None:
-            self._io = MocketSocketCore((self._host, self._port))
+            self._io = MocketSocketIO((self._host, self._port))
         return self._io
 
     def fileno(self) -> int:
@@ -196,7 +196,7 @@ class MocketSocket:
         self._address = self._host, self._port = address
         Mocket._address = address
 
-    def makefile(self, mode: str = "r", bufsize: int = -1) -> MocketSocketCore:
+    def makefile(self, mode: str = "r", bufsize: int = -1) -> MocketSocketIO:
         return self.io
 
     def get_entry(self, data: bytes) -> MocketEntry | None:

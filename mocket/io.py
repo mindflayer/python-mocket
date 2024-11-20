@@ -4,7 +4,7 @@ import os
 from mocket.mocket import Mocket
 
 
-class MocketSocketCore(io.BytesIO):
+class MocketSocketIO(io.BytesIO):
     def __init__(self, address) -> None:
         self._address = address
         super().__init__()
