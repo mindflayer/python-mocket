@@ -118,15 +118,14 @@ class TrueHttpEntryTestCase(HttpTestCase):
             truesocket_recording_dir=temp_dir, use_hex_encoding=False
         ):
             url = "http://httpbin.local/gzip"
+            headers = {
+                "Accept-Encoding": "gzip, deflate, zstd",
+            }
 
-            requests.get(url)
-            resp = requests.get(
+            requests.get(
                 url,
-                headers={
-                    "Accept-Encoding": "gzip, deflate, zstd",
-                },
+                headers=headers,
             )
-            self.assertEqual(resp.status_code, 200)
 
             dump_filename = os.path.join(
                 Mocket.get_truesocket_recording_dir(),
@@ -136,9 +135,15 @@ class TrueHttpEntryTestCase(HttpTestCase):
             with open(dump_filename) as f:
                 responses = json.load(f)
 
-        for _, value in responses["httpbin.local"]["80"].items():
-            self.assertIn("HTTP/1.1 200", value["response"])
-            self.assertIn("gzip, deflate, zstd", value["response"])
+            for _, value in responses["httpbin.local"]["80"].items():
+                self.assertIn("HTTP/1.1 200", value["response"])
+                self.assertIn("gzip, deflate, zstd", value["response"])
+
+            resp = requests.get(
+                url,
+                headers=headers,
+            )
+            self.assertEqual(resp.status_code, 200)
 
     @mocketize
     def test_wrongpath_truesendall(self):
