@@ -1,6 +1,6 @@
 import contextlib
 
-from mocket import FakeSSLContext
+from mocket import MocketSSLContext
 
 with contextlib.suppress(ModuleNotFoundError):
     from aiohttp import ClientRequest
@@ -14,5 +14,5 @@ with contextlib.suppress(ModuleNotFoundError):
         slightly patching the `ClientSession` while testing.
         """
 
-        def _get_ssl_context(self, req: ClientRequest) -> FakeSSLContext:
-            return FakeSSLContext()
+        def _get_ssl_context(self, req: ClientRequest) -> MocketSSLContext:
+            return MocketSSLContext()

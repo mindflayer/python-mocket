@@ -29,7 +29,7 @@ def enable(
         mock_socketpair,
         mock_urllib3_match_hostname,
     )
-    from mocket.ssl.context import FakeSSLContext
+    from mocket.ssl.context import MocketSSLContext
 
     Mocket._namespace = namespace
     Mocket._truesocket_recording_dir = truesocket_recording_dir
@@ -48,21 +48,21 @@ def enable(
     socket.gethostbyname = socket.__dict__["gethostbyname"] = mock_gethostbyname
     socket.getaddrinfo = socket.__dict__["getaddrinfo"] = mock_getaddrinfo
     socket.socketpair = socket.__dict__["socketpair"] = mock_socketpair
-    ssl.wrap_socket = ssl.__dict__["wrap_socket"] = FakeSSLContext.wrap_socket
-    ssl.SSLContext = ssl.__dict__["SSLContext"] = FakeSSLContext
+    ssl.wrap_socket = ssl.__dict__["wrap_socket"] = MocketSSLContext.wrap_socket
+    ssl.SSLContext = ssl.__dict__["SSLContext"] = MocketSSLContext
     socket.inet_pton = socket.__dict__["inet_pton"] = mock_inet_pton
     urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__["wrap_socket"] = (
-        FakeSSLContext.wrap_socket
+        MocketSSLContext.wrap_socket
     )
     urllib3.util.ssl_.ssl_wrap_socket = urllib3.util.ssl_.__dict__[
         "ssl_wrap_socket"
-    ] = FakeSSLContext.wrap_socket
+    ] = MocketSSLContext.wrap_socket
     urllib3.util.ssl_wrap_socket = urllib3.util.__dict__["ssl_wrap_socket"] = (
-        FakeSSLContext.wrap_socket
+        MocketSSLContext.wrap_socket
     )
     urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
         "ssl_wrap_socket"
-    ] = FakeSSLContext.wrap_socket
+    ] = MocketSSLContext.wrap_socket
     urllib3.connection.match_hostname = urllib3.connection.__dict__[
         "match_hostname"
     ] = mock_urllib3_match_hostname
