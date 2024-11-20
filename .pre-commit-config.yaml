@@ -5,7 +5,7 @@ repos:
       - id: forbid-crlf
       - id: remove-crlf
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -15,7 +15,7 @@ repos:
         exclude: helm/
         args: [ --unsafe ]
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: "v0.4.4"
+    rev: "v0.7.4"
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
