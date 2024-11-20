@@ -1,8 +1,11 @@
 import contextlib
 import errno
+import gzip
 import hashlib
 import json
+import logging
 import os
+import re
 import select
 import socket
 import ssl
@@ -20,6 +23,8 @@ from mocket.mocket import Mocket
 from mocket.mode import MocketMode
 from mocket.utils import hexdump, hexload
 
+
+logger = logging.getLogger(__name__)
 xxh32 = None
 try:
     from xxhash import xxh32
@@ -263,7 +268,20 @@ class MocketSocket:
 
         # try to get the response from the dictionary
         try:
-            encoded_response = hexload(response_dict["response"])
+            response = response_dict["response"]
+
+            if Mocket.get_use_hex_encoding():
+                encoded_response = hexload(response)
+            else:
+                headers, body = response.split("\r\n\r\n", 1)
+
+                headers_bytes = headers.encode("utf-8")
+                body_bytes = body.encode("utf-8")
+
+                if "content-encoding: gzip" in headers.lower():
+                    body_bytes = gzip.compress(body_bytes)
+
+                encoded_response = headers_bytes + b"\r\n\r\n" + body_bytes
         # if not available, call the real sendall
         except KeyError:
             host, port = self._host, self._port
@@ -290,17 +308,27 @@ class MocketSocket:
                     break
                 encoded_response += new_content
 
-            # dump the resulting dictionary to a JSON file
             if Mocket.get_truesocket_recording_dir():
-                # update the dictionary with request and response lines
-                response_dict["request"] = req
-                response_dict["response"] = hexdump(encoded_response)
+            # dump the resulting dictionary to a JSON file
+                if Mocket.get_use_hex_encoding():
+                    response_dict["response"] = hexdump(encoded_response)
+                else:
+                    try:
+                        headers, body = encoded_response.split(b"\r\n\r\n", 1)
+
+                        if b"content-encoding: gzip" in headers.lower():
+                            body = gzip.decompress(body)
+
+                        response_dict["response"] = (headers + b"\r\n\r\n" + body).decode(
+                            "utf-8"
+                        )
+
+                    except UnicodeDecodeError as e:
+                        logger.warning("Mocket: Response not recorded: %s", e)
 
                 with open(path, mode="w") as f:
                     f.write(
-                        decode_from_bytes(
-                            json.dumps(responses, indent=4, sort_keys=True)
-                        )
+                        decode_from_bytes(json.dumps(responses, indent=4, sort_keys=True))
                     )
 
         # response back to .sendall() which writes it to the Mocket socket and flush the BytesIO

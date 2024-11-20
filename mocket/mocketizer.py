@@ -9,6 +9,7 @@ class Mocketizer:
         instance=None,
         namespace=None,
         truesocket_recording_dir=None,
+        use_hex_encoding=True,
         strict_mode=False,
         strict_mode_allowed=None,
     ):
@@ -57,7 +58,14 @@ class Mocketizer:
             method()
 
     @staticmethod
-    def factory(test, truesocket_recording_dir, strict_mode, strict_mode_allowed, args):
+    def factory(
+        test,
+        truesocket_recording_dir,
+        strict_mode,
+        strict_mode_allowed,
+        use_hex_encoding,
+        args,
+    ):
         instance = args[0] if args else None
         namespace = None
         if truesocket_recording_dir:
@@ -74,6 +82,7 @@ class Mocketizer:
             namespace=namespace,
             truesocket_recording_dir=truesocket_recording_dir,
             strict_mode=strict_mode,
+            use_hex_encoding=use_hex_encoding,
             strict_mode_allowed=strict_mode_allowed,
         )
 
@@ -83,11 +92,17 @@ def wrapper(
     truesocket_recording_dir=None,
     strict_mode=False,
     strict_mode_allowed=None,
+    use_hex_encoding=True,
     *args,
     **kwargs,
 ):
     with Mocketizer.factory(
-        test, truesocket_recording_dir, strict_mode, strict_mode_allowed, args
+        test,
+        truesocket_recording_dir,
+        strict_mode,
+        strict_mode_allowed,
+        use_hex_encoding,
+        args,
     ):
         return test(*args, **kwargs)
 

@@ -41,6 +41,7 @@ true_urllib3_match_hostname = urllib3_match_hostname
 def enable(
     namespace: str | None = None,
     truesocket_recording_dir: str | None = None,
+    use_hex_encoding=True,
 ) -> None:
     from mocket.mocket import Mocket
     from mocket.socket import MocketSocket, create_connection, socketpair
@@ -48,6 +49,7 @@ def enable(
 
     Mocket._namespace = namespace
     Mocket._truesocket_recording_dir = truesocket_recording_dir
+    Mocket._use_hex_encoding = use_hex_encoding
 
     if truesocket_recording_dir and not os.path.isdir(truesocket_recording_dir):
         # JSON dumps will be saved here
