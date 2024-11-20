@@ -55,30 +55,6 @@ class TrueHttpEntryTestCase(HttpTestCase):
 
         self.assertEqual(len(responses["httpbin.local"]["80"].keys()), 2)
 
-    def test_truesendall_with_recording_without_hex_encoding(self):
-        with tempfile.TemporaryDirectory() as temp_dir, Mocketizer(
-            truesocket_recording_dir=temp_dir, use_hex_encoding=False
-        ):
-            url = "http://httpbin.local/ip"
-
-            urlopen(url)
-            requests.get(url)
-            resp = urlopen(url)
-            self.assertEqual(resp.code, 200)
-            resp = requests.get(url)
-            self.assertEqual(resp.status_code, 200)
-            assert "origin" in resp.json()
-
-            dump_filename = os.path.join(
-                Mocket.get_truesocket_recording_dir(),
-                Mocket.get_namespace() + ".json",
-            )
-            with open(dump_filename) as f:
-                responses = json.load(f)
-
-        for _, value in responses["httpbin.local"]["80"].items():
-            self.assertIn("HTTP/1.1 200", value["response"])
-
     def test_truesendall_with_gzip_recording(self):
         with tempfile.TemporaryDirectory() as temp_dir, Mocketizer(
             truesocket_recording_dir=temp_dir
@@ -116,6 +92,53 @@ class TrueHttpEntryTestCase(HttpTestCase):
                 responses = json.load(f)
 
         assert len(responses["httpbin.local"]["80"].keys()) == 1
+
+    def test_truesendall_with_recording_without_hex_encoding(self):
+        with tempfile.TemporaryDirectory() as temp_dir, Mocketizer(
+            truesocket_recording_dir=temp_dir, use_hex_encoding=False
+        ):
+            url = "http://httpbin.local/ip"
+
+            requests.get(url)
+            resp = requests.get(url)
+            self.assertEqual(resp.status_code, 200)
+
+            dump_filename = os.path.join(
+                Mocket.get_truesocket_recording_dir(),
+                Mocket.get_namespace() + ".json",
+            )
+            with open(dump_filename) as f:
+                responses = json.load(f)
+
+        for _, value in responses["httpbin.local"]["80"].items():
+            self.assertIn("HTTP/1.1 200", value["response"])
+
+    def test_truesendall_with_gzip_recording_without_hex_encoding(self):
+        with tempfile.TemporaryDirectory() as temp_dir, Mocketizer(
+            truesocket_recording_dir=temp_dir, use_hex_encoding=False
+        ):
+            url = "http://httpbin.local/gzip"
+
+            requests.get(url)
+            resp = requests.get(
+                url,
+                headers={
+                    "Accept-Encoding": "gzip, deflate, zstd",
+                },
+            )
+            self.assertEqual(resp.status_code, 200)
+
+            dump_filename = os.path.join(
+                Mocket.get_truesocket_recording_dir(),
+                Mocket.get_namespace() + ".json",
+            )
+
+            with open(dump_filename) as f:
+                responses = json.load(f)
+
+        for _, value in responses["httpbin.local"]["80"].items():
+            self.assertIn("HTTP/1.1 200", value["response"])
+            self.assertIn("gzip, deflate, zstd", value["response"])
 
     @mocketize
     def test_wrongpath_truesendall(self):
