@@ -308,8 +308,11 @@ class MocketSocket:
                     break
                 encoded_response += new_content
 
-            if Mocket.get_truesocket_recording_dir():
             # dump the resulting dictionary to a JSON file
+            if Mocket.get_truesocket_recording_dir():
+                # update the dictionary with request and response lines
+                response_dict["request"] = req
+
                 if Mocket.get_use_hex_encoding():
                     response_dict["response"] = hexdump(encoded_response)
                 else:
@@ -319,16 +322,18 @@ class MocketSocket:
                         if b"content-encoding: gzip" in headers.lower():
                             body = gzip.decompress(body)
 
-                        response_dict["response"] = (headers + b"\r\n\r\n" + body).decode(
-                            "utf-8"
-                        )
+                        response_dict["response"] = (
+                            headers + b"\r\n\r\n" + body
+                        ).decode("utf-8")
 
                     except UnicodeDecodeError as e:
                         logger.warning("Mocket: Response not recorded: %s", e)
 
                 with open(path, mode="w") as f:
                     f.write(
-                        decode_from_bytes(json.dumps(responses, indent=4, sort_keys=True))
+                        decode_from_bytes(
+                            json.dumps(responses, indent=4, sort_keys=True)
+                        )
                     )
 
         # response back to .sendall() which writes it to the Mocket socket and flush the BytesIO
