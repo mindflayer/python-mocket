@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from mocket.mocket import Mocket
 from mocket.mode import MocketMode
 from mocket.utils import get_mocketize

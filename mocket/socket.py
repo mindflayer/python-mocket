@@ -293,11 +293,12 @@ class MocketSocket:
 
             # dump the resulting dictionary to a JSON file
             if Mocket.get_truesocket_recording_dir():
-                # update the dictionary with request and response lines
-                # for header in Mocket.get_recording_ignored_headers():
-                #     header_pattern = rf"{header}: .*\r\n"
-                #     req = re.sub(header_pattern, "", req)
+                # filter out unwanted headers
+                for header in Mocket.get_recording_ignored_headers():
+                    header_pattern = rf"{header}: .*\r\n"
+                    req = re.sub(header_pattern, "", req)
 
+                # update the dictionary with request and response lines
                 response_dict["request"] = req
                 response_dict["response"] = hexdump(encoded_response)
 
