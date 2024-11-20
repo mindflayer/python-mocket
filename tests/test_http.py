@@ -93,6 +93,25 @@ class TrueHttpEntryTestCase(HttpTestCase):
 
         assert len(responses["httpbin.local"]["80"].keys()) == 1
 
+    def test_truesendall_with_recording_and_skip_response_cache(self):
+        with tempfile.TemporaryDirectory() as temp_dir, Mocketizer(
+            truesocket_recording_dir=temp_dir,
+            skip_response_cache=True,
+        ):
+            url = "http://httpbin.local/ip"
+
+            requests.get(url)
+            requests.get(url)
+
+            dump_filename = os.path.join(
+                Mocket.get_truesocket_recording_dir(),
+                Mocket.get_namespace() + ".json",
+            )
+            with open(dump_filename) as f:
+                responses = json.load(f)
+
+        self.assertEqual(len(responses["httpbin.local"]["80"].keys()), 2)
+
     @mocketize
     def test_wrongpath_truesendall(self):
         Entry.register(

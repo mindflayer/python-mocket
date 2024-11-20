@@ -6,6 +6,7 @@ import os
 import select
 import socket
 import ssl
+import uuid
 from datetime import datetime, timedelta
 from json.decoder import JSONDecodeError
 
@@ -224,7 +225,10 @@ class MocketSocket:
 
         req = decode_from_bytes(data)
         # make request unique again
-        req_signature = _hash_request(hasher, req)
+        req_signature_source = (
+            str(uuid.uuid4()) if Mocket.get_skip_response_cache() else req
+        )
+        req_signature = _hash_request(hasher, req_signature_source)
         # port should be always a string
         port = str(self._port)
 
@@ -250,7 +254,7 @@ class MocketSocket:
             except KeyError:
                 if hasher is not hashlib.md5:
                     # Fallback for backwards compatibility
-                    req_signature = _hash_request(hashlib.md5, req)
+                    req_signature = _hash_request(hashlib.md5, req_signature_source)
                     response_dict = responses[self._host][port][req_signature]
                 else:
                     raise
