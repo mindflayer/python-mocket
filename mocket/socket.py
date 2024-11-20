@@ -7,8 +7,6 @@ import json
 import os
 import select
 import socket
-import ssl
-from datetime import datetime, timedelta
 from json.decoder import JSONDecodeError
 from types import TracebackType
 from typing import Any, Type
@@ -25,7 +23,6 @@ from mocket.types import (
     Address,
     ReadableBuffer,
     WriteableBuffer,
-    _PeerCertRetDictType,
     _RetAddress,
 )
 from mocket.utils import hexdump, hexload
