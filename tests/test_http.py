@@ -343,9 +343,7 @@ class HttpEntryTestCase(HttpTestCase):
             responses = json.load(f)
 
         for key, value in responses["httpbin.local"]["80"].items():
-            assert (
-                "Authorization" not in value["request"]
-            ), f"'Authorization' header found in request ID: {key}"
+            self.assertNotIn("Authorization", value["request"])
 
     @mocketize
     def test_post_file_object(self):
