@@ -15,6 +15,7 @@ class Mocketizer:
     ):
         self.instance = instance
         self.truesocket_recording_dir = truesocket_recording_dir
+        self.use_hex_encoding = use_hex_encoding
         self.namespace = namespace or str(id(self))
         MocketMode().STRICT = strict_mode
         if strict_mode:
@@ -28,6 +29,7 @@ class Mocketizer:
         Mocket.enable(
             namespace=self.namespace,
             truesocket_recording_dir=self.truesocket_recording_dir,
+            use_hex_encoding=self.use_hex_encoding,
         )
         if self.instance:
             self.check_and_call("mocketize_setup")
