@@ -27,7 +27,7 @@ with contextlib.suppress(ImportError):
     true_urllib3_wrap_socket = urllib3_wrap_socket
 
 
-class SuperFakeSSLContext:
+class _MocketSSLContext:
     """For Python 3.6 and newer."""
 
     class FakeSetter(int):
@@ -40,7 +40,7 @@ class SuperFakeSSLContext:
     verify_flags = FakeSetter()
 
 
-class FakeSSLContext(SuperFakeSSLContext):
+class MocketSSLContext(_MocketSSLContext):
     DUMMY_METHODS = (
         "load_default_certs",
         "load_verify_locations",
