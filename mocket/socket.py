@@ -12,7 +12,7 @@ import ssl
 from datetime import datetime, timedelta
 from json.decoder import JSONDecodeError
 
-from mocket.compat import decode_from_bytes, encode_to_bytes
+from mocket.compat import decode_from_bytes, encode_to_bytes, ENCODING
 from mocket.inject import (
     true_gethostbyname,
     true_socket,
@@ -22,7 +22,6 @@ from mocket.io import MocketSocketCore
 from mocket.mocket import Mocket
 from mocket.mode import MocketMode
 from mocket.utils import hexdump, hexload
-
 
 logger = logging.getLogger(__name__)
 xxh32 = None
@@ -275,8 +274,8 @@ class MocketSocket:
             else:
                 headers, body = response.split("\r\n\r\n", 1)
 
-                headers_bytes = headers.encode("utf-8")
-                body_bytes = body.encode("utf-8")
+                headers_bytes = headers.encode(ENCODING)
+                body_bytes = body.encode(ENCODING)
 
                 if "content-encoding: gzip" in headers.lower():
                     body_bytes = gzip.compress(body_bytes)
@@ -316,18 +315,14 @@ class MocketSocket:
                 if Mocket.get_use_hex_encoding():
                     response_dict["response"] = hexdump(encoded_response)
                 else:
-                    try:
-                        headers, body = encoded_response.split(b"\r\n\r\n", 1)
+                    headers, body = encoded_response.split(b"\r\n\r\n", 1)
 
-                        if b"content-encoding: gzip" in headers.lower():
-                            body = gzip.decompress(body)
+                    if b"content-encoding: gzip" in headers.lower():
+                        body = gzip.decompress(body)
 
-                        response_dict["response"] = (
-                            headers + b"\r\n\r\n" + body
-                        ).decode("utf-8")
-
-                    except UnicodeDecodeError as e:
-                        logger.warning("Mocket: Response not recorded: %s", e)
+                    response_dict["response"] = (headers + b"\r\n\r\n" + body).decode(
+                        ENCODING
+                    )
 
                 with open(path, mode="w") as f:
                     f.write(
