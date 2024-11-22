@@ -4,7 +4,6 @@ import gzip
 import hashlib
 import json
 import os
-import re
 import select
 import socket
 import ssl
