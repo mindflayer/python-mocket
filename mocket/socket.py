@@ -3,7 +3,6 @@ import errno
 import gzip
 import hashlib
 import json
-import logging
 import os
 import re
 import select
@@ -23,7 +22,6 @@ from mocket.mocket import Mocket
 from mocket.mode import MocketMode
 from mocket.utils import hexdump, hexload
 
-logger = logging.getLogger(__name__)
 xxh32 = None
 try:
     from xxhash import xxh32
