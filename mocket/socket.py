@@ -11,7 +11,6 @@ from json.decoder import JSONDecodeError
 from types import TracebackType
 from typing import Any, Type
 
-import urllib3.connection
 from typing_extensions import Self
 
 from mocket.compat import decode_from_bytes, encode_to_bytes
@@ -27,14 +26,8 @@ from mocket.types import (
 )
 from mocket.utils import hexdump, hexload
 
-true_create_connection = socket.create_connection
-true_getaddrinfo = socket.getaddrinfo
 true_gethostbyname = socket.gethostbyname
-true_gethostname = socket.gethostname
-true_inet_pton = socket.inet_pton
 true_socket = socket.socket
-true_socketpair = socket.socketpair
-true_urllib3_match_hostname = urllib3.connection.match_hostname
 
 
 xxh32 = None
@@ -82,10 +75,6 @@ def mock_socketpair(*args, **kwargs):
     import _socket
 
     return _socket.socketpair(*args, **kwargs)
-
-
-def mock_urllib3_match_hostname(*args: Any) -> None:
-    return None
 
 
 def _hash_request(h, req):

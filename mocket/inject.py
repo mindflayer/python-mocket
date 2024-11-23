@@ -1,24 +1,32 @@
 from __future__ import annotations
 
+import contextlib
 import os
 import socket
 import ssl
+from types import ModuleType
+from typing import Any
 
 import urllib3
 
-try:  # pragma: no cover
-    from urllib3.contrib.pyopenssl import extract_from_urllib3, inject_into_urllib3
+_patches_restore: dict[tuple[ModuleType, str], Any] = {}
 
-    pyopenssl_override = True
-except ImportError:
-    pyopenssl_override = False
+
+def _patch(module: ModuleType, name: str, patched_value: Any) -> None:
+    with contextlib.suppress(KeyError):
+        original_value, module.__dict__[name] = module.__dict__[name], patched_value
+        _patches_restore[(module, name)] = original_value
+
+
+def _restore(module: ModuleType, name: str) -> None:
+    if original_value := _patches_restore.pop((module, name)):
+        module.__dict__[name] = original_value
 
 
 def enable(
     namespace: str | None = None,
     truesocket_recording_dir: str | None = None,
 ) -> None:
-    from mocket.mocket import Mocket
     from mocket.socket import (
         MocketSocket,
         mock_create_connection,
@@ -27,99 +35,62 @@ def enable(
         mock_gethostname,
         mock_inet_pton,
         mock_socketpair,
-        mock_urllib3_match_hostname,
     )
     from mocket.ssl.context import MocketSSLContext
+    from mocket.urllib3 import (
+        mock_match_hostname as mock_urllib3_match_hostname,
+    )
+    from mocket.urllib3 import (
+        mock_ssl_wrap_socket as mock_urllib3_ssl_wrap_socket,
+    )
+
+    patches = {
+        # stdlib: socket
+        (socket, "socket"): MocketSocket,
+        (socket, "create_connection"): mock_create_connection,
+        (socket, "getaddrinfo"): mock_getaddrinfo,
+        (socket, "gethostbyname"): mock_gethostbyname,
+        (socket, "gethostname"): mock_gethostname,
+        (socket, "inet_pton"): mock_inet_pton,
+        (socket, "SocketType"): MocketSocket,
+        (socket, "socketpair"): mock_socketpair,
+        # stdlib: ssl
+        (ssl, "SSLContext"): MocketSSLContext,
+        (ssl, "wrap_socket"): MocketSSLContext.wrap_socket,  # python < 3.12.0
+        # urllib3
+        (urllib3.connection, "match_hostname"): mock_urllib3_match_hostname,
+        (urllib3.connection, "ssl_wrap_socket"): mock_urllib3_ssl_wrap_socket,
+        (urllib3.util, "ssl_wrap_socket"): mock_urllib3_ssl_wrap_socket,
+        (urllib3.util.ssl_, "ssl_wrap_socket"): mock_urllib3_ssl_wrap_socket,
+        (urllib3.util.ssl_, "wrap_socket"): mock_urllib3_ssl_wrap_socket,  # urllib3 < 2
+    }
+
+    for (module, name), new_value in patches.items():
+        _patch(module, name, new_value)
+
+    with contextlib.suppress(ImportError):
+        from urllib3.contrib.pyopenssl import extract_from_urllib3
+
+        extract_from_urllib3()
+
+    from mocket.mocket import Mocket
 
     Mocket._namespace = namespace
     Mocket._truesocket_recording_dir = truesocket_recording_dir
-
     if truesocket_recording_dir and not os.path.isdir(truesocket_recording_dir):
         # JSON dumps will be saved here
         raise AssertionError
 
-    socket.socket = socket.__dict__["socket"] = MocketSocket
-    socket._socketobject = socket.__dict__["_socketobject"] = MocketSocket
-    socket.SocketType = socket.__dict__["SocketType"] = MocketSocket
-    socket.create_connection = socket.__dict__["create_connection"] = (
-        mock_create_connection
-    )
-    socket.gethostname = socket.__dict__["gethostname"] = mock_gethostname
-    socket.gethostbyname = socket.__dict__["gethostbyname"] = mock_gethostbyname
-    socket.getaddrinfo = socket.__dict__["getaddrinfo"] = mock_getaddrinfo
-    socket.socketpair = socket.__dict__["socketpair"] = mock_socketpair
-    ssl.wrap_socket = ssl.__dict__["wrap_socket"] = MocketSSLContext.wrap_socket
-    ssl.SSLContext = ssl.__dict__["SSLContext"] = MocketSSLContext
-    socket.inet_pton = socket.__dict__["inet_pton"] = mock_inet_pton
-    urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__["wrap_socket"] = (
-        MocketSSLContext.wrap_socket
-    )
-    urllib3.util.ssl_.ssl_wrap_socket = urllib3.util.ssl_.__dict__[
-        "ssl_wrap_socket"
-    ] = MocketSSLContext.wrap_socket
-    urllib3.util.ssl_wrap_socket = urllib3.util.__dict__["ssl_wrap_socket"] = (
-        MocketSSLContext.wrap_socket
-    )
-    urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
-        "ssl_wrap_socket"
-    ] = MocketSSLContext.wrap_socket
-    urllib3.connection.match_hostname = urllib3.connection.__dict__[
-        "match_hostname"
-    ] = mock_urllib3_match_hostname
-    if pyopenssl_override:  # pragma: no cover
-        # Take out the pyopenssl version - use the default implementation
-        extract_from_urllib3()
-
 
 def disable() -> None:
-    from mocket.mocket import Mocket
-    from mocket.socket import (
-        true_create_connection,
-        true_getaddrinfo,
-        true_gethostbyname,
-        true_gethostname,
-        true_inet_pton,
-        true_socket,
-        true_socketpair,
-        true_urllib3_match_hostname,
-    )
-    from mocket.ssl.context import (
-        true_ssl_context,
-        true_ssl_wrap_socket,
-        true_urllib3_ssl_wrap_socket,
-        true_urllib3_wrap_socket,
-    )
+    for module, name in list(_patches_restore.keys()):
+        _restore(module, name)
 
-    socket.socket = socket.__dict__["socket"] = true_socket
-    socket._socketobject = socket.__dict__["_socketobject"] = true_socket
-    socket.SocketType = socket.__dict__["SocketType"] = true_socket
-    socket.create_connection = socket.__dict__["create_connection"] = (
-        true_create_connection
-    )
-    socket.gethostname = socket.__dict__["gethostname"] = true_gethostname
-    socket.gethostbyname = socket.__dict__["gethostbyname"] = true_gethostbyname
-    socket.getaddrinfo = socket.__dict__["getaddrinfo"] = true_getaddrinfo
-    socket.socketpair = socket.__dict__["socketpair"] = true_socketpair
-    if true_ssl_wrap_socket:
-        ssl.wrap_socket = ssl.__dict__["wrap_socket"] = true_ssl_wrap_socket
-    ssl.SSLContext = ssl.__dict__["SSLContext"] = true_ssl_context
-    socket.inet_pton = socket.__dict__["inet_pton"] = true_inet_pton
-    urllib3.util.ssl_.wrap_socket = urllib3.util.ssl_.__dict__["wrap_socket"] = (
-        true_urllib3_wrap_socket
-    )
-    urllib3.util.ssl_.ssl_wrap_socket = urllib3.util.ssl_.__dict__[
-        "ssl_wrap_socket"
-    ] = true_urllib3_ssl_wrap_socket
-    urllib3.util.ssl_wrap_socket = urllib3.util.__dict__["ssl_wrap_socket"] = (
-        true_urllib3_ssl_wrap_socket
-    )
-    urllib3.connection.ssl_wrap_socket = urllib3.connection.__dict__[
-        "ssl_wrap_socket"
-    ] = true_urllib3_ssl_wrap_socket
-    urllib3.connection.match_hostname = urllib3.connection.__dict__[
-        "match_hostname"
-    ] = true_urllib3_match_hostname
-    Mocket.reset()
-    if pyopenssl_override:  # pragma: no cover
-        # Put the pyopenssl version back in place
+    with contextlib.suppress(ImportError):
+        from urllib3.contrib.pyopenssl import inject_into_urllib3
+
         inject_into_urllib3()
+
+    from mocket.mocket import Mocket
+
+    Mocket.reset()

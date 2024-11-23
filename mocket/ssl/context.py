@@ -1,30 +1,9 @@
 from __future__ import annotations
 
-import contextlib
-import ssl
 from typing import Any
-
-import urllib3.util.ssl_
 
 from mocket.socket import MocketSocket
 from mocket.ssl.socket import MocketSSLSocket
-
-true_ssl_context = ssl.SSLContext
-
-true_ssl_wrap_socket = None
-true_urllib3_ssl_wrap_socket = urllib3.util.ssl_.ssl_wrap_socket
-true_urllib3_wrap_socket = None
-
-with contextlib.suppress(ImportError):
-    # from Py3.12 it's only under SSLContext
-    from ssl import wrap_socket as ssl_wrap_socket
-
-    true_ssl_wrap_socket = ssl_wrap_socket
-
-with contextlib.suppress(ImportError):
-    from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
-
-    true_urllib3_wrap_socket = urllib3_wrap_socket
 
 
 class _MocketSSLContext:
@@ -75,7 +54,9 @@ class MocketSSLContext(_MocketSSLContext):
         ssl_socket = MocketSSLSocket()
         ssl_socket._original_socket = sock
 
-        ssl_socket._true_socket = true_urllib3_ssl_wrap_socket(
+        from mocket.urllib3 import true_ssl_wrap_socket
+
+        ssl_socket._true_socket = true_ssl_wrap_socket(
             sock._true_socket,
             **kwargs,
         )
