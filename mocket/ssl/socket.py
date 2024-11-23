@@ -62,16 +62,23 @@ class MocketSSLSocket(MocketSocket):
         return self._original_socket
 
     @classmethod
-    def _create(cls, sock: MocketSocket, *args: Any, **kwargs: Any) -> MocketSSLSocket:
+    def _create(
+        cls,
+        sock: MocketSocket,
+        ssl_context: ssl.SSLContext | None = None,
+        server_hostname: str | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> MocketSSLSocket:
         ssl_socket = MocketSSLSocket()
         ssl_socket._original_socket = sock
+        ssl_socket._true_socket = sock._true_socket
 
-        from mocket.urllib3 import true_ssl_wrap_socket
-
-        ssl_socket._true_socket = true_ssl_wrap_socket(
-            sock._true_socket,
-            **kwargs,
-        )
+        if ssl_context:
+            ssl_socket._true_socket = ssl_context.wrap_socket(
+                sock=ssl_socket._true_socket,
+                server_hostname=server_hostname,
+            )
 
         ssl_socket._kwargs = kwargs
 
