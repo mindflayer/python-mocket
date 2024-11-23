@@ -36,7 +36,7 @@ def enable(
         mock_inet_pton,
         mock_socketpair,
     )
-    from mocket.ssl.context import MocketSSLContext
+    from mocket.ssl.context import MocketSSLContext, mock_wrap_socket
     from mocket.urllib3 import (
         mock_match_hostname as mock_urllib3_match_hostname,
     )
@@ -56,7 +56,7 @@ def enable(
         (socket, "socketpair"): mock_socketpair,
         # stdlib: ssl
         (ssl, "SSLContext"): MocketSSLContext,
-        (ssl, "wrap_socket"): MocketSSLContext.wrap_socket,  # python < 3.12.0
+        (ssl, "wrap_socket"): mock_wrap_socket,  # python < 3.12.0
         # urllib3
         (urllib3.connection, "match_hostname"): mock_urllib3_match_hostname,
         (urllib3.connection, "ssl_wrap_socket"): mock_urllib3_ssl_wrap_socket,

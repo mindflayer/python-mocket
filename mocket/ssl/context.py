@@ -49,12 +49,16 @@ class MocketSSLContext(_MocketSSLContext):
         for m in self.DUMMY_METHODS:
             setattr(self, m, dummy_method)
 
-    @staticmethod
-    def wrap_socket(sock: MocketSocket, *args: Any, **kwargs: Any) -> MocketSSLSocket:
+    def wrap_socket(
+        self,
+        sock: MocketSocket,
+        *args: Any,
+        **kwargs: Any,
+    ) -> MocketSSLSocket:
         return MocketSSLSocket._create(sock, *args, **kwargs)
 
-    @staticmethod
     def wrap_bio(
+        self,
         incoming: Any,  # _ssl.MemoryBIO
         outgoing: Any,  # _ssl.MemoryBIO
         server_side: bool = False,
@@ -63,3 +67,12 @@ class MocketSSLContext(_MocketSSLContext):
         ssl_obj = MocketSSLSocket()
         ssl_obj._host = server_hostname
         return ssl_obj
+
+
+def mock_wrap_socket(
+    sock: MocketSocket,
+    *args: Any,
+    **kwargs: Any,
+) -> MocketSSLSocket:
+    context = MocketSSLContext()
+    return context.wrap_socket(sock, *args, **kwargs)
