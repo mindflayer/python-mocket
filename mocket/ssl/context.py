@@ -1,30 +1,9 @@
 from __future__ import annotations
 
-import contextlib
-import ssl
 from typing import Any
-
-import urllib3.util.ssl_
 
 from mocket.socket import MocketSocket
 from mocket.ssl.socket import MocketSSLSocket
-
-true_ssl_context = ssl.SSLContext
-
-true_ssl_wrap_socket = None
-true_urllib3_ssl_wrap_socket = urllib3.util.ssl_.ssl_wrap_socket
-true_urllib3_wrap_socket = None
-
-with contextlib.suppress(ImportError):
-    # from Py3.12 it's only under SSLContext
-    from ssl import wrap_socket as ssl_wrap_socket
-
-    true_ssl_wrap_socket = ssl_wrap_socket
-
-with contextlib.suppress(ImportError):
-    from urllib3.util.ssl_ import wrap_socket as urllib3_wrap_socket
-
-    true_urllib3_wrap_socket = urllib3_wrap_socket
 
 
 class _MocketSSLContext:
@@ -70,30 +49,16 @@ class MocketSSLContext(_MocketSSLContext):
         for m in self.DUMMY_METHODS:
             setattr(self, m, dummy_method)
 
-    @staticmethod
-    def wrap_socket(sock: MocketSocket, *args: Any, **kwargs: Any) -> MocketSSLSocket:
-        ssl_socket = MocketSSLSocket()
-        ssl_socket._original_socket = sock
+    def wrap_socket(
+        self,
+        sock: MocketSocket,
+        *args: Any,
+        **kwargs: Any,
+    ) -> MocketSSLSocket:
+        return MocketSSLSocket._create(sock, *args, **kwargs)
 
-        ssl_socket._true_socket = true_urllib3_ssl_wrap_socket(
-            sock._true_socket,
-            **kwargs,
-        )
-        ssl_socket._kwargs = kwargs
-
-        ssl_socket._timeout = sock._timeout
-
-        ssl_socket._host = sock._host
-        ssl_socket._port = sock._port
-        ssl_socket._address = sock._address
-
-        ssl_socket._io = sock._io
-        ssl_socket._entry = sock._entry
-
-        return ssl_socket
-
-    @staticmethod
     def wrap_bio(
+        self,
         incoming: Any,  # _ssl.MemoryBIO
         outgoing: Any,  # _ssl.MemoryBIO
         server_side: bool = False,
@@ -102,3 +67,12 @@ class MocketSSLContext(_MocketSSLContext):
         ssl_obj = MocketSSLSocket()
         ssl_obj._host = server_hostname
         return ssl_obj
+
+
+def mock_wrap_socket(
+    sock: MocketSocket,
+    *args: Any,
+    **kwargs: Any,
+) -> MocketSSLSocket:
+    context = MocketSSLContext()
+    return context.wrap_socket(sock, *args, **kwargs)

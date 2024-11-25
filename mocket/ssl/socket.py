@@ -60,3 +60,35 @@ class MocketSSLSocket(MocketSocket):
 
     def unwrap(self) -> MocketSocket:
         return self._original_socket
+
+    @classmethod
+    def _create(
+        cls,
+        sock: MocketSocket,
+        ssl_context: ssl.SSLContext | None = None,
+        server_hostname: str | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> MocketSSLSocket:
+        ssl_socket = MocketSSLSocket()
+        ssl_socket._original_socket = sock
+        ssl_socket._true_socket = sock._true_socket
+
+        if ssl_context:
+            ssl_socket._true_socket = ssl_context.wrap_socket(
+                sock=ssl_socket._true_socket,
+                server_hostname=server_hostname,
+            )
+
+        ssl_socket._kwargs = kwargs
+
+        ssl_socket._timeout = sock._timeout
+
+        ssl_socket._host = sock._host
+        ssl_socket._port = sock._port
+        ssl_socket._address = sock._address
+
+        ssl_socket._io = sock._io
+        ssl_socket._entry = sock._entry
+
+        return ssl_socket
