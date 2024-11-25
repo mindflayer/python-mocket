@@ -3,9 +3,11 @@ from __future__ import annotations
 import collections
 import itertools
 import os
+from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 import mocket.inject
+from mocket.recording import MocketRecordStorage
 
 # NOTE this is here for backwards-compat to keep old import-paths working
 # from mocket.socket import MocketSocket as MocketSocket
@@ -20,8 +22,7 @@ class Mocket:
     _address: ClassVar[Address] = (None, None)
     _entries: ClassVar[dict[Address, list[MocketEntry]]] = collections.defaultdict(list)
     _requests: ClassVar[list] = []
-    _namespace: ClassVar[str] = str(id(_entries))
-    _truesocket_recording_dir: ClassVar[str | None] = None
+    _record_storage: ClassVar[MocketRecordStorage | None] = None
 
     @classmethod
     def enable(
@@ -29,12 +30,20 @@ class Mocket:
         namespace: str | None = None,
         truesocket_recording_dir: str | None = None,
     ) -> None:
-        if truesocket_recording_dir and not os.path.isdir(truesocket_recording_dir):
-            # JSON dumps will be saved here
-            raise AssertionError
+        if namespace is None:
+            namespace = str(id(cls._entries))
 
-        cls._namespace = namespace
-        cls._truesocket_recording_dir = truesocket_recording_dir
+        if truesocket_recording_dir is not None:
+            recording_dir = Path(truesocket_recording_dir)
+
+            if not recording_dir.is_dir():
+                # JSON dumps will be saved here
+                raise AssertionError
+
+            cls._record_storage = MocketRecordStorage(
+                directory=recording_dir,
+                namespace=namespace,
+            )
 
         mocket.inject.enable()
 
@@ -87,6 +96,7 @@ class Mocket:
         cls._socket_pairs = {}
         cls._entries = collections.defaultdict(list)
         cls._requests = []
+        cls._record_storage = None
 
     @classmethod
     def last_request(cls):
@@ -107,12 +117,16 @@ class Mocket:
         return bool(cls.request_list())
 
     @classmethod
-    def get_namespace(cls) -> str:
-        return cls._namespace
+    def get_namespace(cls) -> str | None:
+        if not cls._record_storage:
+            return None
+        return cls._record_storage.namespace
 
     @classmethod
     def get_truesocket_recording_dir(cls) -> str | None:
-        return cls._truesocket_recording_dir
+        if not cls._record_storage:
+            return None
+        return str(cls._record_storage.directory)
 
     @classmethod
     def assert_fail_if_entries_not_served(cls) -> None:
