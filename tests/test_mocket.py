@@ -222,6 +222,7 @@ def test_patch(
 
 
 @pytest.mark.skipif(not psutil.POSIX, reason="Uses a POSIX-only API to test")
+@pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
 @pytest.mark.asyncio
 async def test_no_dangling_fds():
     url = "http://httpbin.local/ip"
