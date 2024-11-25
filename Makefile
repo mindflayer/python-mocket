@@ -31,12 +31,12 @@ types:
 test: types
 	@echo "Running Python tests"
 	uv pip uninstall pook || true
-	export VIRTUAL_ENV=.venv; .venv/bin/wait-for-it --service httpbin.local:443 --service localhost:6379 --timeout 5 -- .venv/bin/pytest
+	.venv/bin/wait-for-it --service httpbin.local:443 --service localhost:6379 --timeout 5 -- .venv/bin/pytest
 	uv pip install pook && .venv/bin/pytest tests/test_pook.py && uv pip uninstall pook
 	@echo ""
 
 safetest:
-	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; make test
+	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; .venv/bin/pytest
 
 publish: clean install-test-requirements
 	uv run python3 -m build --sdist --wheel .
