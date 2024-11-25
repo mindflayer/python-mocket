@@ -390,12 +390,12 @@ class HttpEntryTestCase(HttpTestCase):
         sock = socket.socket(address[0], address[1], address[2])
 
         sock.connect(address[-1])
-        sock.write(f"{method} {path} HTTP/1.0\r\n")
-        sock.write(f"Host: {host}\r\n")
-        sock.write("Content-Type: application/json\r\n")
-        sock.write("Content-Length: %d\r\n" % len(data))
-        sock.write("Connection: close\r\n\r\n")
-        sock.write(data)
+        sock.send(f"{method} {path} HTTP/1.0\r\n".encode())
+        sock.send(f"Host: {host}\r\n".encode())
+        sock.send(b"Content-Type: application/json\r\n")
+        sock.send(b"Content-Length: %d\r\n" % len(data))
+        sock.send(b"Connection: close\r\n\r\n")
+        sock.send(data.encode())
         sock.close()
 
         # Proof that worked.
