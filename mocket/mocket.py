@@ -23,8 +23,26 @@ class Mocket:
     _namespace: ClassVar[str] = str(id(_entries))
     _truesocket_recording_dir: ClassVar[str | None] = None
 
-    enable = mocket.inject.enable
-    disable = mocket.inject.disable
+    @classmethod
+    def enable(
+        cls,
+        namespace: str | None = None,
+        truesocket_recording_dir: str | None = None,
+    ) -> None:
+        if truesocket_recording_dir and not os.path.isdir(truesocket_recording_dir):
+            # JSON dumps will be saved here
+            raise AssertionError
+
+        cls._namespace = namespace
+        cls._truesocket_recording_dir = truesocket_recording_dir
+
+        mocket.inject.enable()
+
+    @classmethod
+    def disable(cls) -> None:
+        cls.reset()
+
+        mocket.inject.disable()
 
     @classmethod
     def get_pair(cls, address: Address) -> tuple[int, int] | tuple[None, None]:

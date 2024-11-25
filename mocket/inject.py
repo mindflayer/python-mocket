@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import contextlib
-import os
 import socket
 import ssl
 from types import ModuleType
@@ -23,10 +22,7 @@ def _restore(module: ModuleType, name: str) -> None:
         module.__dict__[name] = original_value
 
 
-def enable(
-    namespace: str | None = None,
-    truesocket_recording_dir: str | None = None,
-) -> None:
+def enable() -> None:
     from mocket.socket import (
         MocketSocket,
         mock_create_connection,
@@ -73,14 +69,6 @@ def enable(
 
         extract_from_urllib3()
 
-    from mocket.mocket import Mocket
-
-    Mocket._namespace = namespace
-    Mocket._truesocket_recording_dir = truesocket_recording_dir
-    if truesocket_recording_dir and not os.path.isdir(truesocket_recording_dir):
-        # JSON dumps will be saved here
-        raise AssertionError
-
 
 def disable() -> None:
     for module, name in list(_patches_restore.keys()):
@@ -90,7 +78,3 @@ def disable() -> None:
         from urllib3.contrib.pyopenssl import inject_into_urllib3
 
         inject_into_urllib3()
-
-    from mocket.mocket import Mocket
-
-    Mocket.reset()
