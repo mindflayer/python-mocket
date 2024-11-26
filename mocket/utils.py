@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 import binascii
-import ssl
 from typing import Callable
 
 from mocket.compat import decode_from_bytes, encode_to_bytes
-
-SSL_PROTOCOL = ssl.PROTOCOL_TLSv1_2
 
 
 def hexdump(binary_string: bytes) -> str:
@@ -42,7 +39,6 @@ def get_mocketize(wrapper_: Callable) -> Callable:
 
 
 __all__ = (
-    "SSL_PROTOCOL",
     "get_mocketize",
     "hexdump",
     "hexload",

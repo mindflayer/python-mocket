@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ssl
 from datetime import datetime, timedelta
+from ssl import Options
 from typing import Any
 
 from mocket.compat import encode_to_bytes
@@ -53,9 +54,9 @@ class MocketSSLSocket(MocketSocket):
         }
 
     def ciper(self) -> tuple[str, str, str]:
-        return ("ADH", "AES256", "SHA")
+        return "ADH", "AES256", "SHA"
 
-    def compression(self) -> str | None:
+    def compression(self) -> Options:
         return ssl.OP_NO_COMPRESSION
 
     def unwrap(self) -> MocketSocket:
