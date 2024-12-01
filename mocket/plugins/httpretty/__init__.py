@@ -1,5 +1,5 @@
 from mocket import mocketize
-from mocket.async_mocket import async_mocketize
+from mocket.core.async_mocket import async_mocketize
 from mocket.core.compat import ENCODING
 from mocket.mocket import Mocket
 from mocket.mockhttp import Entry as MocketHttpEntry

@@ -1,5 +1,5 @@
-from mocket.async_mocket import async_mocketize
 from mocket.compat import FakeSSLContext
+from mocket.core.async_mocket import async_mocketize
 from mocket.core.socket import MocketSocket
 from mocket.core.ssl.context import MocketSSLContext
 from mocket.core.ssl.socket import MocketSSLSocket
