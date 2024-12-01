@@ -1,6 +1,6 @@
 from mocket.core.mocket import Mocket
 from mocket.core.mode import MocketMode
-from mocket.utils import get_mocketize
+from mocket.core.utils import get_mocketize
 
 
 class Mocketizer:

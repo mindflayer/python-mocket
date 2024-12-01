@@ -9,7 +9,7 @@ from pathlib import Path
 
 from mocket.core.compat import decode_from_bytes, encode_to_bytes
 from mocket.core.types import Address
-from mocket.utils import hexdump, hexload
+from mocket.core.utils import hexdump, hexload
 
 hash_function = hashlib.md5
 

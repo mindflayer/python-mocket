@@ -120,7 +120,7 @@ python_version = "3.8"
 files = [
     "mocket/core/compat.py",
     "mocket/core/exceptions.py",
-    "mocket/utils.py",
+    "mocket/core/utils.py",
     # "tests/"
     ]
 strict = true

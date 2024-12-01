@@ -1,5 +1,5 @@
 from mocket.core.mocketizer import Mocketizer
-from mocket.utils import get_mocketize
+from mocket.core.utils import get_mocketize
 
 
 async def wrapper(
