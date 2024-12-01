@@ -119,7 +119,7 @@ max-complexity = 8
 python_version = "3.8"
 files = [
     "mocket/core/compat.py",
-    "mocket/exceptions.py",
+    "mocket/core/exceptions.py",
     "mocket/utils.py",
     # "tests/"
     ]

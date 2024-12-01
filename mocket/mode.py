@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from mocket.exceptions import StrictMocketException
+from mocket.core.exceptions import StrictMocketException
 from mocket.mocket import Mocket
 
 if TYPE_CHECKING:  # pragma: no cover

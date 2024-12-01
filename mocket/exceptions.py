@@ -1,6 +1,7 @@
-class MocketException(Exception):
-    pass
+from mocket.core.exceptions import MocketException, StrictMocketException
 
-
-class StrictMocketException(MocketException):
-    pass
+# NOTE this is here for backwards-compat to keep old import-paths working
+__all__ = [
+    "MocketException",
+    "StrictMocketException",
+]
