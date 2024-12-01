@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
-import mocket.inject
+import mocket.core.inject
 from mocket.recording import MocketRecordStorage
 
 # NOTE this is here for backwards-compat to keep old import-paths working
@@ -45,13 +45,13 @@ class Mocket:
                 namespace=namespace,
             )
 
-        mocket.inject.enable()
+        mocket.core.inject.enable()
 
     @classmethod
     def disable(cls) -> None:
         cls.reset()
 
-        mocket.inject.disable()
+        mocket.core.inject.disable()
 
     @classmethod
     def get_pair(cls, address: Address) -> tuple[int, int] | tuple[None, None]:
