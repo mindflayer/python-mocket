@@ -1,7 +1,7 @@
 import io
 import os
 
-from mocket.mocket import Mocket
+from mocket.core.mocket import Mocket
 
 
 class MocketSocketIO(io.BytesIO):

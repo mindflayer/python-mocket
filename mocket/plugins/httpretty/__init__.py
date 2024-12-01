@@ -1,7 +1,7 @@
 from mocket import mocketize
 from mocket.core.async_mocket import async_mocketize
 from mocket.core.compat import ENCODING
-from mocket.mocket import Mocket
+from mocket.core.mocket import Mocket
 from mocket.mockhttp import Entry as MocketHttpEntry
 from mocket.mockhttp import Request as MocketHttpRequest
 from mocket.mockhttp import Response as MocketHttpResponse

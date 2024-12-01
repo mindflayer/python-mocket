@@ -11,8 +11,8 @@ from typing import Any, Type
 from typing_extensions import Self
 
 from mocket.core.io import MocketSocketIO
+from mocket.core.mocket import Mocket
 from mocket.entry import MocketEntry
-from mocket.mocket import Mocket
 from mocket.mode import MocketMode
 from mocket.types import (
     Address,

@@ -1,7 +1,7 @@
 import collections.abc
 
 from mocket.core.compat import encode_to_bytes
-from mocket.mocket import Mocket
+from mocket.core.mocket import Mocket
 
 
 class MocketEntry:

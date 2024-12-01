@@ -3,7 +3,7 @@ try:
 except ModuleNotFoundError:
     MockEngine = object
 
-from mocket.mocket import Mocket
+from mocket.core.mocket import Mocket
 from mocket.mockhttp import Entry, Response
 
 

@@ -5,8 +5,8 @@ from mocket.core.compat import (
     encode_to_bytes,
     shsplit,
 )
+from mocket.core.mocket import Mocket
 from mocket.entry import MocketEntry
-from mocket.mocket import Mocket
 
 
 class Request:

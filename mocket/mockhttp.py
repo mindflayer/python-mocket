@@ -13,8 +13,8 @@ from mocket.core.compat import (
     do_the_magic,
     encode_to_bytes,
 )
+from mocket.core.mocket import Mocket
 from mocket.entry import MocketEntry
-from mocket.mocket import Mocket
 
 STATUS = {k: v[0] for k, v in BaseHTTPRequestHandler.responses.items()}
 CRLF = "\r\n"
