@@ -7,7 +7,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-from mocket.compat import decode_from_bytes, encode_to_bytes
+from mocket.core.compat import decode_from_bytes, encode_to_bytes
 from mocket.types import Address
 from mocket.utils import hexdump, hexload
 

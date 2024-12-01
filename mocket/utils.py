@@ -3,7 +3,7 @@ from __future__ import annotations
 import binascii
 from typing import Callable
 
-from mocket.compat import decode_from_bytes, encode_to_bytes
+from mocket.core.compat import decode_from_bytes, encode_to_bytes
 
 
 def hexdump(binary_string: bytes) -> str:

@@ -9,7 +9,7 @@ import psutil
 import pytest
 
 from mocket import Mocket, MocketEntry, Mocketizer, mocketize
-from mocket.compat import encode_to_bytes
+from mocket.core.compat import encode_to_bytes
 
 
 class MocketTestCase(TestCase):

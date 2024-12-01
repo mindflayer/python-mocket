@@ -1,6 +1,6 @@
 from itertools import chain
 
-from mocket.compat import (
+from mocket.core.compat import (
     decode_from_bytes,
     encode_to_bytes,
     shsplit,
