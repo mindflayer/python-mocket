@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import Any
 
 from mocket.core.socket import MocketSocket
-from mocket.ssl.context import MocketSSLContext
-from mocket.ssl.socket import MocketSSLSocket
+from mocket.core.ssl.context import MocketSSLContext
+from mocket.core.ssl.socket import MocketSSLSocket
 
 
 def mock_match_hostname(*args: Any) -> None:

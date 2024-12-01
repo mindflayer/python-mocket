@@ -32,7 +32,7 @@ def enable() -> None:
         mock_inet_pton,
         mock_socketpair,
     )
-    from mocket.ssl.context import MocketSSLContext, mock_wrap_socket
+    from mocket.core.ssl.context import MocketSSLContext, mock_wrap_socket
     from mocket.urllib3 import (
         mock_match_hostname as mock_urllib3_match_hostname,
     )
