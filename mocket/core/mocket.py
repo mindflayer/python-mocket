@@ -9,22 +9,19 @@ from typing import TYPE_CHECKING, ClassVar
 import mocket.core.inject
 from mocket.core.recording import MocketRecordStorage
 
-# NOTE this is here for backwards-compat to keep old import-paths working
-# from mocket.socket import MocketSocket as MocketSocket
-
 if TYPE_CHECKING:
-    from mocket.compat.entry import MocketEntry
-    from mocket.core.entry import MocketBaseEntry
+    from mocket.core.entry import MocketBaseEntry, MocketBaseRequest
     from mocket.core.types import Address
 
 
 class Mocket:
     _socket_pairs: ClassVar[dict[Address, tuple[int, int]]] = {}
     _address: ClassVar[Address] = (None, None)
-    _entries: ClassVar[dict[Address, list[MocketEntry | MocketBaseEntry]]] = (
-        collections.defaultdict(list)
+    _entries: ClassVar[dict[Address, list[MocketBaseEntry]]] = collections.defaultdict(
+        list
     )
-    _requests: ClassVar[list] = []
+    _requests: ClassVar[list[MocketBaseRequest]] = []
+    _last_entry: ClassVar[MocketBaseEntry | None] = None
     _record_storage: ClassVar[MocketRecordStorage | None] = None
 
     @classmethod
@@ -73,18 +70,12 @@ class Mocket:
         cls._socket_pairs[address] = pair
 
     @classmethod
-    def register(cls, *entries: MocketEntry | MocketBaseEntry) -> None:
+    def register(cls, *entries: MocketBaseEntry) -> None:
         for entry in entries:
-            address = entry.location if hasattr(entry, "location") else entry.address
-            cls._entries[address].append(entry)
+            cls._entries[entry.address].append(entry)
 
     @classmethod
-    def get_entry(
-        cls,
-        host: str,
-        port: int,
-        data: bytes,
-    ) -> MocketEntry | MocketBaseEntry | None:
+    def get_entry(cls, host: str, port: int, data) -> MocketBaseEntry | None:
         host = host or cls._address[0]
         port = port or cls._address[1]
         entries = cls._entries.get((host, port), [])
@@ -108,12 +99,13 @@ class Mocket:
         cls._record_storage = None
 
     @classmethod
-    def last_request(cls):
+    def last_request(cls) -> MocketBaseRequest | None:
         if cls.has_requests():
             return cls._requests[-1]
+        return None
 
     @classmethod
-    def request_list(cls):
+    def request_list(cls) -> list[MocketBaseRequest]:
         return cls._requests
 
     @classmethod
@@ -140,9 +132,7 @@ class Mocket:
     @classmethod
     def assert_fail_if_entries_not_served(cls) -> None:
         """Mocket checks that all entries have been served at least once."""
-
-        def served(entry: MocketEntry | MocketBaseEntry) -> bool | None:
-            return entry._served if hasattr(entry, "_served") else entry.served_response
-
-        if not all(served(entry) for entry in itertools.chain(*cls._entries.values())):
+        if not all(
+            entry.served_response for entry in itertools.chain(*cls._entries.values())
+        ):
             raise AssertionError("Some Mocket entries have not been served")

@@ -1,58 +1,36 @@
-import collections.abc
+from __future__ import annotations
 
-from mocket.core.compat import encode_to_bytes
-from mocket.core.mocket import Mocket
+from mocket.bytes import MocketBytesEntry, MocketBytesResponse
+from mocket.core.types import Address
 
 
-class MocketEntry:
-    class Response(bytes):
-        @property
-        def data(self):
-            return self
+class Response(MocketBytesResponse):
+    def __init__(self, data: bytes | str | bool) -> None:
+        if isinstance(data, str):
+            data = data.encode()
+        elif isinstance(data, bool):
+            data = bytes(data)
+        self._data = data
 
-    response_index = 0
-    request_cls = bytes
-    response_cls = Response
-    responses = None
-    _served = None
 
-    def __init__(self, location, responses):
-        self._served = False
-        self.location = location
-
-        if not isinstance(responses, collections.abc.Iterable):
+class MocketEntry(MocketBytesEntry):
+    def __init__(
+        self,
+        location: Address,
+        responses: list[MocketBytesResponse | Exception | bytes | str | bool]
+        | MocketBytesResponse
+        | Exception
+        | bytes
+        | str
+        | bool,
+    ) -> None:
+        if not isinstance(responses, list):
             responses = [responses]
 
-        if not responses:
-            self.responses = [self.response_cls(encode_to_bytes(""))]
-        else:
-            self.responses = []
-            for r in responses:
-                if not isinstance(r, BaseException) and not getattr(r, "data", False):
-                    if isinstance(r, str):
-                        r = encode_to_bytes(r)
-                    r = self.response_cls(r)
-                self.responses.append(r)
+        _responses = []
+        for response in responses:
+            if not isinstance(response, (MocketBytesResponse, Exception)):
+                response = MocketBytesResponse(response)
+            _responses.append(response)
 
-    def __repr__(self):
-        return f"{self.__class__.__name__}(location={self.location})"
-
-    @staticmethod
-    def can_handle(data):
-        return True
-
-    def collect(self, data):
-        req = self.request_cls(data)
-        Mocket.collect(req)
-
-    def get_response(self):
-        response = self.responses[self.response_index]
-        if self.response_index < len(self.responses) - 1:
-            self.response_index += 1
-
-        self._served = True
-
-        if isinstance(response, BaseException):
-            raise response
-
-        return response.data
+        super().__init__(address=location, responses=_responses)

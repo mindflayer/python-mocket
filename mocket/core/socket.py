@@ -10,7 +10,7 @@ from typing import Any, Type
 
 from typing_extensions import Self
 
-from mocket.compat.entry import MocketEntry
+from mocket.core.entry import MocketBaseEntry
 from mocket.core.io import MocketSocketIO
 from mocket.core.mocket import Mocket
 from mocket.core.mode import MocketMode
@@ -167,7 +167,7 @@ class MocketSocket:
     def makefile(self, mode: str = "r", bufsize: int = -1) -> MocketSocketIO:
         return self.io
 
-    def get_entry(self, data: bytes) -> MocketEntry | None:
+    def get_entry(self, data: bytes) -> MocketBaseEntry | None:
         return Mocket.get_entry(self._host, self._port, data)
 
     def sendall(self, data, entry=None, *args, **kwargs):
