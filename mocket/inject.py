@@ -23,7 +23,7 @@ def _restore(module: ModuleType, name: str) -> None:
 
 
 def enable() -> None:
-    from mocket.socket import (
+    from mocket.core.socket import (
         MocketSocket,
         mock_create_connection,
         mock_getaddrinfo,

@@ -6,8 +6,8 @@ from ssl import Options
 from typing import Any
 
 from mocket.core.compat import encode_to_bytes
+from mocket.core.socket import MocketSocket
 from mocket.mocket import Mocket
-from mocket.socket import MocketSocket
 from mocket.types import _PeerCertRetDictType
 
 

@@ -2,7 +2,7 @@ import socket
 
 import pytest
 
-from mocket.socket import MocketSocket
+from mocket import MocketSocket
 
 
 @pytest.mark.parametrize("blocking", (False, True))
