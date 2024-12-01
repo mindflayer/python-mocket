@@ -1,3 +1,8 @@
+from mocket.bytes import (
+    MocketBytesEntry,
+    MocketBytesRequest,
+    MocketBytesResponse,
+)
 from mocket.compat import FakeSSLContext, MocketEntry
 from mocket.core.async_mocket import async_mocketize
 from mocket.core.mocket import Mocket
@@ -8,6 +13,9 @@ from mocket.core.ssl.socket import MocketSSLSocket
 
 __all__ = [
     "Mocket",
+    "MocketBytesEntry",
+    "MocketBytesRequest",
+    "MocketBytesResponse",
     "MocketSSLContext",
     "MocketSSLSocket",
     "MocketSocket",
