@@ -12,8 +12,8 @@ from typing_extensions import Self
 
 from mocket.core.io import MocketSocketIO
 from mocket.core.mocket import Mocket
+from mocket.core.mode import MocketMode
 from mocket.entry import MocketEntry
-from mocket.mode import MocketMode
 from mocket.types import (
     Address,
     ReadableBuffer,
