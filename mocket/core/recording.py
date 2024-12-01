@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from mocket.core.compat import decode_from_bytes, encode_to_bytes
-from mocket.types import Address
+from mocket.core.types import Address
 from mocket.utils import hexdump, hexload
 
 hash_function = hashlib.md5

@@ -8,7 +8,7 @@ from typing import Any
 from mocket.core.compat import encode_to_bytes
 from mocket.core.mocket import Mocket
 from mocket.core.socket import MocketSocket
-from mocket.types import _PeerCertRetDictType
+from mocket.core.types import _PeerCertRetDictType
 
 
 class MocketSSLSocket(MocketSocket):
