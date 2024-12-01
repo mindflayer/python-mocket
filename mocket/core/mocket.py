@@ -13,8 +13,8 @@ from mocket.core.recording import MocketRecordStorage
 # from mocket.socket import MocketSocket as MocketSocket
 
 if TYPE_CHECKING:
+    from mocket.compat.entry import MocketEntry
     from mocket.core.types import Address
-    from mocket.entry import MocketEntry
 
 
 class Mocket:

@@ -1,12 +1,12 @@
 from itertools import chain
 
+from mocket.compat.entry import MocketEntry
 from mocket.core.compat import (
     decode_from_bytes,
     encode_to_bytes,
     shsplit,
 )
 from mocket.core.mocket import Mocket
-from mocket.entry import MocketEntry
 
 
 class Request:

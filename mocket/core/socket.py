@@ -10,6 +10,7 @@ from typing import Any, Type
 
 from typing_extensions import Self
 
+from mocket.compat.entry import MocketEntry
 from mocket.core.io import MocketSocketIO
 from mocket.core.mocket import Mocket
 from mocket.core.mode import MocketMode
@@ -19,7 +20,6 @@ from mocket.core.types import (
     WriteableBuffer,
     _RetAddress,
 )
-from mocket.entry import MocketEntry
 
 true_gethostbyname = socket.gethostbyname
 true_socket = socket.socket
