@@ -271,8 +271,8 @@ class MocketSocket:
             self.sendall(data, *args, **kwargs)
         else:
             req = Mocket.last_request()
-            if hasattr(req, "add_data"):
-                req.add_data(data)
+            if hasattr(req, "_add_data"):
+                req._add_data(data)
         self._entry = entry
         return len(data)
 
