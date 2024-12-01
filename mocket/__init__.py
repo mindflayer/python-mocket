@@ -10,6 +10,12 @@ from mocket.core.mocketizer import Mocketizer, mocketize
 from mocket.core.socket import MocketSocket
 from mocket.core.ssl.context import MocketSSLContext
 from mocket.core.ssl.socket import MocketSSLSocket
+from mocket.http import (
+    MocketHttpEntry,
+    MocketHttpMethod,
+    MocketHttpRequest,
+    MocketHttpResponse,
+)
 from mocket.redis import (
     MocketRedisEntry,
     MocketRedisRequest,
@@ -21,6 +27,10 @@ __all__ = [
     "MocketBytesEntry",
     "MocketBytesRequest",
     "MocketBytesResponse",
+    "MocketHttpEntry",
+    "MocketHttpMethod",
+    "MocketHttpRequest",
+    "MocketHttpResponse",
     "MocketRedisEntry",
     "MocketRedisRequest",
     "MocketRedisResponse",
