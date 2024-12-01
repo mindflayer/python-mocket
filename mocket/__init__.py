@@ -1,11 +1,11 @@
 from mocket.compat import FakeSSLContext
 from mocket.core.async_mocket import async_mocketize
 from mocket.core.mocket import Mocket
+from mocket.core.mocketizer import Mocketizer, mocketize
 from mocket.core.socket import MocketSocket
 from mocket.core.ssl.context import MocketSSLContext
 from mocket.core.ssl.socket import MocketSSLSocket
 from mocket.entry import MocketEntry
-from mocket.mocketizer import Mocketizer, mocketize
 
 __all__ = [
     "Mocket",

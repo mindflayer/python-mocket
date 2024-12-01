@@ -1,4 +1,4 @@
-from mocket.mocketizer import Mocketizer
+from mocket.core.mocketizer import Mocketizer
 from mocket.utils import get_mocketize
 
 
