@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 import mocket.core.inject
-from mocket.recording import MocketRecordStorage
+from mocket.core.recording import MocketRecordStorage
 
 # NOTE this is here for backwards-compat to keep old import-paths working
 # from mocket.socket import MocketSocket as MocketSocket
