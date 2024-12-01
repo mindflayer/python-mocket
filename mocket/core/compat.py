@@ -27,7 +27,7 @@ def shsplit(s: str | bytes) -> list[str]:
     return shlex.split(s)
 
 
-def do_the_magic(body):
+def do_the_magic(body: str | bytes) -> str:
     try:
         magic = puremagic.magic_string(body)
     except puremagic.PureError:
