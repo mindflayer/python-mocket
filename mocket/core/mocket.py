@@ -14,13 +14,16 @@ from mocket.core.recording import MocketRecordStorage
 
 if TYPE_CHECKING:
     from mocket.compat.entry import MocketEntry
+    from mocket.core.entry import MocketBaseEntry
     from mocket.core.types import Address
 
 
 class Mocket:
     _socket_pairs: ClassVar[dict[Address, tuple[int, int]]] = {}
     _address: ClassVar[Address] = (None, None)
-    _entries: ClassVar[dict[Address, list[MocketEntry]]] = collections.defaultdict(list)
+    _entries: ClassVar[dict[Address, list[MocketEntry | MocketBaseEntry]]] = (
+        collections.defaultdict(list)
+    )
     _requests: ClassVar[list] = []
     _record_storage: ClassVar[MocketRecordStorage | None] = None
 
@@ -70,12 +73,18 @@ class Mocket:
         cls._socket_pairs[address] = pair
 
     @classmethod
-    def register(cls, *entries: MocketEntry) -> None:
+    def register(cls, *entries: MocketEntry | MocketBaseEntry) -> None:
         for entry in entries:
-            cls._entries[entry.location].append(entry)
+            address = entry.location if hasattr(entry, "location") else entry.address
+            cls._entries[address].append(entry)
 
     @classmethod
-    def get_entry(cls, host: str, port: int, data) -> MocketEntry | None:
+    def get_entry(
+        cls,
+        host: str,
+        port: int,
+        data: bytes,
+    ) -> MocketEntry | MocketBaseEntry | None:
         host = host or cls._address[0]
         port = port or cls._address[1]
         entries = cls._entries.get((host, port), [])
@@ -131,5 +140,9 @@ class Mocket:
     @classmethod
     def assert_fail_if_entries_not_served(cls) -> None:
         """Mocket checks that all entries have been served at least once."""
-        if not all(entry._served for entry in itertools.chain(*cls._entries.values())):
+
+        def served(entry: MocketEntry | MocketBaseEntry) -> bool | None:
+            return entry._served if hasattr(entry, "_served") else entry.served_response
+
+        if not all(served(entry) for entry in itertools.chain(*cls._entries.values())):
             raise AssertionError("Some Mocket entries have not been served")
