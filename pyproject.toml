@@ -88,7 +88,7 @@ exclude = [
 testpaths = [
     "tests", "mocket",
 ]
-addopts = "--cov=mocket --cov-report=term-missing --cov-append -v -x"
+addopts = "--doctest-modules --cov=mocket --cov-report=term-missing --cov-append -v -x"
 
 [tool.ruff]
 src = ["mocket", "tests"]
