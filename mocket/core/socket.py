@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import _socket
 import contextlib
 import errno
 import os
@@ -18,6 +19,7 @@ from mocket.core.types import (
     Address,
     ReadableBuffer,
     WriteableBuffer,
+    _Address,
     _RetAddress,
 )
 
@@ -25,7 +27,11 @@ true_gethostbyname = socket.gethostbyname
 true_socket = socket.socket
 
 
-def mock_create_connection(address, timeout=None, source_address=None):
+def mock_create_connection(
+    address: Address,
+    timeout: float | None = None,
+    source_address: _Address | None = None,
+) -> socket.socket:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
     if timeout:
         s.settimeout(timeout)
@@ -56,9 +62,8 @@ def mock_inet_pton(address_family: int, ip_string: str) -> bytes:
     return bytes("\x7f\x00\x00\x01", "utf-8")
 
 
-def mock_socketpair(*args, **kwargs):
+def mock_socketpair(*args: Any, **kwargs: Any) -> tuple[_socket.socket, _socket.socket]:
     """Returns a real socketpair() used by asyncio loop for supporting calls made by fastapi and similar services."""
-    import _socket
 
     return _socket.socketpair(*args, **kwargs)
 
@@ -170,7 +175,13 @@ class MocketSocket:
     def get_entry(self, data: bytes) -> MocketBaseEntry | None:
         return Mocket.get_entry(self._host, self._port, data)
 
-    def sendall(self, data, entry=None, *args, **kwargs):
+    def sendall(
+        self,
+        data: bytes,
+        entry: MocketBaseEntry | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         if entry is None:
             entry = self.get_entry(data)
 
