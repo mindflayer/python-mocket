@@ -14,5 +14,5 @@ with contextlib.suppress(ModuleNotFoundError):
         slightly patching the `ClientSession` while testing.
         """
 
-        def _get_ssl_context(self, req: ClientRequest) -> MocketSSLContext:
+        def _get_ssl_context(self, req: ClientRequest) -> MocketSSLContext:  # type: ignore[override]
             return MocketSSLContext()
