@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import binascii
-from typing import Callable
 
 from mocket.core.compat import decode_from_bytes, encode_to_bytes
+from mocket.core.types import AnyCallable
 
 
 def hexdump(binary_string: bytes) -> str:
@@ -27,7 +27,7 @@ def hexload(string: str) -> bytes:
         raise ValueError from e
 
 
-def get_mocketize(wrapper_: Callable) -> Callable:
+def get_mocketize(wrapper_: AnyCallable) -> AnyCallable:
     import decorator
 
     if decorator.__version__ < "5":  # type: ignore[attr-defined] # pragma: no cover
