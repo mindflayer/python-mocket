@@ -36,7 +36,7 @@ class MocketHttprettyResponse(MocketHttpResponse):
 
 
 class MocketHttprettyEntry(MocketHttpEntry):
-    response_cls = MocketHttprettyResponse
+    response_cls = MocketHttprettyResponse  # type: ignore[assignment]
 
 
 class MocketHTTPretty:
@@ -54,11 +54,11 @@ class MocketHTTPretty:
 
     @property
     def latest_requests(self) -> list[MocketHttpRequest]:
-        return Mocket.request_list()
+        return Mocket.request_list()  # type: ignore[return-value]
 
     @property
     def last_request(self) -> MocketHttpRequest:
-        return Mocket.last_request()
+        return Mocket.last_request()  # type: ignore[return-value]
 
     def register_uri(
         self,
