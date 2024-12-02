@@ -34,7 +34,7 @@ class MocketSSLSocket(MocketSocket):
         self._did_handshake = True
 
     def getpeercert(self, binary_form: bool = False) -> _PeerCertRetDictType:
-        if not (self._host and self._port):
+        if not (self._host and self._port) and Mocket._address:
             self._address = self._host, self._port = Mocket._address
 
         now = datetime.now()

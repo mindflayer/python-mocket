@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 class Mocket:
     _socket_pairs: ClassVar[dict[Address, tuple[int, int]]] = {}
-    _address: ClassVar[Address] = (None, None)
+    _address: ClassVar[Address | None] = None
     _entries: ClassVar[dict[Address, list[MocketBaseEntry]]] = collections.defaultdict(
         list
     )
@@ -76,8 +76,10 @@ class Mocket:
 
     @classmethod
     def get_entry(cls, host: str, port: int, data: bytes) -> MocketBaseEntry | None:
-        host = host or cls._address[0]
-        port = port or cls._address[1]
+        if cls._address is not None:
+            host = host or cls._address[0]
+            port = port or cls._address[1]
+
         entries = cls._entries.get((host, port), [])
         for entry in entries:
             if entry.can_handle(data):
