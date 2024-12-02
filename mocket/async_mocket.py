@@ -1,22 +1,6 @@
-from mocket.mocketizer import Mocketizer
-from mocket.utils import get_mocketize
+from mocket.core.async_mocket import async_mocketize
 
-
-async def wrapper(
-    test,
-    truesocket_recording_dir=None,
-    strict_mode=False,
-    strict_mode_allowed=None,
-    *args,
-    **kwargs,
-):
-    async with Mocketizer.factory(
-        test, truesocket_recording_dir, strict_mode, strict_mode_allowed, args
-    ):
-        return await test(*args, **kwargs)
-
-
-async_mocketize = get_mocketize(wrapper_=wrapper)
-
-
-__all__ = ("async_mocketize",)
+# NOTE this is here for backwards-compat to keep old import-paths working
+__all__ = [
+    "async_mocketize",
+]

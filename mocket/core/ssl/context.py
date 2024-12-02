@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from mocket.socket import MocketSocket
-from mocket.ssl.socket import MocketSSLSocket
+from mocket.core.socket import MocketSocket
+from mocket.core.ssl.socket import MocketSSLSocket
 
 
 class _MocketSSLContext:
