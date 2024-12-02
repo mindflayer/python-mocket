@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 from mocket.core.exceptions import StrictMocketException
 from mocket.core.mocket import Mocket
+from mocket.core.types import Address
 
 if TYPE_CHECKING:  # pragma: no cover
     from typing import NoReturn
@@ -11,8 +12,8 @@ if TYPE_CHECKING:  # pragma: no cover
 
 class MocketMode:
     __shared_state: ClassVar[dict[str, Any]] = {}
-    STRICT: ClassVar = None
-    STRICT_ALLOWED: ClassVar = None
+    STRICT: ClassVar[bool] = False
+    STRICT_ALLOWED: ClassVar[list[str | Address]] = []
 
     def __init__(self) -> None:
         self.__dict__ = self.__shared_state
