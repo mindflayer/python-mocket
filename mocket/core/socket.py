@@ -26,6 +26,8 @@ from mocket.core.types import (
 true_gethostbyname = socket.gethostbyname
 true_socket = socket.socket
 
+DEFAULT_ADDRESS = ("0.0.0.0", 0)
+
 
 def mock_create_connection(
     address: Address,
@@ -87,11 +89,9 @@ class MocketSocket:
         self._buflen = 65536
         self._timeout: float | None = None
 
-        self._host = None
-        self._port = None
-        self._address = None
+        self._address: Address = DEFAULT_ADDRESS
 
-        self._io = None
+        self._io: MocketSocketIO | None = None
         self._entry = None
 
     def __str__(self) -> str:
@@ -123,15 +123,14 @@ class MocketSocket:
     @property
     def io(self) -> MocketSocketIO:
         if self._io is None:
-            self._io = MocketSocketIO((self._host, self._port))
+            self._io = MocketSocketIO(self._address)
         return self._io
 
     def fileno(self) -> int:
-        address = (self._host, self._port)
-        r_fd, _ = Mocket.get_pair(address)
+        r_fd, _ = Mocket.get_pair(self._address)
         if not r_fd:
             r_fd, w_fd = os.pipe()
-            Mocket.set_pair(address, (r_fd, w_fd))
+            Mocket.set_pair(self._address, (r_fd, w_fd))
         return r_fd
 
     def gettimeout(self) -> float | None:
@@ -163,17 +162,19 @@ class MocketSocket:
         return self.gettimeout() is None
 
     def getsockname(self) -> _RetAddress:
-        return true_gethostbyname(self._address[0]), self._address[1]
+        host, port = self._address
+        return true_gethostbyname(host), port
 
     def connect(self, address: Address) -> None:
-        self._address = self._host, self._port = address
+        self._address = address
         Mocket._address = address
 
     def makefile(self, mode: str = "r", bufsize: int = -1) -> MocketSocketIO:
         return self.io
 
     def get_entry(self, data: bytes) -> MocketBaseEntry | None:
-        return Mocket.get_entry(self._host, self._port, data)
+        host, port = self._address
+        return Mocket.get_entry(host, port, data)
 
     def sendall(
         self,
@@ -216,7 +217,7 @@ class MocketSocket:
         return len(data)
 
     def recv(self, buffersize: int, flags: int | None = None) -> bytes:
-        r_fd, _ = Mocket.get_pair((self._host, self._port))
+        r_fd, _ = Mocket.get_pair(self._address)
         if r_fd:
             return os.read(r_fd, buffersize)
         data = self.io.read(buffersize)
