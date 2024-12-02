@@ -75,7 +75,7 @@ class Mocket:
             cls._entries[entry.address].append(entry)
 
     @classmethod
-    def get_entry(cls, host: str, port: int, data) -> MocketBaseEntry | None:
+    def get_entry(cls, host: str, port: int, data: bytes) -> MocketBaseEntry | None:
         host = host or cls._address[0]
         port = port or cls._address[1]
         entries = cls._entries.get((host, port), [])
@@ -85,7 +85,7 @@ class Mocket:
         return None
 
     @classmethod
-    def collect(cls, data) -> None:
+    def collect(cls, data: MocketBaseRequest) -> None:
         cls._requests.append(data)
 
     @classmethod
