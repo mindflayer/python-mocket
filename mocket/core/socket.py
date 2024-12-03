@@ -17,7 +17,6 @@ from mocket.core.mocket import Mocket
 from mocket.core.mode import MocketMode
 from mocket.core.types import (
     Address,
-    ReadableBuffer,
     WriteableBuffer,
     _Address,
     _RetAddress,
@@ -92,7 +91,7 @@ class MocketSocket:
         self._address: Address = DEFAULT_ADDRESS
 
         self._io: MocketSocketIO | None = None
-        self._entry = None
+        self._entry: MocketBaseEntry | None = None
 
     def __str__(self) -> str:
         return f"({self.__class__.__name__})(family={self.family} type={self.type} protocol={self.proto})"
@@ -205,15 +204,15 @@ class MocketSocket:
         flags: int | None = None,
     ) -> int:
         if hasattr(buffer, "write"):
-            return buffer.write(self.recv(buffersize))
+            return buffer.write(self.recv(buffersize))  # type: ignore
 
         # buffer is a memoryview
         if buffersize is None:
-            buffersize = len(buffer)
+            buffersize = len(buffer)  # type: ignore
 
         data = self.recv(buffersize)
         if data:
-            buffer[: len(data)] = data
+            buffer[: len(data)] = data  # type: ignore
         return len(data)
 
     def recv(self, buffersize: int, flags: int | None = None) -> bytes:
@@ -273,7 +272,7 @@ class MocketSocket:
 
     def send(
         self,
-        data: ReadableBuffer,
+        data: bytes,
         *args: Any,
         **kwargs: Any,
     ) -> int:  # pragma: no cover
@@ -283,13 +282,13 @@ class MocketSocket:
             self.sendall(data, *args, **kwargs)
         else:
             req = Mocket.last_request()
-            if hasattr(req, "_add_data"):
+            if req and hasattr(req, "_add_data"):
                 req._add_data(data)
         self._entry = entry
         return len(data)
 
     def close(self) -> None:
-        if self._true_socket and not self._true_socket._closed:
+        if self._true_socket and self._true_socket.fileno():
             self._true_socket.close()
 
     def __getattr__(self, name: str) -> Any:
