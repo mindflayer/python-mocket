@@ -23,7 +23,7 @@ def _restore(module: ModuleType, name: str) -> None:
 
 
 def enable() -> None:
-    from mocket.socket import (
+    from mocket.core.socket import (
         MocketSocket,
         mock_create_connection,
         mock_getaddrinfo,
@@ -32,11 +32,11 @@ def enable() -> None:
         mock_inet_pton,
         mock_socketpair,
     )
-    from mocket.ssl.context import MocketSSLContext, mock_wrap_socket
-    from mocket.urllib3 import (
+    from mocket.core.ssl.context import MocketSSLContext, mock_wrap_socket
+    from mocket.core.urllib3 import (
         mock_match_hostname as mock_urllib3_match_hostname,
     )
-    from mocket.urllib3 import (
+    from mocket.core.urllib3 import (
         mock_ssl_wrap_socket as mock_urllib3_ssl_wrap_socket,
     )
 

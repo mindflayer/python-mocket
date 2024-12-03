@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import _socket
 import contextlib
 import errno
 import os
@@ -10,22 +11,28 @@ from typing import Any, Type
 
 from typing_extensions import Self
 
-from mocket.entry import MocketEntry
-from mocket.io import MocketSocketIO
-from mocket.mocket import Mocket
-from mocket.mode import MocketMode
-from mocket.types import (
+from mocket.core.entry import MocketBaseEntry
+from mocket.core.io import MocketSocketIO
+from mocket.core.mocket import Mocket
+from mocket.core.mode import MocketMode
+from mocket.core.types import (
     Address,
-    ReadableBuffer,
     WriteableBuffer,
+    _Address,
     _RetAddress,
 )
 
 true_gethostbyname = socket.gethostbyname
 true_socket = socket.socket
 
+DEFAULT_ADDRESS = ("0.0.0.0", 0)
 
-def mock_create_connection(address, timeout=None, source_address=None):
+
+def mock_create_connection(
+    address: Address,
+    timeout: float | None = None,
+    source_address: _Address | None = None,
+) -> socket.socket:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
     if timeout:
         s.settimeout(timeout)
@@ -56,9 +63,8 @@ def mock_inet_pton(address_family: int, ip_string: str) -> bytes:
     return bytes("\x7f\x00\x00\x01", "utf-8")
 
 
-def mock_socketpair(*args, **kwargs):
+def mock_socketpair(*args: Any, **kwargs: Any) -> tuple[_socket.socket, _socket.socket]:
     """Returns a real socketpair() used by asyncio loop for supporting calls made by fastapi and similar services."""
-    import _socket
 
     return _socket.socketpair(*args, **kwargs)
 
@@ -82,12 +88,10 @@ class MocketSocket:
         self._buflen = 65536
         self._timeout: float | None = None
 
-        self._host = None
-        self._port = None
-        self._address = None
+        self._address: Address = DEFAULT_ADDRESS
 
-        self._io = None
-        self._entry = None
+        self._io: MocketSocketIO | None = None
+        self._entry: MocketBaseEntry | None = None
 
     def __str__(self) -> str:
         return f"({self.__class__.__name__})(family={self.family} type={self.type} protocol={self.proto})"
@@ -118,15 +122,14 @@ class MocketSocket:
     @property
     def io(self) -> MocketSocketIO:
         if self._io is None:
-            self._io = MocketSocketIO((self._host, self._port))
+            self._io = MocketSocketIO(self._address)
         return self._io
 
     def fileno(self) -> int:
-        address = (self._host, self._port)
-        r_fd, _ = Mocket.get_pair(address)
+        r_fd, _ = Mocket.get_pair(self._address)
         if not r_fd:
             r_fd, w_fd = os.pipe()
-            Mocket.set_pair(address, (r_fd, w_fd))
+            Mocket.set_pair(self._address, (r_fd, w_fd))
         return r_fd
 
     def gettimeout(self) -> float | None:
@@ -158,19 +161,27 @@ class MocketSocket:
         return self.gettimeout() is None
 
     def getsockname(self) -> _RetAddress:
-        return true_gethostbyname(self._address[0]), self._address[1]
+        host, port = self._address
+        return true_gethostbyname(host), port
 
     def connect(self, address: Address) -> None:
-        self._address = self._host, self._port = address
+        self._address = address
         Mocket._address = address
 
     def makefile(self, mode: str = "r", bufsize: int = -1) -> MocketSocketIO:
         return self.io
 
-    def get_entry(self, data: bytes) -> MocketEntry | None:
-        return Mocket.get_entry(self._host, self._port, data)
+    def get_entry(self, data: bytes) -> MocketBaseEntry | None:
+        host, port = self._address
+        return Mocket.get_entry(host, port, data)
 
-    def sendall(self, data, entry=None, *args, **kwargs):
+    def sendall(
+        self,
+        data: bytes,
+        entry: MocketBaseEntry | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         if entry is None:
             entry = self.get_entry(data)
 
@@ -193,19 +204,19 @@ class MocketSocket:
         flags: int | None = None,
     ) -> int:
         if hasattr(buffer, "write"):
-            return buffer.write(self.recv(buffersize))
+            return buffer.write(self.recv(buffersize))  # type: ignore
 
         # buffer is a memoryview
         if buffersize is None:
-            buffersize = len(buffer)
+            buffersize = len(buffer)  # type: ignore
 
         data = self.recv(buffersize)
         if data:
-            buffer[: len(data)] = data
+            buffer[: len(data)] = data  # type: ignore
         return len(data)
 
     def recv(self, buffersize: int, flags: int | None = None) -> bytes:
-        r_fd, _ = Mocket.get_pair((self._host, self._port))
+        r_fd, _ = Mocket.get_pair(self._address)
         if r_fd:
             return os.read(r_fd, buffersize)
         data = self.io.read(buffersize)
@@ -261,7 +272,7 @@ class MocketSocket:
 
     def send(
         self,
-        data: ReadableBuffer,
+        data: bytes,
         *args: Any,
         **kwargs: Any,
     ) -> int:  # pragma: no cover
@@ -271,13 +282,13 @@ class MocketSocket:
             self.sendall(data, *args, **kwargs)
         else:
             req = Mocket.last_request()
-            if hasattr(req, "add_data"):
-                req.add_data(data)
+            if req and hasattr(req, "_add_data"):
+                req._add_data(data)
         self._entry = entry
         return len(data)
 
     def close(self) -> None:
-        if self._true_socket and not self._true_socket._closed:
+        if self._true_socket and self._true_socket.fileno():
             self._true_socket.close()
 
     def __getattr__(self, name: str) -> Any:

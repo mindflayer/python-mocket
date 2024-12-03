@@ -2,9 +2,9 @@ import pytest
 import requests
 
 from mocket import Mocketizer, mocketize
+from mocket.core.mode import MocketMode
 from mocket.exceptions import StrictMocketException
 from mocket.mockhttp import Entry, Response
-from mocket.mode import MocketMode
 
 
 @mocketize(strict_mode=True)

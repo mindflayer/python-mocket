@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Callable, Dict, Tuple, Union
 
 from typing_extensions import Buffer, TypeAlias
 
 Address = Tuple[str, int]
+AnyCallable = Callable[..., Any]
 
 # adapted from typeshed/stdlib/_typeshed/__init__.pyi
 WriteableBuffer: TypeAlias = Buffer

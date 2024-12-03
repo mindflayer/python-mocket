@@ -5,10 +5,10 @@ from datetime import datetime, timedelta
 from ssl import Options
 from typing import Any
 
-from mocket.compat import encode_to_bytes
-from mocket.mocket import Mocket
-from mocket.socket import MocketSocket
-from mocket.types import _PeerCertRetDictType
+from mocket.core.compat import encode_to_bytes
+from mocket.core.mocket import Mocket
+from mocket.core.socket import MocketSocket
+from mocket.core.types import _PeerCertRetDictType
 
 
 class MocketSSLSocket(MocketSocket):
@@ -34,22 +34,24 @@ class MocketSSLSocket(MocketSocket):
         self._did_handshake = True
 
     def getpeercert(self, binary_form: bool = False) -> _PeerCertRetDictType:
-        if not (self._host and self._port):
-            self._address = self._host, self._port = Mocket._address
+        if Mocket._address:
+            self._address = Mocket._address
+
+        host, _ = self._address
 
         now = datetime.now()
         shift = now + timedelta(days=30 * 12)
         return {
             "notAfter": shift.strftime("%b %d %H:%M:%S GMT"),
             "subjectAltName": (
-                ("DNS", f"*.{self._host}"),
-                ("DNS", self._host),
+                ("DNS", f"*.{host}"),
+                ("DNS", host),
                 ("DNS", "*"),
             ),
             "subject": (
-                (("organizationName", f"*.{self._host}"),),
+                (("organizationName", f"*.{host}"),),
                 (("organizationalUnitName", "Domain Control Validated"),),
-                (("commonName", f"*.{self._host}"),),
+                (("commonName", f"*.{host}"),),
             ),
         }
 
@@ -85,8 +87,6 @@ class MocketSSLSocket(MocketSocket):
 
         ssl_socket._timeout = sock._timeout
 
-        ssl_socket._host = sock._host
-        ssl_socket._port = sock._port
         ssl_socket._address = sock._address
 
         ssl_socket._io = sock._io
