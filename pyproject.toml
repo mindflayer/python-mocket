@@ -117,24 +117,10 @@ max-complexity = 8
 
 [tool.mypy]
 python_version = "3.8"
-files = [
-    "mocket/core/compat.py",
-    "mocket/core/exceptions.py",
-    "mocket/core/utils.py",
-    # "tests/"
-    ]
 strict = true
-warn_unused_configs = true
-ignore_missing_imports = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-show_error_codes = true
-implicit_reexport = true
-disallow_any_generics = false
-follow_imports = "silent"  # enable this once majority is typed
-enable_error_code = ['ignore-without-code']
-disable_error_code = ["no-untyped-def"] # enable this once full type-coverage is reached
+files = ["mocket"]
+exclude = ["tests"]
 
 [[tool.mypy.overrides]]
-module = "tests.*"
-disable_error_code = ['type-arg', 'no-untyped-def']
+module = "pook.*"
+ignore_missing_imports = true
