@@ -2,18 +2,14 @@ from __future__ import annotations
 
 import contextlib
 import errno
-import hashlib
-import json
 import os
 import select
 import socket
-from json.decoder import JSONDecodeError
 from types import TracebackType
 from typing import Any, Type
 
 from typing_extensions import Self
 
-from mocket.compat import decode_from_bytes, encode_to_bytes
 from mocket.entry import MocketEntry
 from mocket.io import MocketSocketIO
 from mocket.mocket import Mocket
@@ -24,19 +20,9 @@ from mocket.types import (
     WriteableBuffer,
     _RetAddress,
 )
-from mocket.utils import hexdump, hexload
 
 true_gethostbyname = socket.gethostbyname
 true_socket = socket.socket
-
-
-xxh32 = None
-try:
-    from xxhash import xxh32
-except ImportError:  # pragma: no cover
-    with contextlib.suppress(ImportError):
-        from xxhash_cffi import xxh32
-hasher = xxh32 or hashlib.md5
 
 
 def mock_create_connection(address, timeout=None, source_address=None):
@@ -75,10 +61,6 @@ def mock_socketpair(*args, **kwargs):
     import _socket
 
     return _socket.socketpair(*args, **kwargs)
-
-
-def _hash_request(h, req):
-    return h(encode_to_bytes("".join(sorted(req.split("\r\n"))))).hexdigest()
 
 
 class MocketSocket:
@@ -235,87 +217,47 @@ class MocketSocket:
         exc.args = (0,)
         raise exc
 
-    def true_sendall(self, data: ReadableBuffer, *args: Any, **kwargs: Any) -> int:
-        if not MocketMode().is_allowed((self._host, self._port)):
+    def true_sendall(self, data: bytes, *args: Any, **kwargs: Any) -> bytes:
+        if not MocketMode().is_allowed(self._address):
             MocketMode.raise_not_allowed()
 
-        req = decode_from_bytes(data)
-        # make request unique again
-        req_signature = _hash_request(hasher, req)
-        # port should be always a string
-        port = str(self._port)
-
-        # prepare responses dictionary
-        responses = {}
-
-        if Mocket.get_truesocket_recording_dir():
-            path = os.path.join(
-                Mocket.get_truesocket_recording_dir(),
-                Mocket.get_namespace() + ".json",
+        # try to get the response from recordings
+        if Mocket._record_storage:
+            record = Mocket._record_storage.get_record(
+                address=self._address,
+                request=data,
             )
-            # check if there's already a recorded session dumped to a JSON file
-            try:
-                with open(path) as f:
-                    responses = json.load(f)
-            # if not, create a new dictionary
-            except (FileNotFoundError, JSONDecodeError):
-                pass
+            if record is not None:
+                return record.response
 
-        try:
-            try:
-                response_dict = responses[self._host][port][req_signature]
-            except KeyError:
-                if hasher is not hashlib.md5:
-                    # Fallback for backwards compatibility
-                    req_signature = _hash_request(hashlib.md5, req)
-                    response_dict = responses[self._host][port][req_signature]
-                else:
-                    raise
-        except KeyError:
-            # preventing next KeyError exceptions
-            responses.setdefault(self._host, {})
-            responses[self._host].setdefault(port, {})
-            responses[self._host][port].setdefault(req_signature, {})
-            response_dict = responses[self._host][port][req_signature]
+        host, port = self._address
+        host = true_gethostbyname(host)
 
-        # try to get the response from the dictionary
-        try:
-            encoded_response = hexload(response_dict["response"])
-        # if not available, call the real sendall
-        except KeyError:
-            host, port = self._host, self._port
-            host = true_gethostbyname(host)
+        with contextlib.suppress(OSError, ValueError):
+            # already connected
+            self._true_socket.connect((host, port))
 
-            with contextlib.suppress(OSError, ValueError):
-                # already connected
-                self._true_socket.connect((host, port))
-            self._true_socket.sendall(data, *args, **kwargs)
-            encoded_response = b""
-            # https://github.com/kennethreitz/requests/blob/master/tests/testserver/server.py#L12
-            while True:
-                more_to_read = select.select([self._true_socket], [], [], 0.1)[0]
-                if not more_to_read and encoded_response:
-                    break
-                new_content = self._true_socket.recv(self._buflen)
-                if not new_content:
-                    break
-                encoded_response += new_content
+        self._true_socket.sendall(data, *args, **kwargs)
+        response = b""
+        # https://github.com/kennethreitz/requests/blob/master/tests/testserver/server.py#L12
+        while True:
+            more_to_read = select.select([self._true_socket], [], [], 0.1)[0]
+            if not more_to_read and response:
+                break
+            new_content = self._true_socket.recv(self._buflen)
+            if not new_content:
+                break
+            response += new_content
 
-            # dump the resulting dictionary to a JSON file
-            if Mocket.get_truesocket_recording_dir():
-                # update the dictionary with request and response lines
-                response_dict["request"] = req
-                response_dict["response"] = hexdump(encoded_response)
+        # store request+response in recordings
+        if Mocket._record_storage:
+            Mocket._record_storage.put_record(
+                address=self._address,
+                request=data,
+                response=response,
+            )
 
-                with open(path, mode="w") as f:
-                    f.write(
-                        decode_from_bytes(
-                            json.dumps(responses, indent=4, sort_keys=True)
-                        )
-                    )
-
-        # response back to .sendall() which writes it to the Mocket socket and flush the BytesIO
-        return encoded_response
+        return response
 
     def send(
         self,

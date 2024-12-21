@@ -1,18 +1,9 @@
 from __future__ import annotations
 
 import binascii
-import ssl
 from typing import Callable
 
 from mocket.compat import decode_from_bytes, encode_to_bytes
-
-# NOTE this is here for backwards-compat to keep old import-paths working
-from mocket.io import MocketSocketIO as MocketSocketCore
-
-# NOTE this is here for backwards-compat to keep old import-paths working
-from mocket.mode import MocketMode
-
-SSL_PROTOCOL = ssl.PROTOCOL_TLSv1_2
 
 
 def hexdump(binary_string: bytes) -> str:
@@ -30,7 +21,10 @@ def hexload(string: str) -> bytes:
     True
     """
     string_no_spaces = "".join(string.split())
-    return encode_to_bytes(binascii.unhexlify(string_no_spaces))
+    try:
+        return encode_to_bytes(binascii.unhexlify(string_no_spaces))
+    except binascii.Error as e:
+        raise ValueError from e
 
 
 def get_mocketize(wrapper_: Callable) -> Callable:
@@ -45,9 +39,6 @@ def get_mocketize(wrapper_: Callable) -> Callable:
 
 
 __all__ = (
-    "MocketMode",
-    "MocketSocketCore",
-    "SSL_PROTOCOL",
     "get_mocketize",
     "hexdump",
     "hexload",
