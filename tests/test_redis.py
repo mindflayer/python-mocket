@@ -158,9 +158,11 @@ class RedisTestCase(TestCase):
         self.rclient = redis.StrictRedis()
 
     def mocketize_setup(self):
+        Entry.register_response("CLIENT SETINFO LIB-NAME redis-py", OK)
+        Entry.register_response(f"CLIENT SETINFO LIB-VER {redis.__version__}", OK)
         Entry.register_response("FLUSHDB", OK)
         self.rclient.flushdb()
-        self.assertEqual(len(Mocket.request_list()), 1)
+        self.assertEqual(len(Mocket.request_list()), 3)
         Mocket.reset()
 
     @mocketize
