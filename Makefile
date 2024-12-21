@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+VENV_PATH = .venv/bin
+
 install-dev-requirements:
 	curl -LsSf https://astral.sh/uv/install.sh | sh
 	uv venv && uv pip install hatch
@@ -25,18 +27,18 @@ develop: install-dev-requirements install-test-requirements
 
 types:
 	@echo "Type checking Python files"
-	.venv/bin/mypy --pretty
+	$(VENV_PATH)/mypy --pretty
 	@echo ""
 
 test: types
 	@echo "Running Python tests"
 	uv pip uninstall pook || true
-	.venv/bin/wait-for-it --service httpbin.local:443 --service localhost:6379 --timeout 5 -- .venv/bin/pytest
-	uv pip install pook && .venv/bin/pytest tests/test_pook.py && uv pip uninstall pook
+	$(VENV_PATH)/wait-for-it --service httpbin.local:443 --service localhost:6379 --timeout 5 -- $(VENV_PATH)/pytest
+	uv pip install pook && $(VENV_PATH)/pytest tests/test_pook.py && uv pip uninstall pook
 	@echo ""
 
 safetest:
-	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; .venv/bin/pytest
+	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; $(VENV_PATH)/pytest
 
 publish: clean install-test-requirements
 	uv run python3 -m build --sdist --wheel .
