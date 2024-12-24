@@ -51,7 +51,6 @@ test = [
     "httpx",
     "pipfile",
     "build",
-    "twine",
     "fastapi",
     "aiohttp",
     "wait-for-it",

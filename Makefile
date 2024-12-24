@@ -41,8 +41,8 @@ safetest:
 	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; $(VENV_PATH)/pytest
 
 publish: clean install-test-requirements
-	uv run python3 -m build --sdist --wheel .
-	uv run twine upload --repository mocket dist/
+	uv build --package mocket --sdist --wheel
+	uv publish
 
 clean:
 	rm -rf .coverage *.egg-info dist/ requirements.txt uv.lock || true
