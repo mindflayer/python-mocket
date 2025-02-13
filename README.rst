@@ -24,9 +24,8 @@ A socket mock framework
 Outside GitHub
 ==============
 
-Mocket packages are available for `Arch Linux`_, `openSUSE`_, `NixOS`_, `ALT Linux`_, `NetBSD`_, and of course from `PyPI`_.
+Mocket packages are available for `openSUSE`_, `NixOS`_, `ALT Linux`_, `NetBSD`_, and of course from `PyPI`_.
 
-.. _`Arch Linux`: https://archlinux.org/packages/extra/any/python-mocket/
 .. _`openSUSE`: https://software.opensuse.org/search?baseproject=ALL&q=mocket
 .. _`NixOS`: https://search.nixos.org/packages?query=mocket
 .. _`ALT Linux`: https://packages.altlinux.org/en/sisyphus/srpms/python3-module-mocket/
