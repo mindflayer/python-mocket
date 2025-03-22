@@ -52,7 +52,7 @@ test = [
     "pipfile",
     "build",
     "fastapi",
-    "aiohttp",
+    "aiohttp==3.10.11",
     "wait-for-it",
     "mypy",
     "types-decorator",
