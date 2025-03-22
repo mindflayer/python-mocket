@@ -1,11 +1,24 @@
-from mocket.async_mocket import async_mocketize
+import importlib
+import sys
+
+from mocket.decorators.async_mocket import async_mocketize
+from mocket.decorators.mocketizer import Mocketizer, mocketize
 from mocket.entry import MocketEntry
 from mocket.mocket import Mocket
-from mocket.mocketizer import Mocketizer, mocketize
 from mocket.ssl.context import MocketSSLContext
 
 # NOTE this is here for backwards-compat to keep old import-paths working
 from mocket.ssl.context import MocketSSLContext as FakeSSLContext
+
+sys.modules["mocket.mockhttp"] = importlib.import_module("mocket.mocks.mockhttp")
+sys.modules["mocket.mockredis"] = importlib.import_module("mocket.mocks.mockredis")
+sys.modules["mocket.async_mocket"] = importlib.import_module(
+    "mocket.decorators.async_mocket"
+)
+sys.modules["mocket.mocketizer"] = importlib.import_module(
+    "mocket.decorators.mocketizer"
+)
+
 
 __all__ = (
     "async_mocketize",
