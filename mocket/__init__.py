@@ -7,7 +7,8 @@ from mocket.entry import MocketEntry
 from mocket.mocket import Mocket
 from mocket.ssl.context import MocketSSLContext
 
-# NOTE this is here for backwards-compat to keep old import-paths working
+# NOTE the following lines are here for backwards-compatibility,
+# to keep old import-paths working
 from mocket.ssl.context import MocketSSLContext as FakeSSLContext
 
 sys.modules["mocket.mockhttp"] = importlib.import_module("mocket.mocks.mockhttp")
@@ -30,4 +31,4 @@ __all__ = (
     "FakeSSLContext",
 )
 
-__version__ = "3.13.3b1"
+__version__ = "3.13.3"
