@@ -38,7 +38,7 @@ test: types
 	@echo ""
 
 safetest:
-	export SKIP_TRUE_REDIS=1; export SKIP_TRUE_HTTP=1; $(VENV_PATH)/pytest
+	SKIP_TRUE_REDIS=1 SKIP_TRUE_HTTP=1 $(VENV_PATH)/pytest
 
 publish: clean install-test-requirements
 	uv build --package mocket --sdist --wheel
