@@ -92,4 +92,4 @@ def wrapper(
         return test(*args, **kwargs)
 
 
-mocketize = get_mocketize(wrapper_=wrapper)
+mocketize = get_mocketize(wrapper)

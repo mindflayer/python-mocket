@@ -28,7 +28,7 @@ classifiers = [
 ]
 dependencies = [
     "puremagic",
-    "decorator>=4.0.0",
+    "decorator>=5.0.0",
     "urllib3>=1.25.3",
     "h11",
     "typing-extensions",
