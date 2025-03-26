@@ -125,6 +125,7 @@ files = [
     ]
 strict = true
 warn_unused_configs = true
+suppress_unused_ignore = true
 ignore_missing_imports = true
 warn_redundant_casts = true
 warn_unused_ignores = true
