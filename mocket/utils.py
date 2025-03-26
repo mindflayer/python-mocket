@@ -30,12 +30,8 @@ def hexload(string: str) -> bytes:
 def get_mocketize(wrapper_: Callable) -> Callable:
     import decorator
 
-    if decorator.__version__ < "5":  # type: ignore[attr-defined] # pragma: no cover
-        return decorator.decorator(wrapper_)
-    return decorator.decorator(  # type: ignore[call-arg] # kwsyntax
-        wrapper_,
-        kwsyntax=True,
-    )
+    kwargs = {} if decorator.__version__ < "5" else {"kwsyntax": True}
+    return decorator.decorator(wrapper_, **kwargs)
 
 
 __all__ = (
