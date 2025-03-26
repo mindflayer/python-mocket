@@ -16,7 +16,7 @@ async def wrapper(
         return await test(*args, **kwargs)
 
 
-async_mocketize = get_mocketize(wrapper_=wrapper)
+async_mocketize = get_mocketize(wrapper)
 
 
 __all__ = ("async_mocketize",)

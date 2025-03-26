@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import binascii
+import contextlib
 from typing import Callable
+
+import decorator
 
 from mocket.compat import decode_from_bytes, encode_to_bytes
 
@@ -28,14 +31,10 @@ def hexload(string: str) -> bytes:
 
 
 def get_mocketize(wrapper_: Callable) -> Callable:
-    import decorator
-
-    if decorator.__version__ < "5":  # type: ignore[attr-defined] # pragma: no cover
-        return decorator.decorator(wrapper_)
-    return decorator.decorator(  # type: ignore[call-arg] # kwsyntax
-        wrapper_,
-        kwsyntax=True,
-    )
+    # trying to support different versions of `decorator`
+    with contextlib.suppress(TypeError):
+        return decorator.decorator(wrapper_, kwsyntax=True)  # type: ignore[call-arg,unused-ignore]
+    return decorator.decorator(wrapper_)
 
 
 __all__ = (
