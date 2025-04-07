@@ -45,7 +45,7 @@ publish: clean install-test-requirements
 	uv publish
 
 clean:
-	rm -rf .coverage *.egg-info dist/ requirements.txt uv.lock || true
+	rm -rf *.egg-info dist/ requirements.txt uv.lock || true
 	find . -type d -name __pycache__ -exec rm -rf {} \; || true
 
 .PHONY: clean publish safetest test setup develop lint-python test-python _services-up
