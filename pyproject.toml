@@ -89,6 +89,8 @@ testpaths = [
     "tests", "mocket",
 ]
 addopts = "--doctest-modules --cov=mocket --cov-report=xml --cov-report=term-missing --cov-append -v -x"
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
 
 [tool.ruff]
 src = ["mocket", "tests"]
