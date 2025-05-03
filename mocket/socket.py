@@ -158,7 +158,7 @@ class MocketSocket:
         return self.gettimeout() is None
 
     def getsockname(self) -> _RetAddress:
-        return true_gethostbyname(self._address[0]), self._address[1]
+        return socket.gethostbyname(self._address[0]), self._address[1]
 
     def connect(self, address: Address) -> None:
         self._address = self._host, self._port = address
