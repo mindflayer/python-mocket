@@ -123,6 +123,8 @@ files = [
     "mocket/exceptions.py",
     "mocket/compat.py",
     "mocket/utils.py",
+    "mocket/plugins/httpretty/__init__.py",
+    "tests/test_httpretty.py",
     # "tests/"
     ]
 strict = true
@@ -140,3 +142,11 @@ disable_error_code = ["no-untyped-def"] # enable this once full type-coverage is
 [[tool.mypy.overrides]]
 module = "tests.*"
 disable_error_code = ['type-arg', 'no-untyped-def']
+
+[[tool.mypy.overrides]]
+module = "mocket.plugins.*"
+disallow_subclassing_any = false  # mypy doesn't support dynamic imports
+
+[[tool.mypy.overrides]]
+module = "tests.test_httpretty"
+disallow_untyped_decorators = true

@@ -88,7 +88,7 @@ class Response:
 
         self.data = self.get_protocol_data() + self.body
 
-    def get_protocol_data(self, str_format_fun_name="capitalize"):
+    def get_protocol_data(self, str_format_fun_name: str = "capitalize") -> bytes:
         status_line = f"HTTP/1.1 {self.status} {STATUS[self.status]}"
         header_lines = CRLF.join(
             (
