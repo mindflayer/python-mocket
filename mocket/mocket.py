@@ -4,7 +4,7 @@ import collections
 import itertools
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import mocket.inject
 from mocket.recording import MocketRecordStorage
@@ -99,12 +99,12 @@ class Mocket:
         cls._record_storage = None
 
     @classmethod
-    def last_request(cls):
+    def last_request(cls) -> Any:
         if cls.has_requests():
             return cls._requests[-1]
 
     @classmethod
-    def request_list(cls):
+    def request_list(cls) -> list[Any]:
         return cls._requests
 
     @classmethod
