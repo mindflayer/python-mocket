@@ -126,6 +126,7 @@ files = [
     "mocket/utils.py",
     "mocket/plugins/httpretty/__init__.py",
     "tests/test_httpretty.py",
+    "tests/test_mocket_utils.py",
     # "tests/"
     ]
 strict = true
