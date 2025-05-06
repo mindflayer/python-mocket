@@ -57,6 +57,7 @@ test = [
     "wait-for-it",
     "mypy",
     "types-decorator",
+    "types-requests",
 ]
 speedups = [
     "xxhash;platform_python_implementation=='CPython'",

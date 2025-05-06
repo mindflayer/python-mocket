@@ -55,7 +55,7 @@ def hexload(string: str) -> bytes:
 def get_mocketize(wrapper_: Callable) -> MocketizeDecorator:
     # trying to support different versions of `decorator`
     with contextlib.suppress(TypeError):
-        return decorator.decorator(wrapper_, kwsyntax=True)  # type: ignore[return-value, call-arg]
+        return decorator.decorator(wrapper_, kwsyntax=True)  # type: ignore[return-value, call-arg, unused-ignore]
     return decorator.decorator(wrapper_)  # type: ignore[return-value]
 
 
