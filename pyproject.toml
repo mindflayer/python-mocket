@@ -9,7 +9,6 @@ description = "Socket Mock Framework - for all kinds of socket animals, web-clie
 readme = { file = "README.rst", content-type = "text/x-rst" }
 license = { file = "LICENSE" }
 authors = [{ name = "Giorgio Salluzzo", email = "giorgio.salluzzo@gmail.com" }]
-urls = { github = "https://github.com/mindflayer/python-mocket" }
 classifiers = [
     "Development Status :: 6 - Mature",
     "Intended Audience :: Developers",
@@ -34,6 +33,10 @@ dependencies = [
     "typing-extensions",
 ]
 dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/mindflayer/python-mocket"
+Repository = "https://github.com/mindflayer/python-mocket"
 
 [project.optional-dependencies]
 test = [
