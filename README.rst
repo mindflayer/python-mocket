@@ -101,7 +101,7 @@ As second step, we create an `example.py` file as the following one:
     import json
 
     from mocket import mocketize
-    from mocket.mockhttp import Entry
+    from mocket.mocks.mockhttp import Entry
     import requests
     import pytest
 
@@ -294,7 +294,7 @@ Example:
     import pytest
 
     from mocket import async_mocketize
-    from mocket.mockhttp import Entry
+    from mocket.mocks.mockhttp import Entry
     from mocket.plugins.aiohttp_connector import MocketTCPConnector
 
 
