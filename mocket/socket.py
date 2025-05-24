@@ -170,6 +170,11 @@ class MocketSocket:
     def get_entry(self, data: bytes) -> MocketEntry | None:
         return Mocket.get_entry(self._host, self._port, data)
 
+    def sendto(self, data: ReadableBuffer, address: Address | None = None) -> int:
+        self.connect(address)
+        self.sendall(data)
+        return len(data)
+
     def sendall(self, data, entry=None, *args, **kwargs):
         if entry is None:
             entry = self.get_entry(data)
@@ -203,6 +208,11 @@ class MocketSocket:
         if data:
             buffer[: len(data)] = data
         return len(data)
+
+    def recvfrom(
+        self, buffersize: int, flags: int | None = None
+    ) -> tuple[bytes, _RetAddress]:
+        return self.recv(buffersize, flags), self._address
 
     def recv(self, buffersize: int, flags: int | None = None) -> bytes:
         r_fd, _ = Mocket.get_pair((self._host, self._port))
