@@ -15,7 +15,8 @@ mocket /mɔˈkɛt/
     :target: https://pypistats.org/packages/mocket
 
 .. image:: mocket.png
-   :scale: 25 %
+   :height: 256px
+   :width: 256px
    :alt: Mocket logo
    :align: center
 
