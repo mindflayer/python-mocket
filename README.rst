@@ -14,6 +14,12 @@ mocket /mɔˈkɛt/
 .. image:: https://img.shields.io/pypi/dm/mocket
     :target: https://pypistats.org/packages/mocket
 
+.. image:: mocket.png
+   :height: 256px
+   :width: 256px
+   :alt: Mocket logo
+   :align: center
+
 
 A socket mock framework
 -------------------------
