@@ -15,6 +15,9 @@ mocket /mɔˈkɛt/
     :target: https://pypistats.org/packages/mocket
 
 .. image:: mocket.png
+   :scale: 25 %
+   :alt: Mocket logo
+   :align: center
 
 
 A socket mock framework
