@@ -14,7 +14,7 @@ mocket /mɔˈkɛt/
 .. image:: https://img.shields.io/pypi/dm/mocket
     :target: https://pypistats.org/packages/mocket
 
-.. image:: mocket.png
+.. image:: https://raw.githubusercontent.com/mindflayer/python-mocket/main/mocket.png
    :height: 256px
    :width: 256px
    :alt: Mocket logo
