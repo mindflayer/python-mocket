@@ -12,7 +12,7 @@ from mocket.mockhttp import Entry
 from mocket.plugins.aiohttp_connector import MocketTCPConnector
 
 
-def test_asyncio_record_replay(event_loop):
+def test_asyncio_record_replay():
     async def test_asyncio_connection():
         reader, writer = await asyncio.open_connection(
             host="google.com",
@@ -33,7 +33,7 @@ def test_asyncio_record_replay(event_loop):
 
     with tempfile.TemporaryDirectory() as temp_dir:
         with Mocketizer(truesocket_recording_dir=temp_dir):
-            event_loop.run_until_complete(test_asyncio_connection())
+            asyncio.run(test_asyncio_connection())
 
         files = glob.glob(f"{temp_dir}/*.json")
         assert len(files) == 1
