@@ -90,7 +90,12 @@ def register_uri(
         Response.set_base_headers = Response.original_set_base_headers  # type: ignore[method-assign]
 
     if responses:
-        Entry.register(method, uri, *responses)
+        Entry.register(
+            method,
+            uri,
+            *responses,
+            match_querystring=match_querystring,
+        )
     else:
         Entry.single_register(
             method,
