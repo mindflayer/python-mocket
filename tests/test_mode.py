@@ -52,6 +52,8 @@ def test_strict_mode_error_message():
             str(exc_info.value)
             == """
 Mocket tried to use the real `socket` module while STRICT mode was active.
+Attempted address: httpbin.local:80
+Sent data: GET /ip HTTP/1.1
 Registered entries:
   ('httpbin.local', 80):
     Entry(method='GET', schema='http', location=('httpbin.local', 80), path='/user.agent', query='')
@@ -67,5 +69,5 @@ def test_strict_mode_false_with_allowed_hosts():
 @pytest.mark.parametrize("strict_mode_on", (False, True))
 def test_strict_mode_allowed_or_not(strict_mode_on):
     with Mocketizer(strict_mode=strict_mode_on):
-        assert MocketMode().is_allowed("foobar.com") is not strict_mode_on
-        assert MocketMode().is_allowed(("foobar.com", 443)) is not strict_mode_on
+        assert MocketMode.is_allowed("foobar.com") is not strict_mode_on
+        assert MocketMode.is_allowed(("foobar.com", 443)) is not strict_mode_on
