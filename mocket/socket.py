@@ -228,7 +228,7 @@ class MocketSocket:
         raise exc
 
     def true_sendall(self, data: bytes, *args: Any, **kwargs: Any) -> bytes:
-        if not MocketMode().is_allowed(self._address):
+        if not MocketMode.is_allowed(self._address):
             MocketMode.raise_not_allowed(self._address, data)
 
         # try to get the response from recordings

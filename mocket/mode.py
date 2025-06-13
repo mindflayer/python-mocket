@@ -9,7 +9,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from typing import NoReturn
 
 
-class MocketMode:
+class _MocketMode:
     __shared_state: ClassVar[dict[str, Any]] = {}
     STRICT: ClassVar = None
     STRICT_ALLOWED: ClassVar = None
@@ -52,7 +52,10 @@ class MocketMode:
             from mocket.compat import decode_from_bytes
 
             preview = decode_from_bytes(data).split("\r\n", 1)[0][:200]
-            msg += f"\nFirst request line: {preview}"
+            msg += f"\nSent data: {preview}"
 
         msg += f"\nRegistered entries:\n{formatted_entries}"
         raise StrictMocketException(msg)
+
+
+MocketMode = _MocketMode()
