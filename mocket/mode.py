@@ -31,7 +31,10 @@ class MocketMode:
         return host_allowed or location in self.STRICT_ALLOWED
 
     @staticmethod
-    def raise_not_allowed() -> NoReturn:
+    def raise_not_allowed(
+        address: tuple[str, int] | None = None,
+        data: bytes | None = None,
+    ) -> NoReturn:
         current_entries = [
             (location, "\n    ".join(map(str, entries)))
             for location, entries in Mocket._entries.items()
@@ -39,7 +42,17 @@ class MocketMode:
         formatted_entries = "\n".join(
             [f"  {location}:\n    {entries}" for location, entries in current_entries]
         )
-        raise StrictMocketException(
-            "Mocket tried to use the real `socket` module while STRICT mode was active.\n"
-            f"Registered entries:\n{formatted_entries}"
+        msg = (
+            "Mocket tried to use the real `socket` module while STRICT mode was active."
         )
+        if address:
+            host, port = address
+            msg += f"\nAttempted address: {host}:{port}"
+        if data:
+            from mocket.compat import decode_from_bytes
+
+            preview = decode_from_bytes(data).split("\r\n", 1)[0][:200]
+            msg += f"\nFirst request line: {preview}"
+
+        msg += f"\nRegistered entries:\n{formatted_entries}"
+        raise StrictMocketException(msg)

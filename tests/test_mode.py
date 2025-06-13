@@ -52,6 +52,8 @@ def test_strict_mode_error_message():
             str(exc_info.value)
             == """
 Mocket tried to use the real `socket` module while STRICT mode was active.
+Attempted address: httpbin.local:80
+First request line: GET /ip HTTP/1.1
 Registered entries:
   ('httpbin.local', 80):
     Entry(method='GET', schema='http', location=('httpbin.local', 80), path='/user.agent', query='')
