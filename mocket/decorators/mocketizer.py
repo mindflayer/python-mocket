@@ -20,9 +20,9 @@ class Mocketizer:
         self.instance = instance
         self.truesocket_recording_dir = truesocket_recording_dir
         self.namespace = namespace or str(id(self))
-        MocketMode().STRICT = strict_mode
+        MocketMode.STRICT = strict_mode
         if strict_mode:
-            MocketMode().STRICT_ALLOWED = strict_mode_allowed or []
+            MocketMode.STRICT_ALLOWED = strict_mode_allowed or []
         elif strict_mode_allowed:
             raise ValueError(
                 "Allowed locations are only accepted when STRICT mode is active."
