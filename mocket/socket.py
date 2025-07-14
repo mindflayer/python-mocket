@@ -191,6 +191,74 @@ class MocketSocket:
             self.io.truncate()
             self.io.seek(0)
 
+    def sendmsg(
+        self,
+        buffers: list[ReadableBuffer],
+        ancdata: list[tuple[int, bytes]] | None = None,
+        flags: int = 0,
+        address: Address | None = None,
+    ) -> int:
+        if not buffers:
+            return 0
+
+        data = b"".join(buffers)
+        self.sendall(data)
+        return len(data)
+
+    def recvmsg(
+        self,
+        buffersize: int | None = None,
+        ancbufsize: int | None = None,
+        flags: int = 0,
+    ) -> tuple[bytes, list[tuple[int, bytes]]]:
+        """
+        Receive a message from the socket.
+        This is a mock implementation that reads from the MocketSocketIO.
+        """
+        data = self.recv(buffersize)
+        if not data:
+            return b"", []
+
+        # Mocking the ancillary data and flags as empty
+        return data, []
+
+    def recvmsg_into(
+        self,
+        buffers: list[ReadableBuffer],
+        ancbufsize: int | None = None,
+        flags: int = 0,
+        address: Address | None = None,
+    ):
+        """
+        Receive a message into multiple buffers.
+        This is a mock implementation that reads from the MocketSocketIO.
+        """
+        if not buffers:
+            return 0
+
+        data = self.recv(len(buffers[0]))
+        if not data:
+            return 0
+
+        for i, buffer in enumerate(buffers):
+            if i < len(data):
+                buffer[: len(data)] = data
+            else:
+                buffer[:] = b""
+        return len(data)
+
+    def recvfrom_into(
+        self,
+        buffer: WriteableBuffer,
+        buffersize: int | None = None,
+        flags: int | None = None,
+    ):
+        """
+        Receive data into a buffer and return the number of bytes received.
+        This is a mock implementation that reads from the MocketSocketIO.
+        """
+        return self.recv_into(buffer, buffersize, flags)
+
     def recv_into(
         self,
         buffer: WriteableBuffer,
@@ -285,6 +353,18 @@ class MocketSocket:
                 req.add_data(data)
         self._entry = entry
         return len(data)
+
+    def accept(self) -> tuple[MocketSocket, _RetAddress]:
+        """Accept a connection and return a new MocketSocket object."""
+        new_socket = MocketSocket(
+            family=self._family,
+            type=self._type,
+            proto=self._proto,
+        )
+        new_socket._address = (self._host, self._port)
+        new_socket._host = self._host
+        new_socket._port = self._port
+        return new_socket, (self._host, self._port)
 
     def close(self) -> None:
         if self._true_socket and not self._true_socket._closed:
