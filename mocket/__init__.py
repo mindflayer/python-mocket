@@ -31,4 +31,4 @@ __all__ = (
     "FakeSSLContext",
 )
 
-__version__ = "3.13.9"
+__version__ = "3.13.10"
