@@ -53,6 +53,12 @@ def test_recvmsg_into():
     assert buf[: len(test_data)] == test_data
 
 
+def test_recvmsg_into_empty_buffers():
+    sock = MocketSocket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.recvmsg_into([])
+    assert result == 0
+
+
 def test_accept():
     sock = MocketSocket(socket.AF_INET, socket.SOCK_STREAM)
     sock._host = "127.0.0.1"
@@ -78,3 +84,9 @@ def test_sendmsg():
     total_sent = sock.sendmsg(msg)
     assert total_sent == sum(len(m) for m in msg)
     assert Mocket.last_request() == b"".join(msg)
+
+
+def test_sendmsg_empty_buffers():
+    sock = MocketSocket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.sendmsg([])
+    assert result == 0
