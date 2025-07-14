@@ -63,3 +63,18 @@ def test_accept():
     assert addr == ("127.0.0.1", 8080)
     assert new_sock._host == "127.0.0.1"
     assert new_sock._port == 8080
+
+
+@mocketize
+def test_sendmsg():
+    sock = MocketSocket(socket.AF_INET, socket.SOCK_STREAM)
+    sock._host = "127.0.0.1"
+    sock._port = 8080
+    response_data = b"pong"
+
+    Mocket.register(MocketEntry((sock._host, sock._port), [response_data]))
+
+    msg = [b"foo", b"bar", b"foobaz"]
+    total_sent = sock.sendmsg(msg)
+    assert total_sent == sum(len(m) for m in msg)
+    assert Mocket.last_request() == b"".join(msg)

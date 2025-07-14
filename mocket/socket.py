@@ -201,7 +201,7 @@ class MocketSocket:
         if not buffers:
             return 0
 
-        data = b"".join(buffers)
+        data = b"".join(bytes(b) for b in buffers)
         self.sendall(data)
         return len(data)
 
@@ -308,7 +308,13 @@ class MocketSocket:
             if record is not None:
                 return record.response
 
-        host, port = self._address
+        try:
+            host, port = self._address
+        except TypeError:
+            host = self._host
+            port = self._port
+            self._address = (host, port)
+
         host = true_gethostbyname(host)
 
         with contextlib.suppress(OSError, ValueError):
