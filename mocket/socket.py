@@ -308,13 +308,7 @@ class MocketSocket:
             if record is not None:
                 return record.response
 
-        try:
-            host, port = self._address
-        except TypeError:
-            host = self._host
-            port = self._port
-            self._address = (host, port)
-
+        host, port = self._address
         host = true_gethostbyname(host)
 
         with contextlib.suppress(OSError, ValueError):
