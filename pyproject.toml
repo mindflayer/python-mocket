@@ -61,6 +61,7 @@ test = [
     "mypy",
     "types-decorator",
     "types-requests",
+    "trio",
 ]
 speedups = [
     "xxhash;platform_python_implementation=='CPython'",
