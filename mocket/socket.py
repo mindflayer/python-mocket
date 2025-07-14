@@ -215,8 +215,9 @@ class MocketSocket:
         Receive a message from the socket.
         This is a mock implementation that reads from the MocketSocketIO.
         """
-        data = self.recv(buffersize)
-        if not data:
+        try:
+            data = self.recv(buffersize)
+        except BlockingIOError:
             return b"", []
 
         # Mocking the ancillary data and flags as empty
@@ -236,8 +237,9 @@ class MocketSocket:
         if not buffers:
             return 0
 
-        data = self.recv(len(buffers[0]))
-        if not data:
+        try:
+            data = self.recv(len(buffers[0]))
+        except BlockingIOError:
             return 0
 
         for i, buffer in enumerate(buffers):
@@ -257,7 +259,7 @@ class MocketSocket:
         Receive data into a buffer and return the number of bytes received.
         This is a mock implementation that reads from the MocketSocketIO.
         """
-        return self.recv_into(buffer, buffersize, flags)
+        return self.recv_into(buffer, buffersize, flags), self._address
 
     def recv_into(
         self,

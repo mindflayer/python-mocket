@@ -90,3 +90,39 @@ def test_sendmsg_empty_buffers():
     sock = MocketSocket(socket.AF_INET, socket.SOCK_STREAM)
     result = sock.sendmsg([])
     assert result == 0
+
+
+def test_recvmsg_no_data():
+    sock = MocketSocket(socket.AF_INET, socket.SOCK_STREAM)
+    # Mock _io.read to return empty bytes
+    sock._io = type("MockIO", (), {"read": lambda self, n: b""})()
+    data, ancdata = sock.recvmsg(1024)
+    assert data == b""
+    assert ancdata == []
+
+
+def test_recvmsg_into_no_data():
+    sock = MocketSocket(socket.AF_INET, socket.SOCK_STREAM)
+    # Mock _io.read to return empty bytes
+    sock._io = type("MockIO", (), {"read": lambda self, n: b""})()
+    buf = bytearray(10)
+    nbytes = sock.recvmsg_into([buf])
+    assert nbytes == 0
+    assert buf == bytearray(10)
+
+
+def test_getsockopt():
+    # getsockopt is a static method, so we can call it directly
+    result = MocketSocket.getsockopt(0, 0)
+    assert result == socket.SOCK_STREAM
+
+
+def test_recvfrom_into():
+    sock = MocketSocket(socket.AF_INET, socket.SOCK_STREAM)
+    test_data = b"abc123"
+    sock._io = type("MockIO", (), {"read": lambda self, n: test_data})()
+    buf = bytearray(10)
+    nbytes, addr = sock.recvfrom_into(buf)
+    assert nbytes == len(test_data)
+    assert buf[:nbytes] == test_data
+    assert addr == sock._address
