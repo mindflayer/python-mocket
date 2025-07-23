@@ -36,9 +36,7 @@ class Mocket:
         if truesocket_recording_dir is not None:
             recording_dir = Path(truesocket_recording_dir)
 
-            if not recording_dir.is_dir():
-                # JSON dumps will be saved here
-                raise AssertionError
+            assert recording_dir.is_dir(), f"Not a directory: {recording_dir}"
 
             cls._record_storage = MocketRecordStorage(
                 directory=recording_dir,
@@ -118,15 +116,11 @@ class Mocket:
 
     @classmethod
     def get_namespace(cls) -> str | None:
-        if not cls._record_storage:
-            return None
-        return cls._record_storage.namespace
+        return cls._record_storage.namespace if cls._record_storage else None
 
     @classmethod
     def get_truesocket_recording_dir(cls) -> str | None:
-        if not cls._record_storage:
-            return None
-        return str(cls._record_storage.directory)
+        return str(cls._record_storage.directory) if cls._record_storage else None
 
     @classmethod
     def assert_fail_if_entries_not_served(cls) -> None:
