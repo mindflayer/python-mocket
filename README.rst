@@ -27,6 +27,20 @@ A socket mock framework
 
 ...and then MicroPython's *urequests* (*mocket >= 3.9.1*)
 
+What is it about?
+=================
+
+In a nutshell, **Mocket** is *monkey-patching on steroids* for the ``socket`` and ``ssl`` modules.
+
+It’s designed to serve two main purposes:
+
+- As a **low-level framework** — for example, if you're building a client for a new database or protocol.
+- As a **ready-to-use mock** — perfect for testing HTTP or HTTPS calls from any client library.
+
+To demonstrate that Mocket is more than just a web client mocking tool, it even includes a simple Redis mock.
+
+The main goal of Mocket is to make it easier to test Python clients that communicate using the ``socket`` protocol.
+
 Outside GitHub
 ==============
 
