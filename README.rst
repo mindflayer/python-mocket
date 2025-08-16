@@ -88,7 +88,7 @@ As next step, you are invited to have a look at the implementation of both the m
 
 Please also have a look at the huge test suite:
 
-- Tests module at https://github.com/mindflayer/python-mocket/tree/master/tests
+- Tests module at https://github.com/mindflayer/python-mocket/tree/main/tests
 
 Installation
 ============
