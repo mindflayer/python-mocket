@@ -443,3 +443,8 @@ class HttpEntryTestCase(HttpTestCase):
                 Response(body='{"foo":"bar0"}', status=200),
                 invalid_key=True,
             )
+
+    def test_add_trailing_slash(self):
+        url = "http://testme.org"
+        entry = Entry(url, "GET", [Response(body='{"foo":"bar0"}', status=200)])
+        self.assertEqual(entry.path, "/")

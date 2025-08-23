@@ -153,7 +153,7 @@ class Entry(MocketEntry):
 
         super().__init__((uri.hostname, port), responses)
         self.schema = uri.scheme
-        self.path = uri.path
+        self.path = uri.path or "/"
         self.query = uri.query
         self.method = method.upper()
         self._sent_data = b""
