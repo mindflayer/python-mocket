@@ -7,7 +7,7 @@ import pytest
 import requests
 
 from mocket import Mocket, Mocketizer, mocketize
-from mocket.mockhttp import Entry
+from mocket.mockhttp import Entry  # noqa - test retrocompatibility
 
 
 @pytest.fixture
