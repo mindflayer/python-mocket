@@ -142,7 +142,9 @@ class Entry(MocketEntry):
     request_cls = Request
     response_cls = Response
 
-    def __init__(self, uri, method, responses, match_querystring=True):
+    default_config = {"match_querystring": True}
+
+    def __init__(self, uri, method, responses, match_querystring: bool = True):
         uri = urlsplit(uri)
 
         port = uri.port
@@ -151,7 +153,7 @@ class Entry(MocketEntry):
 
         super().__init__((uri.hostname, port), responses)
         self.schema = uri.scheme
-        self.path = uri.path
+        self.path = uri.path or "/"
         self.query = uri.query
         self.method = method.upper()
         self._sent_data = b""
@@ -227,16 +229,15 @@ class Entry(MocketEntry):
         if "body" in config or "status" in config:
             raise AttributeError("Did you mean `Entry.single_register(...)`?")
 
-        default_config = dict(match_querystring=True, add_trailing_slash=True)
-        default_config.update(config)
-        config = default_config
+        if config.keys() - cls.default_config.keys():
+            raise KeyError(
+                f"Invalid config keys: {config.keys() - cls.default_config.keys()}"
+            )
 
-        if config["add_trailing_slash"] and not urlsplit(uri).path:
-            uri += "/"
+        _config = cls.default_config.copy()
+        _config.update({k: v for k, v in config.items() if k in _config})
 
-        Mocket.register(
-            cls(uri, method, responses, match_querystring=config["match_querystring"])
-        )
+        Mocket.register(cls(uri, method, responses, **_config))
 
     @classmethod
     def single_register(
@@ -246,8 +247,9 @@ class Entry(MocketEntry):
         body="",
         status=200,
         headers=None,
-        match_querystring=True,
         exception=None,
+        match_querystring=True,
+        **config,
     ):
         response = (
             exception
@@ -260,4 +262,5 @@ class Entry(MocketEntry):
             uri,
             response,
             match_querystring=match_querystring,
+            **config,
         )

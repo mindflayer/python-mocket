@@ -12,7 +12,7 @@ import pytest
 import requests
 
 from mocket import Mocket, Mocketizer, mocketize
-from mocket.mockhttp import Entry, Response
+from mocket.mocks.mockhttp import Entry, Response
 
 
 class HttpTestCase(TestCase):
@@ -433,3 +433,25 @@ class HttpEntryTestCase(HttpTestCase):
                 url,
                 status=201,
             )
+
+    def test_invalid_config_key(self):
+        url = "http://foobar.com/path"
+        with self.assertRaises(KeyError):
+            Entry.register(
+                Entry.POST,
+                url,
+                Response(body='{"foo":"bar0"}', status=200),
+                invalid_key=True,
+            )
+
+    def test_add_trailing_slash(self):
+        url = "http://testme.org"
+        entry = Entry(url, "GET", [Response(body='{"foo":"bar0"}', status=200)])
+        self.assertEqual(entry.path, "/")
+
+    @mocketize
+    def test_mocket_with_no_path(self):
+        Entry.register(Entry.GET, "http://httpbin.local", Response(status=202))
+        response = urlopen("http://httpbin.local/")
+        self.assertEqual(response.code, 202)
+        self.assertEqual(Mocket._entries[("httpbin.local", 80)][0].path, "/")

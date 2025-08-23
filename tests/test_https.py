@@ -7,7 +7,7 @@ import pytest
 import requests
 
 from mocket import Mocket, Mocketizer, mocketize
-from mocket.mockhttp import Entry
+from mocket.mockhttp import Entry  # noqa - test retrocompatibility
 
 
 @pytest.fixture
@@ -43,6 +43,7 @@ def test_json(response):
 
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
+@pytest.mark.xfail(reason="Service down or blocking GitHub actions IPs")
 def test_truesendall_with_recording_https(url_to_mock):
     with tempfile.TemporaryDirectory() as temp_dir, Mocketizer(
         truesocket_recording_dir=temp_dir
@@ -62,6 +63,7 @@ def test_truesendall_with_recording_https(url_to_mock):
 
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
+@pytest.mark.xfail(reason="Service down or blocking GitHub actions IPs")
 def test_truesendall_after_mocket_session(url_to_mock):
     Mocket.enable()
     Mocket.disable()
@@ -71,6 +73,7 @@ def test_truesendall_after_mocket_session(url_to_mock):
 
 
 @pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
+@pytest.mark.xfail(reason="Service down or blocking GitHub actions IPs")
 def test_real_request_session(url_to_mock):
     session = requests.Session()
 
