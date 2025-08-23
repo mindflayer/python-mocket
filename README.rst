@@ -225,6 +225,37 @@ It's very important that we test non-happy paths.
         with self.assertRaises(requests.exceptions.ConnectionError):
             requests.get(url)
 
+Example of how to mock a call with a custom `can_handle` function
+=================================================================
+.. code-block:: python
+
+    import json
+
+    from mocket import mocketize
+    from mocket.mocks.mockhttp import Entry
+    import requests
+
+    @mocketize
+    def test_can_handle():
+        Entry.single_register(
+            Entry.GET,
+            url,
+            body=json.dumps({"message": "Nope... not this time!"}),
+            headers={"content-type": "application/json"},
+            can_handle_fun=lambda path, qs_dict: path == "/ip" and qs_dict,
+        )
+        Entry.single_register(
+            Entry.GET,
+            url,
+            body=json.dumps({"message": "There you go!"}),
+            headers={"content-type": "application/json"},
+            can_handle_fun=lambda path, qs_dict: path == "/ip" and not qs_dict,
+        )
+        resp = requests.get("https://httpbin.org/ip")
+        assert resp.status_code == 200
+        assert resp.json() == {"message": "There you go!"}
+
+
 Example of how to record real socket traffic
 ============================================
 
@@ -251,10 +282,12 @@ You probably know what *VCRpy* is capable of, that's the *mocket*'s way of achie
 
 HTTPretty compatibility layer
 =============================
-Mocket HTTP mock can work as *HTTPretty* replacement for many different use cases. Two main features are missing:
+Mocket HTTP mock can work as *HTTPretty* replacement for many different use cases. Two main features are missing, or better said, are implemented differently:
 
-- URL entries containing regular expressions;
-- response body from functions (used mostly to fake errors, *mocket* doesn't need to do it this way).
+- URL entries containing regular expressions, *Mocket* implements `can_handle_fun` which is way simpler to use and more powerful;
+- response body from functions (used mostly to fake errors, *Mocket* accepts an `exception` instead).
+
+Both features are documented above.
 
 Two features which are against the Zen of Python, at least imho (*mindflayer*), but of course I am open to call it into question.
 

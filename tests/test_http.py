@@ -455,3 +455,30 @@ class HttpEntryTestCase(HttpTestCase):
         response = urlopen("http://httpbin.local/")
         self.assertEqual(response.code, 202)
         self.assertEqual(Mocket._entries[("httpbin.local", 80)][0].path, "/")
+
+    @mocketize
+    def test_can_handle(self):
+        Entry.single_register(
+            Entry.POST,
+            "http://testme.org/foobar",
+            body=json.dumps({"message": "Spooky!"}),
+            match_querystring=False,
+        )
+        Entry.single_register(
+            Entry.GET,
+            "http://testme.org/",
+            body=json.dumps({"message": "Gotcha!"}),
+            can_handle_fun=lambda p, q: p.endswith("/foobar") and "a" in q,
+        )
+        Entry.single_register(
+            Entry.GET,
+            "http://testme.org/foobar",
+            body=json.dumps({"message": "Missed!"}),
+            match_querystring=False,
+        )
+        response = requests.get("http://testme.org/foobar?a=1")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"message": "Gotcha!"})
+        response = requests.get("http://testme.org/foobar?b=2")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"message": "Missed!"})

@@ -91,3 +91,24 @@ def test_raise_exception_from_single_register():
     Entry.single_register(Entry.GET, url, exception=OSError())
     with pytest.raises(requests.exceptions.ConnectionError):
         requests.get(url)
+
+
+@mocketize
+def test_can_handle():
+    Entry.single_register(
+        Entry.GET,
+        "https://httpbin.org",
+        body=json.dumps({"message": "Nope... not this time!"}),
+        headers={"content-type": "application/json"},
+        can_handle_fun=lambda path, qs_dict: path == "/ip" and qs_dict,
+    )
+    Entry.single_register(
+        Entry.GET,
+        "https://httpbin.org",
+        body=json.dumps({"message": "There you go!"}),
+        headers={"content-type": "application/json"},
+        can_handle_fun=lambda path, qs_dict: path == "/ip" and not qs_dict,
+    )
+    resp = requests.get("https://httpbin.org/ip")
+    assert resp.status_code == 200
+    assert resp.json() == {"message": "There you go!"}

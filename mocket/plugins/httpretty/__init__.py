@@ -139,6 +139,4 @@ __all__ = (
     "HEAD",
     "PATCH",
     "register_uri",
-    "str",
-    "bytes",
 )

@@ -194,3 +194,22 @@ async def test_httpx_fixture(httpx_client):
         response = await client.get(url)
 
         assert response.json() == data
+
+
+@pytest.mark.asyncio
+async def test_httpx_fixture_with_can_handle_fun(httpx_client):
+    url = "https://foo.bar/barfoo"
+    data = {"message": "Gotcha!"}
+
+    Entry.single_register(
+        Entry.GET,
+        "https://foo.bar",
+        body=json.dumps(data),
+        headers={"content-type": "application/json"},
+        can_handle_fun=lambda p, q: p.endswith("foo"),
+    )
+
+    async with httpx_client as client:
+        response = await client.get(url)
+
+        assert response.json() == data
