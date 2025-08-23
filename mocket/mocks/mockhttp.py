@@ -237,9 +237,7 @@ class Entry(MocketEntry):
         _config = cls.default_config.copy()
         _config.update({k: v for k, v in config.items() if k in _config})
 
-        Mocket.register(
-            cls(uri, method, responses, match_querystring=_config["match_querystring"])
-        )
+        Mocket.register(cls(uri, method, responses, **_config))
 
     @classmethod
     def single_register(
