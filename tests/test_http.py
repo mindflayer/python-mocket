@@ -433,3 +433,13 @@ class HttpEntryTestCase(HttpTestCase):
                 url,
                 status=201,
             )
+
+    def test_invalid_config_key(self):
+        url = "http://foobar.com/path"
+        with self.assertRaises(KeyError):
+            Entry.register(
+                Entry.POST,
+                url,
+                Response(body='{"foo":"bar0"}', status=200),
+                invalid_key=True,
+            )
