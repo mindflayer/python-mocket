@@ -145,7 +145,7 @@ class Entry(MocketEntry):
     default_config = {"match_querystring": True}
 
     def __init__(self, uri, method, responses, match_querystring: bool = True):
-        self.uri = urlsplit(uri)
+        uri = urlsplit(uri)
 
         port = uri.port
         if not port:
