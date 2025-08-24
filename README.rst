@@ -225,8 +225,8 @@ It's very important that we test non-happy paths.
         with self.assertRaises(requests.exceptions.ConnectionError):
             requests.get(url)
 
-Example of how to mock a call with a custom `can_handle` function
-=================================================================
+Example of how to mock a call with a custom request matching logic
+==================================================================
 .. code-block:: python
 
     import json
