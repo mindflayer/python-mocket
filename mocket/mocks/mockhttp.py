@@ -2,6 +2,7 @@ import re
 import time
 from functools import cached_property
 from http.server import BaseHTTPRequestHandler
+from typing import Callable, Optional
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from h11 import SERVER, Connection, Data
@@ -82,9 +83,7 @@ class Response:
         self.status = status
 
         self.set_base_headers()
-
-        if headers is not None:
-            self.set_extra_headers(headers)
+        self.set_extra_headers(headers)
 
         self.data = self.get_protocol_data() + self.body
 
@@ -142,9 +141,19 @@ class Entry(MocketEntry):
     request_cls = Request
     response_cls = Response
 
-    default_config = {"match_querystring": True}
+    default_config = {"match_querystring": True, "can_handle_fun": None}
+    _can_handle_fun: Optional[Callable] = None
 
-    def __init__(self, uri, method, responses, match_querystring: bool = True):
+    def __init__(
+        self,
+        uri,
+        method,
+        responses,
+        match_querystring: bool = True,
+        can_handle_fun: Optional[Callable] = None,
+    ):
+        self._can_handle_fun = can_handle_fun if can_handle_fun else self._can_handle
+
         uri = urlsplit(uri)
 
         port = uri.port
@@ -177,6 +186,18 @@ class Entry(MocketEntry):
 
         return consume_response
 
+    def _can_handle(self, path: str, qs_dict: dict) -> bool:
+        """
+        The default can_handle function, which checks if the path match,
+        and if match_querystring is True, also checks if the querystring matches.
+        """
+        can_handle = path == self.path
+        if self._match_querystring:
+            can_handle = can_handle and qs_dict == parse_qs(
+                self.query, keep_blank_values=True
+            )
+        return can_handle
+
     def can_handle(self, data):
         r"""
         >>> e = Entry('http://www.github.com/?bar=foo&foobar', Entry.GET, (Response(b'<html/>'),))
@@ -192,13 +213,12 @@ class Entry(MocketEntry):
         except ValueError:
             return self is getattr(Mocket, "_last_entry", None)
 
-        uri = urlsplit(path)
-        can_handle = uri.path == self.path and method == self.method
-        if self._match_querystring:
-            kw = dict(keep_blank_values=True)
-            can_handle = can_handle and parse_qs(uri.query, **kw) == parse_qs(
-                self.query, **kw
-            )
+        _request = urlsplit(path)
+
+        can_handle = method == self.method and self._can_handle_fun(
+            _request.path, parse_qs(_request.query, keep_blank_values=True)
+        )
+
         if can_handle:
             Mocket._last_entry = self
         return can_handle
@@ -249,8 +269,27 @@ class Entry(MocketEntry):
         headers=None,
         exception=None,
         match_querystring=True,
+        can_handle_fun=None,
         **config,
     ):
+        """
+        A helper method to register a single Response for a given URI and method.
+        Instead of passing a list of Response objects, you can just pass the response
+        parameters directly.
+
+        Args:
+            method (str): The HTTP method (e.g., 'GET', 'POST').
+            uri (str): The URI to register the response for.
+            body (str, optional): The body of the response. Defaults to an empty string.
+            status (int, optional): The HTTP status code. Defaults to 200.
+            headers (dict, optional): A dictionary of headers to include in the response. Defaults to None.
+            exception (Exception, optional): An exception to raise instead of returning a response. Defaults to None.
+            match_querystring (bool, optional): Whether to match the querystring in the URI. Defaults to True.
+            can_handle_fun (Callable, optional): A custom function to determine if the Entry can handle a request.
+                Defaults to None. If None, the default matching logic is used. The function should accept two parameters:
+                path (str), and querystring params (dict), and return a boolean. Method is matched before the function call.
+            **config: Additional configuration options.
+        """
         response = (
             exception
             if exception
@@ -262,5 +301,6 @@ class Entry(MocketEntry):
             uri,
             response,
             match_querystring=match_querystring,
+            can_handle_fun=can_handle_fun,
             **config,
         )
