@@ -340,7 +340,7 @@ Example:
 .. code-block:: python
 
     # `aiohttp` creates SSLContext instances at import-time
-    # that's why Mocket would get stuck when dealing with HTTP
+    # that's why Mocket would get stuck when dealing with HTTPS
     # Importing the module while Mocket is in control (inside a
     # decorated test function or using its context manager would
     # be enough for making it work), the alternative is using a
