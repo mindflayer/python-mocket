@@ -344,7 +344,7 @@ Example:
     # Importing the module while Mocket is in control (inside a
     # decorated test function or using its context manager would
     # be enough for making it work), the alternative is using a
-    # custom TCPConnector which always return a FakeSSLContext
+    # custom TCPConnector which always returns a FakeSSLContext
     # from Mocket like this example is showing.
     import aiohttp
     import pytest
