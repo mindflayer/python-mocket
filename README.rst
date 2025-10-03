@@ -1,5 +1,5 @@
 ===============
-mocket /mɔˈkɛt/
+mocket /ˈmɔ.kɛt/
 ===============
 
 .. image:: https://github.com/mindflayer/python-mocket/actions/workflows/main.yml/badge.svg?branch=main
