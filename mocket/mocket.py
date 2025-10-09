@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 class Mocket:
     _socket_pairs: ClassVar[dict[Address, tuple[int, int]]] = {}
-    _address: ClassVar[Address] = (None, None)
+    _address: ClassVar[Address | tuple[None, None]] = (None, None)
     _entries: ClassVar[dict[Address, list[MocketEntry]]] = collections.defaultdict(list)
     _requests: ClassVar[list] = []
     _record_storage: ClassVar[MocketRecordStorage | None] = None
