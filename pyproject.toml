@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 requires-python = ">=3.8"
 name = "mocket"
 description = "Socket Mock Framework - for all kinds of socket animals, web-clients included - with gevent/asyncio/SSL support"
-readme = { file = "README.rst", content-type = "text/x-rst" }
+readme = "README.rst"
 license = { file = "LICENSE" }
 authors = [{ name = "Giorgio Salluzzo", email = "giorgio.salluzzo@gmail.com" }]
 classifiers = [
