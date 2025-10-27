@@ -124,7 +124,7 @@ select = [
 max-complexity = 8
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.13"
 files = [
     "mocket/exceptions.py",
     "mocket/compat.py",
