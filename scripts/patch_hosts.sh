@@ -1,5 +1,9 @@
-sudo grep -v httpbin.local /etc/hosts | sudo tee /etc/hosts.mocket
-export CONTAINER_ID=$(docker compose ps -q proxy)
-export CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_ID)
-echo "$CONTAINER_IP httpbin.local" | sudo tee -a /etc/hosts.mocket
-sudo mv /etc/hosts.mocket /etc/hosts
+HOSTS=/etc/hosts
+MOCKET_HOSTS=/etc/hosts.mocket
+HTTPBIN_HOST=httpbin.local
+
+sudo grep -v ${HTTPBIN_HOST} ${HOSTS} | sudo tee ${MOCKET_HOSTS}
+CONTAINER_ID=$(docker compose ps -q proxy)
+CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_ID})
+echo "${CONTAINER_IP} ${HTTPBIN_HOST}" | sudo tee -a ${MOCKET_HOSTS}
+sudo mv ${MOCKET_HOSTS} ${HOSTS}
