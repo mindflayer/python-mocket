@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 requires-python = ">=3.8"
 name = "mocket"
 description = "Socket Mock Framework - for all kinds of socket animals, web-clients included - with gevent/asyncio/SSL support"
-readme = { file = "README.rst", content-type = "text/x-rst" }
+readme = "README.rst"
 license = { file = "LICENSE" }
 authors = [{ name = "Giorgio Salluzzo", email = "giorgio.salluzzo@gmail.com" }]
 classifiers = [
@@ -19,6 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Software Development",
@@ -126,7 +127,7 @@ select = [
 max-complexity = 8
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.13"
 files = [
     "mocket/exceptions.py",
     "mocket/compat.py",
