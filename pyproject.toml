@@ -62,7 +62,7 @@ test = [
     "fastapi",
     "aiohttp",
     "wait-for-it",
-    "mypy",
+    "mypy; platform_python_implementation!='PyPy'",
     "types-decorator",
     "types-requests",
     "trio",

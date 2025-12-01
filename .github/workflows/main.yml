@@ -52,8 +52,11 @@ jobs:
         make services-up
     - name: Test
       run: |
-        make test
-        make services-down
+        if [[ "${{ matrix.python-version }}" == pypy* ]]; then
+          SKIP_MYPY=1 make test
+        else
+          make test
+        fi
     - name: Minimize uv cache
       run: uv cache prune --ci
     - name: Upload coverage reports to Codecov
