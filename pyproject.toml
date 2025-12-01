@@ -7,7 +7,10 @@ requires-python = ">=3.8"
 name = "mocket"
 description = "Socket Mock Framework - for all kinds of socket animals, web-clients included - with gevent/asyncio/SSL support"
 readme = "README.rst"
-license = { file = "LICENSE" }
+license = "BSD-3-Clause"
+license-files = [
+    "LICENSE",
+]
 authors = [{ name = "Giorgio Salluzzo", email = "giorgio.salluzzo@gmail.com" }]
 classifiers = [
     "Development Status :: 6 - Mature",
