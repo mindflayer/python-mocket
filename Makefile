@@ -26,8 +26,12 @@ setup: develop
 develop: install-dev-requirements install-test-requirements
 
 types:
-	@echo "Type checking Python files"
-	$(VENV_PATH)/mypy --pretty
+	@if [ -n "$$SKIP_MYPY" ]; then \
+		echo "Skipping mypy types check because SKIP_MYPY is set"; \
+	else \
+		echo "Type checking Python files"; \
+		$(VENV_PATH)/mypy --pretty; \
+	fi
 	@echo ""
 
 test: types
