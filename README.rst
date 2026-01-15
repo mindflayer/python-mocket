@@ -47,12 +47,13 @@ The main goal of Mocket is to make it easier to test Python clients that communi
 Outside GitHub
 ==============
 
-Mocket packages are available for `openSUSE`_, `NixOS`_, `ALT Linux`_, `NetBSD`_, and of course from `PyPI`_.
+Mocket packages are available for `openSUSE`_, `NixOS`_, `ALT Linux`_, `NetBSD`_, `AUR Arch Linux`_, and of course from `PyPI`_.
 
 .. _`openSUSE`: https://software.opensuse.org/search?baseproject=ALL&q=mocket
 .. _`NixOS`: https://search.nixos.org/packages?query=mocket
 .. _`ALT Linux`: https://packages.altlinux.org/en/sisyphus/srpms/python3-module-mocket/
 .. _`NetBSD`: https://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc/devel/py-mocket/index.html
+.. _`AUR Arch Linux`: https://aur.archlinux.org/packages/python-mocket
 .. _`PyPI`: https://pypi.org/project/mocket/
 
 
