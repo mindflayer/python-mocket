@@ -1,4 +1,6 @@
 import socket
+import struct
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -126,3 +128,22 @@ def test_recvfrom_into():
     assert nbytes == len(test_data)
     assert buf[:nbytes] == test_data
     assert addr == sock._address
+
+
+def test_setsockopt_without_optlen():
+    sock = MocketSocket(socket.AF_INET, socket.SOCK_STREAM)
+    sock._true_socket = MagicMock()
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock._true_socket.setsockopt.assert_called_once_with(
+        socket.SOL_SOCKET, socket.SO_REUSEADDR, 1
+    )
+
+
+def test_setsockopt_with_optlen():
+    sock = MocketSocket(socket.AF_INET, socket.SOCK_STREAM)
+    sock._true_socket = MagicMock()
+    linger_value = struct.pack("ii", 1, 5)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, linger_value, len(linger_value))
+    sock._true_socket.setsockopt.assert_called_once_with(
+        socket.SOL_SOCKET, socket.SO_LINGER, linger_value, len(linger_value)
+    )
