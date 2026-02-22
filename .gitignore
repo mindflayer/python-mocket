@@ -28,3 +28,4 @@ shippable
 .vscode/
 Pipfile.lock
 requirements.txt
+coverage.xml

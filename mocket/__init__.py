@@ -1,3 +1,5 @@
+"""Mocket - socket mocking library for Python."""
+
 import importlib
 import sys
 

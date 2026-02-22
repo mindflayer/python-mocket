@@ -1,3 +1,5 @@
+"""Socket patching and restoration for Mocket injection."""
+
 from __future__ import annotations
 
 import contextlib
@@ -12,17 +14,31 @@ _patches_restore: dict[tuple[ModuleType, str], Any] = {}
 
 
 def _patch(module: ModuleType, name: str, patched_value: Any) -> None:
+    """Patch a module with a new value and store the original.
+
+    Args:
+        module: Module to patch
+        name: Attribute name to patch
+        patched_value: New value to set
+    """
     with contextlib.suppress(KeyError):
         original_value, module.__dict__[name] = module.__dict__[name], patched_value
         _patches_restore[(module, name)] = original_value
 
 
 def _restore(module: ModuleType, name: str) -> None:
+    """Restore a module's original attribute value.
+
+    Args:
+        module: Module to restore
+        name: Attribute name to restore
+    """
     if original_value := _patches_restore.pop((module, name)):
         module.__dict__[name] = original_value
 
 
 def enable() -> None:
+    """Enable Mocket by patching socket, ssl, and urllib3 modules."""
     from mocket.socket import (
         MocketSocket,
         mock_create_connection,
@@ -71,6 +87,7 @@ def enable() -> None:
 
 
 def disable() -> None:
+    """Disable Mocket by restoring all patched modules."""
     for module, name in list(_patches_restore.keys()):
         _restore(module, name)
 
