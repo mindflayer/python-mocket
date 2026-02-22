@@ -1,3 +1,5 @@
+"""Request/response recording for playback during tests."""
+
 from __future__ import annotations
 
 import contextlib
@@ -6,12 +8,13 @@ import json
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from mocket.compat import decode_from_bytes, encode_to_bytes
 from mocket.types import Address
 from mocket.utils import hexdump, hexload
 
-hash_function = hashlib.md5
+hash_function: Any = hashlib.md5
 
 with contextlib.suppress(ImportError):
     from xxhash_cffi import xxh32 as xxhash_cffi_xxh32
@@ -25,22 +28,48 @@ with contextlib.suppress(ImportError):
 
 
 def _hash_prepare_request(data: bytes) -> bytes:
+    """Prepare request data for hashing by sorting headers.
+
+    Args:
+        data: Raw request data
+
+    Returns:
+        Prepared bytes for hashing
+    """
     _data = decode_from_bytes(data)
     return encode_to_bytes("".join(sorted(_data.split("\r\n"))))
 
 
 def _hash_request(data: bytes) -> str:
+    """Hash a request using the best available hash function.
+
+    Args:
+        data: Raw request data
+
+    Returns:
+        Hex digest of the hash
+    """
     _data = _hash_prepare_request(data)
     return hash_function(_data).hexdigest()
 
 
 def _hash_request_fallback(data: bytes) -> str:
+    """Hash a request using MD5 as fallback.
+
+    Args:
+        data: Raw request data
+
+    Returns:
+        Hex digest of the MD5 hash
+    """
     _data = _hash_prepare_request(data)
     return hashlib.md5(_data).hexdigest()
 
 
 @dataclass
 class MocketRecord:
+    """A record of a request and its corresponding response."""
+
     host: str
     port: int
     request: bytes
@@ -48,7 +77,15 @@ class MocketRecord:
 
 
 class MocketRecordStorage:
+    """Storage for recording and retrieving request/response pairs."""
+
     def __init__(self, directory: Path, namespace: str) -> None:
+        """Initialize the record storage.
+
+        Args:
+            directory: Path to directory for storing recordings
+            namespace: Namespace for grouping records
+        """
         self._directory = directory
         self._namespace = namespace
         self._records: defaultdict[Address, defaultdict[str, MocketRecord]] = (
@@ -59,17 +96,33 @@ class MocketRecordStorage:
 
     @property
     def directory(self) -> Path:
+        """Get the recording directory.
+
+        Returns:
+            Path to recording directory
+        """
         return self._directory
 
     @property
     def namespace(self) -> str:
+        """Get the recording namespace.
+
+        Returns:
+            Namespace string
+        """
         return self._namespace
 
     @property
     def file(self) -> Path:
+        """Get the path to the namespace's JSON file.
+
+        Returns:
+            Path to JSON recording file
+        """
         return self._directory / f"{self._namespace}.json"
 
     def _load(self) -> None:
+        """Load recordings from disk."""
         if not self.file.exists():
             return
 
@@ -92,6 +145,7 @@ class MocketRecordStorage:
                     )
 
     def _save(self) -> None:
+        """Save recordings to disk."""
         data: dict[str, dict[str, dict[str, dict[str, str]]]] = defaultdict(
             lambda: defaultdict(defaultdict)
         )
@@ -108,9 +162,26 @@ class MocketRecordStorage:
         self.file.write_text(json_data)
 
     def get_records(self, address: Address) -> list[MocketRecord]:
+        """Get all records for an address.
+
+        Args:
+            address: (host, port) tuple
+
+        Returns:
+            List of MocketRecord instances
+        """
         return list(self._records[address].values())
 
     def get_record(self, address: Address, request: bytes) -> MocketRecord | None:
+        """Get a specific record matching the request.
+
+        Args:
+            address: (host, port) tuple
+            request: Request bytes
+
+        Returns:
+            Matching MocketRecord or None
+        """
         # NOTE for backward-compat
         request_signature_fallback = _hash_request_fallback(request)
         if request_signature_fallback in self._records[address]:
@@ -128,6 +199,13 @@ class MocketRecordStorage:
         request: bytes,
         response: bytes,
     ) -> None:
+        """Store a new record.
+
+        Args:
+            address: (host, port) tuple
+            request: Request bytes
+            response: Response bytes
+        """
         host, port = address
         record = MocketRecord(
             host=host,

@@ -3,7 +3,6 @@ import contextlib
 with contextlib.suppress(ModuleNotFoundError):
     import pook
     import requests
-
     from mocket.plugins.pook_mock_engine import MocketEngine
 
     pook.set_mock_engine(MocketEngine)

@@ -1,3 +1,5 @@
+"""Urllib3 specific socket mocking."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -8,6 +10,14 @@ from mocket.ssl.socket import MocketSSLSocket
 
 
 def mock_match_hostname(*args: Any) -> None:
+    """Mock urllib3's match_hostname function.
+
+    Args:
+        *args: Ignored arguments
+
+    Returns:
+        None
+    """
     return None
 
 
@@ -16,5 +26,15 @@ def mock_ssl_wrap_socket(
     *args: Any,
     **kwargs: Any,
 ) -> MocketSSLSocket:
+    """Mock urllib3's ssl_wrap_socket function.
+
+    Args:
+        sock: The socket to wrap
+        *args: Additional arguments
+        **kwargs: Additional keyword arguments
+
+    Returns:
+        MocketSSLSocket instance
+    """
     context = MocketSSLContext()
     return context.wrap_socket(sock, *args, **kwargs)

@@ -6,10 +6,10 @@ import tempfile
 
 import aiohttp
 import pytest
-
-from mocket import Mocketizer, async_mocketize
 from mocket.mockhttp import Entry
 from mocket.plugins.aiohttp_connector import MocketTCPConnector
+
+from mocket import Mocketizer, async_mocketize
 
 
 def test_asyncio_record_replay():

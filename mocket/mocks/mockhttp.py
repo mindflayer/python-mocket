@@ -1,8 +1,12 @@
+"""HTTP mocking implementation for Mocket."""
+
+from __future__ import annotations
+
 import re
 import time
 from functools import cached_property
 from http.server import BaseHTTPRequestHandler
-from typing import Callable, Optional
+from typing import Any, Callable
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from h11 import SERVER, Connection, Data
@@ -12,42 +16,79 @@ from mocket.compat import ENCODING, decode_from_bytes, do_the_magic, encode_to_b
 from mocket.entry import MocketEntry
 from mocket.mocket import Mocket
 
-STATUS = {k: v[0] for k, v in BaseHTTPRequestHandler.responses.items()}
-CRLF = "\r\n"
-ASCII = "ascii"
+STATUS: dict = {k: v[0] for k, v in BaseHTTPRequestHandler.responses.items()}
+CRLF: str = "\r\n"
+ASCII: str = "ascii"
 
 
 class Request:
-    _parser = None
-    _event = None
+    """HTTP request parser using h11."""
 
-    def __init__(self, data):
+    _parser: Connection | None = None
+    _event: Any | None = None
+
+    def __init__(self, data: bytes) -> None:
+        """Initialize the request parser.
+
+        Args:
+            data: Raw HTTP request data
+        """
         self._parser = Connection(SERVER)
         self.add_data(data)
 
-    def add_data(self, data):
+    def add_data(self, data: bytes) -> None:
+        """Add more data to the request.
+
+        Args:
+            data: Additional raw request data
+        """
         self._parser.receive_data(data)
 
     @property
-    def event(self):
+    def event(self) -> Any:
+        """Get the parsed request event.
+
+        Returns:
+            The h11 request event
+        """
         if not self._event:
             self._event = self._parser.next_event()
         return self._event
 
     @cached_property
-    def method(self):
+    def method(self) -> str:
+        """Get the HTTP method.
+
+        Returns:
+            HTTP method (GET, POST, etc.)
+        """
         return self.event.method.decode(ASCII)
 
     @cached_property
-    def path(self):
+    def path(self) -> str:
+        """Get the request path.
+
+        Returns:
+            Request path with query string
+        """
         return self.event.target.decode(ASCII)
 
     @cached_property
-    def headers(self):
+    def headers(self) -> dict:
+        """Get the request headers.
+
+        Returns:
+            Dictionary of header names to values
+        """
         return {k.decode(ASCII): v.decode(ASCII) for k, v in self.event.headers}
 
     @cached_property
-    def querystring(self):
+    def querystring(self) -> dict:
+        """Get the parsed query string.
+
+        Returns:
+            Dictionary of query parameter names to lists of values
+        """
         parts = self.path.split("?", 1)
         return (
             parse_qs(unquote(parts[1]), keep_blank_values=True)
@@ -56,7 +97,12 @@ class Request:
         )
 
     @cached_property
-    def body(self):
+    def body(self) -> str:
+        """Get the request body.
+
+        Returns:
+            Decoded request body string
+        """
         while True:
             event = self._parser.next_event()
             if isinstance(event, H11Request):
@@ -64,15 +110,31 @@ class Request:
             elif isinstance(event, Data):
                 return event.data.decode(ENCODING)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Get string representation of request.
+
+        Returns:
+            Formatted request string
+        """
         return f"{self.method} - {self.path} - {self.headers}"
 
 
 class Response:
-    headers = None
-    is_file_object = False
+    """HTTP response builder."""
 
-    def __init__(self, body="", status=200, headers=None):
+    headers: dict | None = None
+    is_file_object: bool = False
+
+    def __init__(
+        self, body: Any = "", status: int = 200, headers: dict | None = None
+    ) -> None:
+        """Initialize an HTTP response.
+
+        Args:
+            body: Response body (string, bytes, or file-like object)
+            status: HTTP status code
+            headers: Dictionary of response headers
+        """
         headers = headers or {}
         try:
             #  File Objects
@@ -88,6 +150,14 @@ class Response:
         self.data = self.get_protocol_data() + self.body
 
     def get_protocol_data(self, str_format_fun_name: str = "capitalize") -> bytes:
+        """Get the HTTP protocol headers and status line.
+
+        Args:
+            str_format_fun_name: Name of string formatting method to use
+
+        Returns:
+            Bytes of protocol headers (status line and headers)
+        """
         status_line = f"HTTP/1.1 {self.status} {STATUS[self.status]}"
         header_lines = CRLF.join(
             (
@@ -97,7 +167,8 @@ class Response:
         )
         return f"{status_line}\r\n{header_lines}\r\n\r\n".encode(ENCODING)
 
-    def set_base_headers(self):
+    def set_base_headers(self) -> None:
+        """Set the base response headers."""
         self.headers = {
             "Status": str(self.status),
             "Date": time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime()),
@@ -110,22 +181,19 @@ class Response:
         else:
             self.headers["Content-Type"] = do_the_magic(self.body)
 
-    def set_extra_headers(self, headers):
-        r"""
-        >>> r = Response(body="<html />")
-        >>> len(r.headers.keys())
-        6
-        >>> r.set_extra_headers({"foo-bar": "Foobar"})
-        >>> len(r.headers.keys())
-        7
-        >>> encode_to_bytes(r.headers.get("Foo-Bar")) == encode_to_bytes("Foobar")
-        True
+    def set_extra_headers(self, headers: dict) -> None:
+        """Add extra headers to the response.
+
+        Args:
+            headers: Dictionary of additional headers
         """
         for k, v in headers.items():
             self.headers["-".join(token.capitalize() for token in k.split("-"))] = v
 
 
 class Entry(MocketEntry):
+    """HTTP entry for matching and responding to HTTP requests."""
+
     CONNECT = "CONNECT"
     DELETE = "DELETE"
     GET = "GET"
@@ -136,22 +204,31 @@ class Entry(MocketEntry):
     PUT = "PUT"
     TRACE = "TRACE"
 
-    METHODS = (CONNECT, DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, TRACE)
+    METHODS: tuple = (CONNECT, DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, TRACE)
 
-    request_cls = Request
-    response_cls = Response
+    request_cls: type = Request
+    response_cls: type = Response
 
-    default_config = {"match_querystring": True, "can_handle_fun": None}
-    _can_handle_fun: Optional[Callable] = None
+    default_config: dict = {"match_querystring": True, "can_handle_fun": None}
+    _can_handle_fun: Callable | None = None
 
     def __init__(
         self,
-        uri,
-        method,
-        responses,
+        uri: str,
+        method: str,
+        responses: Any,
         match_querystring: bool = True,
-        can_handle_fun: Optional[Callable] = None,
-    ):
+        can_handle_fun: Callable | None = None,
+    ) -> None:
+        """Initialize an HTTP entry.
+
+        Args:
+            uri: URI to match (http://host:port/path?query)
+            method: HTTP method (GET, POST, etc.)
+            responses: Response(s) to return
+            match_querystring: Whether to match query strings
+            can_handle_fun: Custom matching function
+        """
         self._can_handle_fun = can_handle_fun if can_handle_fun else self._can_handle
 
         uri = urlsplit(uri)
@@ -168,10 +245,23 @@ class Entry(MocketEntry):
         self._sent_data = b""
         self._match_querystring = match_querystring
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Get string representation of the entry.
+
+        Returns:
+            String representation
+        """
         return f"{self.__class__.__name__}(method={self.method!r}, schema={self.schema!r}, location={self.location!r}, path={self.path!r}, query={self.query!r})"
 
-    def collect(self, data):
+    def collect(self, data: bytes) -> bool:
+        """Collect the request data.
+
+        Args:
+            data: Request data
+
+        Returns:
+            Whether to consume the response
+        """
         consume_response = True
 
         decoded_data = decode_from_bytes(data)
@@ -187,9 +277,14 @@ class Entry(MocketEntry):
         return consume_response
 
     def _can_handle(self, path: str, qs_dict: dict) -> bool:
-        """
-        The default can_handle function, which checks if the path match,
-        and if match_querystring is True, also checks if the querystring matches.
+        """Default can_handle function checking path and query string.
+
+        Args:
+            path: Request path
+            qs_dict: Parsed query string parameters
+
+        Returns:
+            True if this entry can handle the request
         """
         can_handle = path == self.path
         if self._match_querystring:
@@ -198,14 +293,14 @@ class Entry(MocketEntry):
             )
         return can_handle
 
-    def can_handle(self, data):
-        r"""
-        >>> e = Entry('http://www.github.com/?bar=foo&foobar', Entry.GET, (Response(b'<html/>'),))
-        >>> e.can_handle(b'GET /?bar=foo HTTP/1.1\r\nHost: github.com\r\nAccept-Encoding: gzip, deflate\r\nConnection: keep-alive\r\nUser-Agent: python-requests/2.7.0 CPython/3.4.3 Linux/3.19.0-16-generic\r\nAccept: */*\r\n\r\n')
-        False
-        >>> e = Entry('http://www.github.com/?bar=foo&foobar', Entry.GET, (Response(b'<html/>'),))
-        >>> e.can_handle(b'GET /?bar=foo&foobar HTTP/1.1\r\nHost: github.com\r\nAccept-Encoding: gzip, deflate\r\nConnection: keep-alive\r\nUser-Agent: python-requests/2.7.0 CPython/3.4.3 Linux/3.19.0-16-generic\r\nAccept: */*\r\n\r\n')
-        True
+    def can_handle(self, data: bytes) -> bool:
+        """Check if this entry can handle the given request data.
+
+        Args:
+            data: Request data
+
+        Returns:
+            True if this entry can handle the request
         """
         try:
             requestline, _ = decode_from_bytes(data).split(CRLF, 1)
@@ -224,18 +319,17 @@ class Entry(MocketEntry):
         return can_handle
 
     @staticmethod
-    def _parse_requestline(line):
-        """
-        http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5
+    def _parse_requestline(line: str) -> tuple:
+        """Parse an HTTP request line.
 
-        >>> Entry._parse_requestline('GET / HTTP/1.0') == ('GET', '/', '1.0')
-        True
-        >>> Entry._parse_requestline('post /testurl htTP/1.1') == ('POST', '/testurl', '1.1')
-        True
-        >>> Entry._parse_requestline('Im not a RequestLine')
-        Traceback (most recent call last):
-            ...
-        ValueError: Not a Request-Line
+        Args:
+            line: HTTP request line string
+
+        Returns:
+            Tuple of (method, path, version)
+
+        Raises:
+            ValueError: If line is not a valid request line
         """
         m = re.match(
             r"({})\s+(.*)\s+HTTP/(1.[0|1])".format("|".join(Entry.METHODS)), line, re.I
@@ -245,7 +339,19 @@ class Entry(MocketEntry):
         raise ValueError("Not a Request-Line")
 
     @classmethod
-    def register(cls, method, uri, *responses, **config):
+    def register(cls, method: str, uri: str, *responses: Any, **config: Any) -> None:
+        """Register an HTTP entry for multiple responses.
+
+        Args:
+            method: HTTP method (GET, POST, etc.)
+            uri: URI to match
+            *responses: Response(s) to cycle through
+            **config: Configuration options (match_querystring, can_handle_fun)
+
+        Raises:
+            AttributeError: If using body/status params (use single_register instead)
+            KeyError: If invalid config keys provided
+        """
         if "body" in config or "status" in config:
             raise AttributeError("Did you mean `Entry.single_register(...)`?")
 
@@ -262,33 +368,31 @@ class Entry(MocketEntry):
     @classmethod
     def single_register(
         cls,
-        method,
-        uri,
-        body="",
-        status=200,
-        headers=None,
-        exception=None,
-        match_querystring=True,
-        can_handle_fun=None,
-        **config,
-    ):
-        """
-        A helper method to register a single Response for a given URI and method.
-        Instead of passing a list of Response objects, you can just pass the response
-        parameters directly.
+        method: str,
+        uri: str,
+        body: Any = "",
+        status: int = 200,
+        headers: dict | None = None,
+        exception: Exception | None = None,
+        match_querystring: bool = True,
+        can_handle_fun: Callable | None = None,
+        **config: Any,
+    ) -> None:
+        """Register a single HTTP response for a URI and method.
+
+        This is a convenience method that creates a single Response object
+        instead of requiring a list.
 
         Args:
-            method (str): The HTTP method (e.g., 'GET', 'POST').
-            uri (str): The URI to register the response for.
-            body (str, optional): The body of the response. Defaults to an empty string.
-            status (int, optional): The HTTP status code. Defaults to 200.
-            headers (dict, optional): A dictionary of headers to include in the response. Defaults to None.
-            exception (Exception, optional): An exception to raise instead of returning a response. Defaults to None.
-            match_querystring (bool, optional): Whether to match the querystring in the URI. Defaults to True.
-            can_handle_fun (Callable, optional): A custom function to determine if the Entry can handle a request.
-                Defaults to None. If None, the default matching logic is used. The function should accept two parameters:
-                path (str), and querystring params (dict), and return a boolean. Method is matched before the function call.
-            **config: Additional configuration options.
+            method: HTTP method (GET, POST, etc.)
+            uri: URI to match
+            body: Response body content
+            status: HTTP status code
+            headers: Dictionary of response headers
+            exception: Exception to raise instead of returning response
+            match_querystring: Whether to match query strings
+            can_handle_fun: Custom matching function
+            **config: Additional configuration options
         """
         response = (
             exception

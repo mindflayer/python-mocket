@@ -5,9 +5,9 @@ from urllib.request import urlopen
 
 import pytest
 import requests
+from mocket.mockhttp import Entry  # noqa - test retrocompatibility
 
 from mocket import Mocket, Mocketizer, mocketize
-from mocket.mockhttp import Entry  # noqa - test retrocompatibility
 
 
 @pytest.fixture

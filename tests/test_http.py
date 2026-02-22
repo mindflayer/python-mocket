@@ -10,9 +10,9 @@ from urllib.request import urlopen
 
 import pytest
 import requests
+from mocket.mocks.mockhttp import Entry, Response
 
 from mocket import Mocket, Mocketizer, mocketize
-from mocket.mocks.mockhttp import Entry, Response
 
 
 class HttpTestCase(TestCase):

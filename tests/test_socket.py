@@ -1,9 +1,9 @@
 import socket
 
 import pytest
+from mocket.socket import MocketSocket
 
 from mocket import Mocket, MocketEntry, mocketize
-from mocket.socket import MocketSocket
 
 
 @pytest.mark.parametrize("blocking", (False, True))

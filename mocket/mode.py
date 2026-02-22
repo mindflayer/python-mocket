@@ -1,3 +1,5 @@
+"""Mocket mode management for strict socket enforcement."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, ClassVar
@@ -10,17 +12,27 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 class _MocketMode:
+    """Singleton class for managing Mocket's strict mode enforcement."""
+
     __shared_state: ClassVar[dict[str, Any]] = {}
     STRICT: ClassVar = None
     STRICT_ALLOWED: ClassVar = None
 
     def __init__(self) -> None:
+        """Initialize the MocketMode singleton with shared state."""
         self.__dict__ = self.__shared_state
 
     def is_allowed(self, location: str | tuple[str, int]) -> bool:
-        """
+        """Check if a location is allowed to perform real socket calls.
+
         Checks if (`host`, `port`) or at least `host`
         are allowed locations to perform real `socket` calls
+
+        Args:
+            location: Hostname string or (host, port) tuple
+
+        Returns:
+            True if the location is allowed, False if in STRICT mode and not allowed
         """
         if not self.STRICT:
             return True
@@ -35,6 +47,15 @@ class _MocketMode:
         address: tuple[str, int] | None = None,
         data: bytes | None = None,
     ) -> NoReturn:
+        """Raise an exception when a socket operation is not allowed in STRICT mode.
+
+        Args:
+            address: The (host, port) tuple that was attempted
+            data: The request data that was sent
+
+        Raises:
+            StrictMocketException: Always raised with detailed context
+        """
         current_entries = [
             (location, "\n    ".join(map(str, entries)))
             for location, entries in Mocket._entries.items()

@@ -1,3 +1,5 @@
+"""Utility functions for Mocket."""
+
 from __future__ import annotations
 
 import binascii
@@ -14,12 +16,13 @@ _R = TypeVar("_R")
 
 
 class MocketizeDecorator(Protocol):
-    """
+    """Protocol for a flexible decorator that can be used in multiple ways.
+
     This is a generic decorator signature, currently applicable to get_mocketize.
 
-    Decorators can be used as:
+    Decorators implementing this protocol can be used as:
     1. A function that transforms func (the parameter) into func1 (the returned object).
-    2. A function that takes keyword arguments and returns 1.
+    2. A function that takes keyword arguments and returns a decorator.
     """
 
     @overload
@@ -32,18 +35,37 @@ class MocketizeDecorator(Protocol):
 
 
 def hexdump(binary_string: bytes) -> str:
-    r"""
-    >>> hexdump(b"bar foobar foo") == decode_from_bytes(encode_to_bytes("62 61 72 20 66 6F 6F 62 61 72 20 66 6F 6F"))
-    True
+    """Convert binary data to space-separated hex string.
+
+    Args:
+        binary_string: Binary data to convert
+
+    Returns:
+        Space-separated hexadecimal representation
+
+    Example:
+        >>> hexdump(b"bar foobar foo") == decode_from_bytes(encode_to_bytes("62 61 72 20 66 6F 6F 62 61 72 20 66 6F 6F"))
+        True
     """
     bs = decode_from_bytes(binascii.hexlify(binary_string).upper())
     return " ".join(a + b for a, b in zip(bs[::2], bs[1::2]))
 
 
 def hexload(string: str) -> bytes:
-    r"""
-    >>> hexload("62 61 72 20 66 6F 6F 62 61 72 20 66 6F 6F") == encode_to_bytes("bar foobar foo")
-    True
+    """Convert space-separated hex string to binary data.
+
+    Args:
+        string: Space-separated hexadecimal string
+
+    Returns:
+        Binary data
+
+    Raises:
+        ValueError: If the hex string is invalid
+
+    Example:
+        >>> hexload("62 61 72 20 66 6F 6F 62 61 72 20 66 6F 6F") == encode_to_bytes("bar foobar foo")
+        True
     """
     string_no_spaces = "".join(string.split())
     try:
@@ -53,6 +75,18 @@ def hexload(string: str) -> bytes:
 
 
 def get_mocketize(wrapper_: Callable) -> MocketizeDecorator:
+    """Get a mocketize decorator from a wrapper function.
+
+    Decorators can be used as:
+    1. A function that transforms func (the parameter) into func1 (the returned object).
+    2. A function that takes keyword arguments and returns 1.
+
+    Args:
+        wrapper_: The wrapper function to convert to a decorator
+
+    Returns:
+        A MocketizeDecorator instance that can be used as a flexible decorator
+    """
     # trying to support different versions of `decorator`
     with contextlib.suppress(TypeError):
         return decorator.decorator(wrapper_, kwsyntax=True)  # type: ignore[return-value, call-arg, unused-ignore]
