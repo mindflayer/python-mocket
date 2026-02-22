@@ -182,10 +182,19 @@ class Response:
             self.headers["Content-Type"] = do_the_magic(self.body)
 
     def set_extra_headers(self, headers: dict) -> None:
-        """Add extra headers to the response.
+        r"""Add extra headers to the response.
 
         Args:
             headers: Dictionary of additional headers
+
+        >>> r = Response(body="<html />")
+        >>> len(r.headers.keys())
+        6
+        >>> r.set_extra_headers({"foo-bar": "Foobar"})
+        >>> len(r.headers.keys())
+        7
+        >>> encode_to_bytes(r.headers.get("Foo-Bar")) == encode_to_bytes("Foobar")
+        True
         """
         for k, v in headers.items():
             self.headers["-".join(token.capitalize() for token in k.split("-"))] = v
@@ -294,13 +303,20 @@ class Entry(MocketEntry):
         return can_handle
 
     def can_handle(self, data: bytes) -> bool:
-        """Check if this entry can handle the given request data.
+        r"""Check if this entry can handle the given request data.
 
         Args:
             data: Request data
 
         Returns:
             True if this entry can handle the request
+
+        >>> e = Entry('http://www.github.com/?bar=foo&foobar', Entry.GET, (Response(b'<html/>'),))
+        >>> e.can_handle(b'GET /?bar=foo HTTP/1.1\r\nHost: github.com\r\nAccept-Encoding: gzip, deflate\r\nConnection: keep-alive\r\nUser-Agent: python-requests/2.7.0 CPython/3.4.3 Linux/3.19.0-16-generic\r\nAccept: */*\r\n\r\n')
+        False
+        >>> e = Entry('http://www.github.com/?bar=foo&foobar', Entry.GET, (Response(b'<html/>'),))
+        >>> e.can_handle(b'GET /?bar=foo&foobar HTTP/1.1\r\nHost: github.com\r\nAccept-Encoding: gzip, deflate\r\nConnection: keep-alive\r\nUser-Agent: python-requests/2.7.0 CPython/3.4.3 Linux/3.19.0-16-generic\r\nAccept: */*\r\n\r\n')
+        True
         """
         try:
             requestline, _ = decode_from_bytes(data).split(CRLF, 1)
@@ -322,6 +338,8 @@ class Entry(MocketEntry):
     def _parse_requestline(line: str) -> tuple:
         """Parse an HTTP request line.
 
+        http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5
+
         Args:
             line: HTTP request line string
 
@@ -330,6 +348,15 @@ class Entry(MocketEntry):
 
         Raises:
             ValueError: If line is not a valid request line
+
+        >>> Entry._parse_requestline('GET / HTTP/1.0') == ('GET', '/', '1.0')
+        True
+        >>> Entry._parse_requestline('post /testurl htTP/1.1') == ('POST', '/testurl', '1.1')
+        True
+        >>> Entry._parse_requestline('Im not a RequestLine')
+        Traceback (most recent call last):
+            ...
+        ValueError: Not a Request-Line
         """
         m = re.match(
             r"({})\s+(.*)\s+HTTP/(1.[0|1])".format("|".join(Entry.METHODS)), line, re.I
