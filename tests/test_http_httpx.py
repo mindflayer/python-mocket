@@ -2,6 +2,7 @@ import json
 from unittest import IsolatedAsyncioTestCase
 
 import httpx
+
 from mocket.plugins.httpretty import HTTPretty, async_httprettified
 
 
