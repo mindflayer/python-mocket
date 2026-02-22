@@ -24,8 +24,9 @@
 
 
 import requests
-from mocket.plugins.httpretty import HTTPretty, httprettified, httpretty
 from sure import expect
+
+from mocket.plugins.httpretty import HTTPretty, httprettified, httpretty
 
 
 @httprettified
