@@ -225,20 +225,26 @@ class MocketSocket:
         """
         return self._timeout
 
-    def setsockopt(self, family: int, type: int, proto: int) -> None:
-        """Set socket options.
+    def setsockopt(
+        self,
+        level: int,
+        optname: int,
+        value: int | bytes | None,
+        optlen: int | None = None,
+    ) -> None:
+        """Set socket option.
 
         Args:
-            family: Address family
-            type: Socket type
-            proto: Protocol number
+            level: Socket option level (e.g., socket.SOL_SOCKET)
+            optname: Socket option name (e.g., socket.SO_REUSEADDR)
+            value: Option value as an integer or bytes, or None when optlen is provided
+            optlen: Option length (used when value is None)
         """
-        self._family = family
-        self._type = type
-        self._proto = proto
-
         if self._true_socket:
-            self._true_socket.setsockopt(family, type, proto)
+            if optlen is not None:
+                self._true_socket.setsockopt(level, optname, value, optlen)
+            else:
+                self._true_socket.setsockopt(level, optname, value)
 
     def settimeout(self, timeout: float | None) -> None:
         """Set the socket timeout.
