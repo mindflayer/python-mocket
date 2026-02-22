@@ -6,10 +6,10 @@ import pytest
 from asgiref.sync import async_to_sync
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from mocket.mockhttp import Entry
-from mocket.plugins.httpretty import httprettified, httpretty
 
 from mocket import Mocket, Mocketizer, async_mocketize, mocketize
+from mocket.mockhttp import Entry
+from mocket.plugins.httpretty import httprettified, httpretty
 
 
 @mocketize
