@@ -382,6 +382,6 @@ def test_httpretty_should_mock_body_as_exception():
     )
 
     with pytest.raises(requests.exceptions.ConnectionError):
-        response = requests.get("http://yipit.com")
+        requests.get("http://yipit.com")
     expect(httpretty.last_request.method).to.equal("GET")
     expect(httpretty.last_request.path).to.equal("/")
