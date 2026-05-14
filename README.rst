@@ -289,7 +289,7 @@ HTTPretty compatibility layer
 Mocket HTTP mock can work as *HTTPretty* replacement for many different use cases. Two main features are missing, or better said, are implemented differently:
 
 - URL entries containing regular expressions, *Mocket* implements `can_handle_fun` which is way simpler to use and more powerful;
-- response body from functions (used mostly to fake errors, *Mocket* accepts an `exception` instead).
+- response body from functions (used mostly to fake errors, *Mocket* accepts an `exception` instead, you can pass an exception instance to body to the compatibility layer).
 
 Both features are documented above.
 

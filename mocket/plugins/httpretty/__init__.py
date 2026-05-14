@@ -66,7 +66,7 @@ OPTIONS = Entry.OPTIONS
 def register_uri(
     method: str,
     uri: str,
-    body: str = "HTTPretty :)",
+    body: str | Exception = "HTTPretty :)",
     adding_headers: Optional[Dict[str, str]] = None,
     forcing_headers: Optional[Dict[str, str]] = None,
     status: int = 200,
@@ -97,13 +97,20 @@ def register_uri(
             match_querystring=match_querystring,
         )
     else:
+        # permit to pass exception instances as body for users that are passing functions as a body
+        # for testing error handling
+        kwargs = {}
+        if isinstance(body, Exception):
+            kwargs["exception"] = body
+        else:
+            kwargs["body"] = body
         Entry.single_register(
             method,
             uri,
-            body=body,
             status=status,
             headers=headers,
             match_querystring=match_querystring,
+            **kwargs,
         )
 
 

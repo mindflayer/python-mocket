@@ -23,6 +23,9 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 
+import socket
+
+import pytest
 import requests
 from sure import expect
 
@@ -369,3 +372,16 @@ def test_unicode_querystrings():
     expect(HTTPretty.last_request.querystring["user"][0]).should.be.equal(
         "Gabriel Falcão"
     )
+
+
+@httprettified
+def test_httpretty_should_mock_body_as_exception():
+    """HTTPretty should mock a body as exception"""
+    httpretty.register_uri(
+        httpretty.GET, "http://yipit.com/", body=socket.timeout()
+    )
+
+    with pytest.raises(requests.exceptions.ConnectionError):
+        response = requests.get("http://yipit.com")
+    expect(httpretty.last_request.method).to.equal("GET")
+    expect(httpretty.last_request.path).to.equal("/")
