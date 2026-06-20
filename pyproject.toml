@@ -126,6 +126,9 @@ select = [
 # https://en.wikipedia.org/wiki/Cyclomatic_complexity#Limiting_complexity_during_development
 max-complexity = 8
 
+[tool.ruff.lint.isort]
+known-first-party = ["mocket"]
+
 [tool.mypy]
 python_version = "3.13"
 files = [
