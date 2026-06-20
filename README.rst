@@ -237,8 +237,7 @@ Example of how to mock a call with a custom request matching logic
 The callback receives:
 
 - ``path``: request path (for example ``/ip``)
-- ``qs_dict``: parsed query string as returned by ``urllib.parse.parse_qs``
-
+- ``qs_dict``: parsed query string as returned by ``urllib.parse.parse_qs(..., keep_blank_values=True)``
 .. note::
 
     When ``can_handle_fun`` is provided, it fully defines matching behavior.
