@@ -231,6 +231,19 @@ It's very important that we test non-happy paths.
 
 Example of how to mock a call with a custom request matching logic
 ==================================================================
+``can_handle_fun`` lets you define matching logic beyond the default
+``path + querystring`` behavior.
+
+The callback receives:
+
+- ``path``: request path (for example ``/ip``)
+- ``qs_dict``: parsed query string as returned by ``urllib.parse.parse_qs``
+
+.. note::
+
+    When ``can_handle_fun`` is provided, it fully defines matching behavior.
+    In this case ``match_querystring`` is not used.
+
 .. code-block:: python
 
     import json
@@ -239,8 +252,11 @@ Example of how to mock a call with a custom request matching logic
     from mocket.mocks.mockhttp import Entry
     import requests
 
+
     @mocketize
     def test_can_handle():
+        url = "https://httpbin.org"
+
         Entry.single_register(
             Entry.GET,
             url,
@@ -255,10 +271,59 @@ Example of how to mock a call with a custom request matching logic
             headers={"content-type": "application/json"},
             can_handle_fun=lambda path, qs_dict: path == "/ip" and not qs_dict,
         )
+
         resp = requests.get("https://httpbin.org/ip")
         assert resp.status_code == 200
         assert resp.json() == {"message": "There you go!"}
 
+Useful patterns
+---------------
+
+Regex path matching:
+
+.. code-block:: python
+
+    import re
+
+    Entry.single_register(
+        Entry.GET,
+        "https://api.example.com",
+        body="ok",
+        can_handle_fun=lambda path, qs_dict: bool(re.match(r"^/users/\\d+$", path)),
+    )
+
+Query parameter checks:
+
+.. code-block:: python
+
+    Entry.single_register(
+        Entry.GET,
+        "https://api.example.com",
+        body="ok",
+        can_handle_fun=lambda path, qs_dict: (
+            path == "/search"
+            and qs_dict.get("q") == ["mocket"]
+            and qs_dict.get("limit", ["10"])[0].isdigit()
+        ),
+    )
+
+Case-insensitive path checks:
+
+.. code-block:: python
+
+    Entry.single_register(
+        Entry.GET,
+        "https://api.example.com",
+        body="ok",
+        can_handle_fun=lambda path, qs_dict: path.lower() == "/healthz",
+    )
+
+Troubleshooting tips
+--------------------
+
+- ``parse_qs`` values are lists, so compare against ``["value"]``.
+- Use ``qs_dict.get("key")`` instead of ``qs_dict["key"]`` when parameters are optional.
+- Keep callbacks side-effect free; they may run multiple times during request processing.
 
 Example of how to record real socket traffic
 ============================================
