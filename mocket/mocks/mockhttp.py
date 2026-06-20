@@ -237,7 +237,16 @@ class Entry(MocketEntry):
             responses: Response(s) to return
             match_querystring: Whether to match query strings
             can_handle_fun: Custom matching function
+
+        Raises:
+            ValueError: If both can_handle_fun and match_querystring are specified
         """
+        if can_handle_fun and not match_querystring:
+            raise ValueError(
+                "cannot specify both 'can_handle_fun' and 'match_querystring=False': "
+                "when using a custom matching function, 'match_querystring' is ignored"
+            )
+
         self._can_handle_fun = can_handle_fun if can_handle_fun else self._can_handle
 
         uri = urlsplit(uri)

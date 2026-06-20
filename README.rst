@@ -242,7 +242,9 @@ The callback receives:
 .. note::
 
     When ``can_handle_fun`` is provided, it fully defines matching behavior.
-    In this case ``match_querystring`` is not used.
+    In this case ``match_querystring`` is ignored. Mocket will raise a ``ValueError``
+    if you specify both ``can_handle_fun`` and ``match_querystring=False`` together,
+    as this is likely a mistake.
 
 .. code-block:: python
 
