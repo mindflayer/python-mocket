@@ -1,5 +1,4 @@
 import contextlib
-import inspect
 from unittest import TestCase
 
 import pytest
@@ -7,13 +6,6 @@ import redis
 
 from mocket import Mocket, mocketize
 from mocket.mockredis import ERROR, OK, Entry, Redisizer
-
-
-def _strict_redis_client(**kwargs):
-    """Create a StrictRedis client with legacy responses when supported."""
-    if "legacy_responses" in inspect.signature(redis.StrictRedis).parameters:
-        kwargs.setdefault("legacy_responses", True)
-    return redis.StrictRedis(**kwargs)
 
 
 class RedisizerTestCase(TestCase):
@@ -100,7 +92,7 @@ class RedisEntryTestCase(TestCase):
 class TrueRedisTestCase(TestCase):
     @mocketize
     def setUp(self):
-        self.rclient = _strict_redis_client()
+        self.rclient = redis.StrictRedis()
         self.rclient.flushdb()
 
     def mocketize_teardown(self):
@@ -149,13 +141,13 @@ class TrueRedisTestCase(TestCase):
 
     @mocketize
     def test_shutdown(self):
-        rc = _strict_redis_client(host="127.1.1.1")
+        rc = redis.StrictRedis(host="127.1.1.1")
         with contextlib.suppress(redis.ConnectionError):
             rc.get("foo")
 
     @mocketize
     def test_select_db(self):
-        r = _strict_redis_client(db=1)
+        r = redis.StrictRedis(db=1)
         r.set("foo", 10)
         foo = r.get("foo")
         self.assertEqual(foo, b"10")
@@ -163,7 +155,7 @@ class TrueRedisTestCase(TestCase):
 
 class RedisTestCase(TestCase):
     def setUp(self):
-        self.rclient = _strict_redis_client()
+        self.rclient = redis.StrictRedis()
 
     def mocketize_setup(self):
         Entry.register_response("CLIENT SETINFO LIB-NAME redis-py", OK)

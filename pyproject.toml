@@ -51,7 +51,7 @@ test = [
     "pytest-asyncio",
     "asgiref",
     "requests",
-    "redis",
+    "redis<8",
     "gevent",
     "sure",
     "flake8>5",
