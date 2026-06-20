@@ -482,3 +482,39 @@ class HttpEntryTestCase(HttpTestCase):
         response = requests.get("http://testme.org/foobar?b=2")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"message": "Missed!"})
+
+    def test_can_handle_fun_with_match_querystring_false_raises(self):
+        """Test that using both can_handle_fun and match_querystring=False raises ValueError."""
+        with self.assertRaises(ValueError) as context:
+            Entry(
+                "http://testme.org/path",
+                Entry.GET,
+                responses=["test"],
+                can_handle_fun=lambda path, qs: True,
+                match_querystring=False,
+            )
+        self.assertIn(
+            "cannot specify both 'can_handle_fun' and 'match_querystring=False'",
+            str(context.exception),
+        )
+
+    def test_can_handle_fun_with_match_querystring_true_works(self):
+        """Test that using can_handle_fun with match_querystring=True works fine."""
+        entry = Entry(
+            "http://testme.org/path",
+            Entry.GET,
+            responses=["test"],
+            can_handle_fun=lambda path, qs: True,
+            match_querystring=True,
+        )
+        self.assertIsNotNone(entry)
+
+    def test_can_handle_fun_alone_works(self):
+        """Test that using can_handle_fun alone (without specifying match_querystring) works."""
+        entry = Entry(
+            "http://testme.org/path",
+            Entry.GET,
+            responses=["test"],
+            can_handle_fun=lambda path, qs: True,
+        )
+        self.assertIsNotNone(entry)
