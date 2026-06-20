@@ -4,9 +4,9 @@ from unittest import TestCase
 
 import pytest
 import redis
-from mocket.mockredis import ERROR, OK, Entry, Redisizer
 
 from mocket import Mocket, mocketize
+from mocket.mockredis import ERROR, OK, Entry, Redisizer
 
 
 def _strict_redis_client(**kwargs):
