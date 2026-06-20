@@ -288,7 +288,7 @@ Regex path matching:
         Entry.GET,
         "https://api.example.com",
         body="ok",
-        can_handle_fun=lambda path, qs_dict: bool(re.match(r"^/users/\\d+$", path)),
+        can_handle_fun=lambda path, qs_dict: bool(re.match(r"^/users/\d+$", path)),
     )
 
 Query parameter checks:
