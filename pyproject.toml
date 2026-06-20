@@ -51,7 +51,7 @@ test = [
     "pytest-asyncio",
     "asgiref",
     "requests",
-    "redis",
+    "redis<8",
     "gevent",
     "sure",
     "flake8>5",
@@ -125,6 +125,9 @@ select = [
 # Unlike Flake8, default to a complexity level of 10.
 # https://en.wikipedia.org/wiki/Cyclomatic_complexity#Limiting_complexity_during_development
 max-complexity = 8
+
+[tool.ruff.lint.isort]
+known-first-party = ["mocket"]
 
 [tool.mypy]
 python_version = "3.13"
