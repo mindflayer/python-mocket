@@ -113,9 +113,9 @@ class MocketSSLContext(_MocketSSLContext):
         """
         ssl_obj = MocketSSLSocket()
         if isinstance(server_hostname, bytes):
-            host = server_hostname.decode("utf-8", errors="replace")
+            hostname = server_hostname.decode("utf-8", errors="replace")
         else:
-            host = server_hostname
+            hostname = server_hostname
 
         current_address = Mocket._address
         if isinstance(current_address, tuple) and len(current_address) == 2:
@@ -123,10 +123,10 @@ class MocketSSLContext(_MocketSSLContext):
         else:
             current_host, current_port = None, None
 
-        resolved_host = host if host is not None else current_host
-        ssl_obj._host = resolved_host
-        if resolved_host is not None and current_port is not None:
-            ssl_obj._address = (resolved_host, current_port)
+        effective_host = hostname if hostname is not None else current_host
+        ssl_obj._host = effective_host
+        if effective_host is not None and current_port is not None:
+            ssl_obj._address = (effective_host, current_port)
             ssl_obj._port = current_port
         return ssl_obj
 
