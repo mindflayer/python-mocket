@@ -120,17 +120,26 @@ def test_getsockopt():
     assert result == socket.SOCK_STREAM
 
 
-def test_wrap_bio_uses_current_mocket_address(monkeypatch):
+@pytest.mark.parametrize(
+    ("server_hostname", "expected_host"),
+    [
+        (b"httpbin.local", "httpbin.local"),
+        ("httpbin.local", "httpbin.local"),
+        (None, "httpbin.local"),
+        (b"mocket-\xff.local", "mocket-�.local"),
+    ],
+)
+def test_wrap_bio_uses_current_mocket_address(monkeypatch, server_hostname, expected_host):
     monkeypatch.setattr(Mocket, "_address", ("httpbin.local", 443))
     ssl_obj = MocketSSLContext().wrap_bio(
         incoming=None,
         outgoing=None,
-        server_hostname=b"httpbin.local",
+        server_hostname=server_hostname,
     )
 
-    assert ssl_obj._host == "httpbin.local"
+    assert ssl_obj._host == expected_host
     assert ssl_obj._port == 443
-    assert ssl_obj._address == ("httpbin.local", 443)
+    assert ssl_obj._address == (expected_host, 443)
 
 
 def test_recvfrom_into():
