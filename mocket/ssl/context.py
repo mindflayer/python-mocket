@@ -125,9 +125,10 @@ class MocketSSLContext(_MocketSSLContext):
 
         effective_host = hostname if hostname is not None else current_host
         ssl_obj._host = effective_host
+        if current_port is not None:
+            ssl_obj._port = current_port
         if effective_host is not None and current_port is not None:
             ssl_obj._address = (effective_host, current_port)
-            ssl_obj._port = current_port
         return ssl_obj
 
 
