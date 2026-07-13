@@ -6,6 +6,7 @@ import pytest
 
 from mocket import Mocket, MocketEntry, mocketize
 from mocket.socket import MocketSocket
+from mocket.ssl.context import MocketSSLContext
 
 
 @pytest.mark.parametrize("blocking", (False, True))
@@ -117,6 +118,23 @@ def test_getsockopt():
     # getsockopt is a static method, so we can call it directly
     result = MocketSocket.getsockopt(0, 0)
     assert result == socket.SOCK_STREAM
+
+
+def test_wrap_bio_uses_current_mocket_address():
+    previous_address = Mocket._address
+    try:
+        Mocket._address = ("httpbin.local", 443)
+        ssl_obj = MocketSSLContext().wrap_bio(
+            incoming=None,
+            outgoing=None,
+            server_hostname=b"httpbin.local",
+        )
+    finally:
+        Mocket._address = previous_address
+
+    assert ssl_obj._host == "httpbin.local"
+    assert ssl_obj._port == 443
+    assert ssl_obj._address == ("httpbin.local", 443)
 
 
 def test_recvfrom_into():
