@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from mocket.mocket import Mocket
 from mocket.socket import MocketSocket
 from mocket.ssl.socket import MocketSSLSocket
 
@@ -111,7 +112,23 @@ class MocketSSLContext(_MocketSSLContext):
             MocketSSLSocket instance
         """
         ssl_obj = MocketSSLSocket()
-        ssl_obj._host = server_hostname
+        if isinstance(server_hostname, bytes):
+            hostname = server_hostname.decode("utf-8", errors="replace")
+        else:
+            hostname = server_hostname
+
+        current_address = Mocket._address
+        if isinstance(current_address, tuple) and len(current_address) == 2:
+            current_host, current_port = current_address
+        else:
+            current_host, current_port = None, None
+
+        effective_host = hostname if hostname is not None else current_host
+        ssl_obj._host = effective_host
+        if current_port is not None:
+            ssl_obj._port = current_port
+        if effective_host is not None and current_port is not None:
+            ssl_obj._address = (effective_host, current_port)
         return ssl_obj
 
 

@@ -22,7 +22,10 @@ if TYPE_CHECKING:
 class Mocket:
     """Singleton class managing all mock socket operations and entries."""
 
+    _socket_ios: ClassVar[dict[Address, Any]] = {}
     _socket_pairs: ClassVar[dict[Address, tuple[int, int]]] = {}
+    _pipe_uses_data: ClassVar[dict[Address, bool]] = {}
+    _pending_readables: ClassVar[dict[Address, int]] = {}
     _address: ClassVar[Address | tuple[None, None]] = (None, None)
     _entries: ClassVar[dict[Address, list[MocketEntry]]] = collections.defaultdict(list)
     _requests: ClassVar[list] = []
@@ -91,6 +94,39 @@ class Mocket:
         cls._socket_pairs[address] = pair
 
     @classmethod
+    def get_io(cls, address: Address) -> Any:
+        """Get the shared socket I/O buffer for an address, if any."""
+        return cls._socket_ios.get(address)
+
+    @classmethod
+    def set_io(cls, address: Address, socket_io: Any) -> None:
+        """Store the shared socket I/O buffer for an address."""
+        cls._socket_ios[address] = socket_io
+
+    @classmethod
+    def pipe_uses_data(cls, address: Address) -> bool:
+        """Return whether the pipe for an address carries mirrored response bytes."""
+        return cls._pipe_uses_data.get(address, False)
+
+    @classmethod
+    def set_pipe_uses_data(cls, address: Address, uses_data: bool) -> None:
+        """Store whether the pipe for an address carries mirrored response bytes."""
+        cls._pipe_uses_data[address] = uses_data
+
+    @classmethod
+    def get_pending_readables(cls, address: Address) -> int:
+        """Get the number of readiness bytes currently queued for an address."""
+        return cls._pending_readables.get(address, 0)
+
+    @classmethod
+    def set_pending_readables(cls, address: Address, count: int) -> None:
+        """Store the number of readiness bytes queued for an address."""
+        if count > 0:
+            cls._pending_readables[address] = count
+        else:
+            cls._pending_readables.pop(address, None)
+
+    @classmethod
     def register(cls, *entries: MocketEntry) -> None:
         """Register mock entries with Mocket.
 
@@ -132,10 +168,15 @@ class Mocket:
     @classmethod
     def reset(cls) -> None:
         """Reset all Mocket state and clean up file descriptors."""
+        for socket_io in cls._socket_ios.values():
+            socket_io.close()
         for r_fd, w_fd in cls._socket_pairs.values():
             os.close(r_fd)
             os.close(w_fd)
+        cls._socket_ios = {}
         cls._socket_pairs = {}
+        cls._pipe_uses_data = {}
+        cls._pending_readables = {}
         cls._entries = collections.defaultdict(list)
         cls._requests = []
         cls._record_storage = None

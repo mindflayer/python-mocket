@@ -3,9 +3,6 @@
 from __future__ import annotations
 
 import io
-import os
-
-from mocket.mocket import Mocket
 
 
 class MocketSocketIO(io.BytesIO):
@@ -21,7 +18,7 @@ class MocketSocketIO(io.BytesIO):
         super().__init__()
 
     def write(self, content: bytes) -> int:
-        """Write content to the buffer and the pipe if available.
+        """Write content to the in-memory buffer.
 
         Args:
             content: Bytes to write
@@ -29,9 +26,4 @@ class MocketSocketIO(io.BytesIO):
         Returns:
             Number of bytes written
         """
-        super().write(content)
-
-        _, w_fd = Mocket.get_pair(self._address)
-        if w_fd:
-            os.write(w_fd, content)
-        return len(content)
+        return super().write(content)

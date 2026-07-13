@@ -200,8 +200,14 @@ class MocketSocket:
     @property
     def io(self) -> MocketSocketIO:
         """Get or create the socket I/O object."""
-        if self._io is None:
-            self._io = MocketSocketIO((self._host, self._port))
+        if self._io is None or getattr(self._io, "closed", False):
+            address = self._address_key()
+            self._io = Mocket.get_io(address)
+            if self._io is not None and getattr(self._io, "closed", False):
+                self._io = None
+            if self._io is None:
+                self._io = MocketSocketIO(address)
+                Mocket.set_io(address, self._io)
         return self._io
 
     def fileno(self) -> int:
@@ -214,8 +220,75 @@ class MocketSocket:
         r_fd, _ = Mocket.get_pair(address)
         if not r_fd:
             r_fd, w_fd = os.pipe()
+            os.set_blocking(r_fd, False)
+            os.set_blocking(w_fd, False)
             Mocket.set_pair(address, (r_fd, w_fd))
+        if self._io is not None and self._buffered_bytes():
+            if Mocket.pipe_uses_data(address):
+                self._mirror_buffer_to_pipe()
+            else:
+                self._sync_readable_pipe()
         return r_fd
+
+    def _address_key(self) -> Address:
+        """Return the current socket address tuple."""
+        return self._host, self._port
+
+    def _buffered_bytes(self) -> int:
+        """Return the number of unread bytes buffered in the socket I/O."""
+        return len(self.io.getvalue()) - self.io.tell()
+
+    def _clear_readable_pipe(self) -> None:
+        """Drain any stale readiness bytes from the pipe for this socket."""
+        address = self._address_key()
+        r_fd, _ = Mocket.get_pair(address)
+        if not r_fd:
+            return
+
+        while True:
+            try:
+                if not os.read(r_fd, self._buflen):
+                    break
+            except BlockingIOError:
+                break
+
+        Mocket.set_pending_readables(address, 0)
+
+    def _mirror_buffer_to_pipe(self) -> None:
+        """Mirror unread response bytes into the pipe for small payloads."""
+        address = self._address_key()
+        _, w_fd = Mocket.get_pair(address)
+        if not w_fd:
+            return
+
+        unread = self.io.getvalue()[self.io.tell() :]
+        if unread:
+            os.write(w_fd, unread)
+
+    def _sync_readable_pipe(self) -> None:
+        """Keep the readiness pipe in sync with the unread buffer size.
+
+        The pipe is used only to wake selector-based async clients. Response bytes
+        remain in the in-memory buffer so large payloads do not block on OS pipe
+        capacity.
+        """
+        address = self._address_key()
+        _, w_fd = Mocket.get_pair(address)
+        if not w_fd:
+            return
+
+        pending = Mocket.get_pending_readables(address)
+        desired = min(self._buffered_bytes(), self._buflen)
+        if desired <= pending:
+            return
+
+        try:
+            written = os.write(w_fd, b"\0" * (desired - pending))
+        except BlockingIOError:
+            written = 0
+
+        if written:
+            Mocket.set_pending_readables(address, pending + written)
 
     def gettimeout(self) -> float | None:
         """Get the socket timeout.
@@ -375,10 +448,20 @@ class MocketSocket:
             response = self.true_sendall(data, *args, **kwargs)
 
         if response is not None:
+            address = self._address_key()
+            # Ensure the address pipe exists before deciding whether to mirror
+            # response bytes or only publish readiness signals.
+            self.fileno()
             self.io.seek(0)
+            self._clear_readable_pipe()
             self.io.write(response)
             self.io.truncate()
             self.io.seek(0)
+            Mocket.set_pipe_uses_data(address, len(response) <= self._buflen)
+            if Mocket.pipe_uses_data(address):
+                self._mirror_buffer_to_pipe()
+            else:
+                self._sync_readable_pipe()
 
     def sendmsg(
         self,
@@ -537,11 +620,32 @@ class MocketSocket:
         Raises:
             BlockingIOError: If socket is non-blocking and no data available
         """
-        r_fd, _ = Mocket.get_pair((self._host, self._port))
-        if r_fd:
-            return os.read(r_fd, buffersize)
+        if buffersize is None:
+            buffersize = self._buflen
+
+        address = self._address_key()
+        r_fd, _ = Mocket.get_pair(address)
+        if r_fd and Mocket.pipe_uses_data(address):
+            try:
+                pipe_data = os.read(r_fd, buffersize)
+            except BlockingIOError:
+                pipe_data = b""
+            if pipe_data:
+                # Keep in-memory buffer position in sync with bytes drained from the pipe.
+                self.io.seek(self.io.tell() + len(pipe_data))
+                return pipe_data
+
+        pending = Mocket.get_pending_readables(address)
+        if r_fd and self._buffered_bytes() and pending == 0:
+            self._sync_readable_pipe()
+            pending = Mocket.get_pending_readables(address)
+
         data = self.io.read(buffersize)
         if data:
+            if r_fd and pending:
+                drained = os.read(r_fd, min(len(data), pending))
+                Mocket.set_pending_readables(address, pending - len(drained))
+                self._sync_readable_pipe()
             return data
         # used by Redis mock
         exc = BlockingIOError()

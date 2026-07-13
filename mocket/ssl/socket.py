@@ -27,6 +27,9 @@ class MocketSSLSocket(MocketSocket):
 
         self._did_handshake: bool = False
         self._sent_non_empty_bytes: bool = False
+        self._has_written: bool = False
+        self._ssl_pending: bytes = b""
+        self._ssl_pending_pos: int = 0
         self._original_socket: MocketSocket = self
 
     def read(self, buffersize: int | None = None) -> bytes:
@@ -38,13 +41,28 @@ class MocketSSLSocket(MocketSocket):
         Returns:
             Bytes read from the socket
 
-        Raises:
-            ssl.SSLWantReadError: If handshake not completed and no data
         """
-        rv = self.io.read(buffersize)
+        if self._ssl_pending_pos < len(self._ssl_pending):
+            if buffersize is None:
+                rv = self._ssl_pending[self._ssl_pending_pos :]
+                self._ssl_pending_pos = len(self._ssl_pending)
+            else:
+                end = self._ssl_pending_pos + buffersize
+                rv = self._ssl_pending[self._ssl_pending_pos : end]
+                self._ssl_pending_pos = min(end, len(self._ssl_pending))
+        else:
+            rv = b""
         if rv:
             self._sent_non_empty_bytes = True
-        if self._did_handshake and not self._sent_non_empty_bytes:
+
+        # asyncio SSL transports probe reads before writing request bytes.
+        # Keep that non-blocking behavior, but once writes happened we must
+        # return empty bytes instead of surfacing SSLWantReadError.
+        if (
+            self._did_handshake
+            and not self._sent_non_empty_bytes
+            and not self._has_written
+        ):
             raise ssl.SSLWantReadError("The operation did not complete (read)")
         return rv
 
@@ -57,7 +75,14 @@ class MocketSSLSocket(MocketSocket):
         Returns:
             Number of bytes written
         """
-        return self.send(encode_to_bytes(data))
+        self._has_written = self._has_written or bool(data)
+        bytes_sent = self.send(encode_to_bytes(data))
+
+        # Keep a private read buffer for SSL protocol consumers so response
+        # parsing does not depend on shared socket I/O cursor state.
+        self._ssl_pending = self.io.getvalue()
+        self._ssl_pending_pos = 0
+        return bytes_sent
 
     def do_handshake(self) -> None:
         """Perform SSL handshake (mock implementation)."""
@@ -72,8 +97,13 @@ class MocketSSLSocket(MocketSocket):
         Returns:
             Mock certificate dictionary
         """
-        if not (self._host and self._port):
-            self._address = self._host, self._port = Mocket._address
+        if self._host is None or self._port is None:
+            current_host, current_port = Mocket._address
+            if self._host is None:
+                self._host = current_host
+            if self._port is None:
+                self._port = current_port
+            self._address = (self._host, self._port)
 
         now = datetime.now()
         shift = now + timedelta(days=30 * 12)
@@ -156,5 +186,8 @@ class MocketSSLSocket(MocketSocket):
 
         ssl_socket._io = sock._io
         ssl_socket._entry = sock._entry
+        ssl_socket._has_written = getattr(sock, "_has_written", False)
+        ssl_socket._ssl_pending = getattr(sock, "_ssl_pending", b"")
+        ssl_socket._ssl_pending_pos = getattr(sock, "_ssl_pending_pos", 0)
 
         return ssl_socket
