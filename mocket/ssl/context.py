@@ -123,7 +123,7 @@ class MocketSSLContext(_MocketSSLContext):
         else:
             current_host, current_port = None, None
 
-        resolved_host = host or current_host
+        resolved_host = host if host is not None else current_host
         ssl_obj._host = resolved_host
         if resolved_host is not None and current_port is not None:
             ssl_obj._address = (resolved_host, current_port)

@@ -126,6 +126,7 @@ def test_getsockopt():
         (b"httpbin.local", "httpbin.local"),
         ("httpbin.local", "httpbin.local"),
         (None, "httpbin.local"),
+        ("", ""),
         (b"mocket-\xff.local", "mocket-�.local"),
     ],
 )
