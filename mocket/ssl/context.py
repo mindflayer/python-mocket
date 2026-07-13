@@ -112,17 +112,17 @@ class MocketSSLContext(_MocketSSLContext):
             MocketSSLSocket instance
         """
         ssl_obj = MocketSSLSocket()
-        host = (
-            server_hostname.decode("utf-8", errors="replace")
-            if isinstance(server_hostname, bytes)
-            else server_hostname
-        )
+        if isinstance(server_hostname, bytes):
+            host = server_hostname.decode("utf-8", errors="replace")
+        else:
+            host = server_hostname
+
         current_address = Mocket._address
-        current_host, current_port = (
-            current_address
-            if isinstance(current_address, tuple) and len(current_address) == 2
-            else (None, None)
-        )
+        if isinstance(current_address, tuple) and len(current_address) == 2:
+            current_host, current_port = current_address
+        else:
+            current_host, current_port = None, None
+
         resolved_host = host or current_host
         ssl_obj._host = resolved_host
         if resolved_host is not None and current_port is not None:
