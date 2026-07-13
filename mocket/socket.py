@@ -621,9 +621,13 @@ class MocketSocket:
         r_fd, _ = Mocket.get_pair(address)
         if r_fd and Mocket.pipe_uses_data(address):
             try:
-                return os.read(r_fd, buffersize)
+                pipe_data = os.read(r_fd, buffersize)
             except BlockingIOError:
-                pass
+                pipe_data = b""
+            if pipe_data:
+                # Keep in-memory buffer position in sync with bytes drained from the pipe.
+                self.io.seek(self.io.tell() + len(pipe_data))
+                return pipe_data
 
         pending = Mocket.get_pending_readables(address)
         if r_fd and self._buffered_bytes() and pending == 0:
