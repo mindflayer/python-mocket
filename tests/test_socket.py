@@ -216,6 +216,25 @@ def test_ssl_read_empty_after_handshake_before_write_raises_want_read():
         sock.read(1024)
 
 
+def test_ssl_ciper_returns_mock_tuple():
+    """Exercise the SSL mock cipher tuple branch for coverage."""
+    sock = MocketSSLSocket()
+    assert sock.ciper() == ("ADH", "AES256", "SHA")
+
+
+def test_ssl_getpeercert_uses_mocket_address_when_unset(monkeypatch):
+    """Cover getpeercert fallback when host/port are not yet assigned."""
+    monkeypatch.setattr(Mocket, "_address", ("example.local", 443))
+    sock = MocketSSLSocket()
+
+    cert = sock.getpeercert()
+
+    assert sock._host == "example.local"
+    assert sock._port == 443
+    assert sock._address == ("example.local", 443)
+    assert cert["subjectAltName"][1] == ("DNS", "example.local")
+
+
 # ---------------------------------------------------------------------------
 # New pipe-mechanism tests added to maintain coverage after the large-response
 # deadlock fix.
