@@ -27,6 +27,7 @@ class MocketSSLSocket(MocketSocket):
 
         self._did_handshake: bool = False
         self._sent_non_empty_bytes: bool = False
+        self._has_written: bool = False
         self._original_socket: MocketSocket = self
 
     def read(self, buffersize: int | None = None) -> bytes:
@@ -38,13 +39,19 @@ class MocketSSLSocket(MocketSocket):
         Returns:
             Bytes read from the socket
 
-        Raises:
-            ssl.SSLWantReadError: If handshake not completed and no data
         """
         rv = self.io.read(buffersize)
         if rv:
             self._sent_non_empty_bytes = True
-        if self._did_handshake and not self._sent_non_empty_bytes:
+
+        # asyncio SSL transports probe reads before writing request bytes.
+        # Keep that non-blocking behavior, but once writes happened we must
+        # return empty bytes instead of surfacing SSLWantReadError.
+        if (
+            self._did_handshake
+            and not self._sent_non_empty_bytes
+            and not self._has_written
+        ):
             raise ssl.SSLWantReadError("The operation did not complete (read)")
         return rv
 
@@ -57,6 +64,7 @@ class MocketSSLSocket(MocketSocket):
         Returns:
             Number of bytes written
         """
+        self._has_written = self._has_written or bool(data)
         return self.send(encode_to_bytes(data))
 
     def do_handshake(self) -> None:
@@ -156,5 +164,6 @@ class MocketSSLSocket(MocketSocket):
 
         ssl_socket._io = sock._io
         ssl_socket._entry = sock._entry
+        ssl_socket._has_written = getattr(sock, "_has_written", False)
 
         return ssl_socket

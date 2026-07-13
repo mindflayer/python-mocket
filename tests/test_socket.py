@@ -1,5 +1,6 @@
 import os
 import socket
+import ssl
 import struct
 from unittest.mock import MagicMock
 
@@ -9,6 +10,7 @@ from mocket import Mocket, MocketEntry, Mocketizer, mocketize
 from mocket.mockhttp import Entry
 from mocket.socket import MocketSocket
 from mocket.ssl.context import MocketSSLContext
+from mocket.ssl.socket import MocketSSLSocket
 
 
 @pytest.mark.parametrize("blocking", (False, True))
@@ -177,6 +179,27 @@ def test_setsockopt_with_optlen():
     sock._true_socket.setsockopt.assert_called_once_with(
         socket.SOL_SOCKET, socket.SO_LINGER, linger_value, len(linger_value)
     )
+
+
+def test_ssl_read_empty_after_handshake_returns_empty_bytes():
+    """After handshake, empty SSL reads should not raise SSLWantReadError."""
+    sock = MocketSSLSocket()
+    sock._io = type("MockIO", (), {"read": lambda self, n: b""})()
+    sock._did_handshake = True
+    sock._has_written = True
+
+    assert sock.read(1024) == b""
+
+
+def test_ssl_read_empty_after_handshake_before_write_raises_want_read():
+    """After handshake but before writes, empty reads should signal WANT_READ."""
+    sock = MocketSSLSocket()
+    sock._io = type("MockIO", (), {"read": lambda self, n: b""})()
+    sock._did_handshake = True
+    sock._has_written = False
+
+    with pytest.raises(ssl.SSLWantReadError):
+        sock.read(1024)
 
 
 # ---------------------------------------------------------------------------
