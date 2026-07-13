@@ -120,17 +120,13 @@ def test_getsockopt():
     assert result == socket.SOCK_STREAM
 
 
-def test_wrap_bio_uses_current_mocket_address():
-    previous_address = Mocket._address
-    try:
-        Mocket._address = ("httpbin.local", 443)
-        ssl_obj = MocketSSLContext().wrap_bio(
-            incoming=None,
-            outgoing=None,
-            server_hostname=b"httpbin.local",
-        )
-    finally:
-        Mocket._address = previous_address
+def test_wrap_bio_uses_current_mocket_address(monkeypatch):
+    monkeypatch.setattr(Mocket, "_address", ("httpbin.local", 443))
+    ssl_obj = MocketSSLContext().wrap_bio(
+        incoming=None,
+        outgoing=None,
+        server_hostname=b"httpbin.local",
+    )
 
     assert ssl_obj._host == "httpbin.local"
     assert ssl_obj._port == 443
