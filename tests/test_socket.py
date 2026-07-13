@@ -163,6 +163,20 @@ def test_wrap_bio_preserves_empty_server_hostname_on_getpeercert(monkeypatch):
     assert ssl_obj._address == ("", 443)
 
 
+def test_getpeercert_does_not_overwrite_empty_host_when_port_missing(monkeypatch):
+    monkeypatch.setattr(Mocket, "_address", ("httpbin.local", 443))
+    ssl_obj = MocketSSLSocket()
+    ssl_obj._host = ""
+    ssl_obj._port = None
+    ssl_obj._address = ("", None)
+
+    ssl_obj.getpeercert()
+
+    assert ssl_obj._host == ""
+    assert ssl_obj._port == 443
+    assert ssl_obj._address == ("", 443)
+
+
 def test_recvfrom_into():
     sock = MocketSocket(socket.AF_INET, socket.SOCK_STREAM)
     test_data = b"abc123"

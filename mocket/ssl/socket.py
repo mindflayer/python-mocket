@@ -98,7 +98,12 @@ class MocketSSLSocket(MocketSocket):
             Mock certificate dictionary
         """
         if self._host is None or self._port is None:
-            self._address = self._host, self._port = Mocket._address
+            current_host, current_port = Mocket._address
+            if self._host is None:
+                self._host = current_host
+            if self._port is None:
+                self._port = current_port
+            self._address = (self._host, self._port)
 
         now = datetime.now()
         shift = now + timedelta(days=30 * 12)
