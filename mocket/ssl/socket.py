@@ -72,7 +72,7 @@ class MocketSSLSocket(MocketSocket):
         Returns:
             Mock certificate dictionary
         """
-        if not (self._host and self._port):
+        if self._host is None or self._port is None:
             self._address = self._host, self._port = Mocket._address
 
         now = datetime.now()

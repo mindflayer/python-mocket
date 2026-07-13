@@ -147,6 +147,20 @@ def test_wrap_bio_uses_current_mocket_address(
     assert ssl_obj._address == (expected_host, 443)
 
 
+def test_wrap_bio_preserves_empty_server_hostname_on_getpeercert(monkeypatch):
+    monkeypatch.setattr(Mocket, "_address", ("httpbin.local", 443))
+    ssl_obj = MocketSSLContext().wrap_bio(
+        incoming=None,
+        outgoing=None,
+        server_hostname="",
+    )
+
+    ssl_obj.getpeercert()
+
+    assert ssl_obj._host == ""
+    assert ssl_obj._address == ("", 443)
+
+
 def test_recvfrom_into():
     sock = MocketSocket(socket.AF_INET, socket.SOCK_STREAM)
     test_data = b"abc123"
