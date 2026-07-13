@@ -119,9 +119,11 @@ class MocketSSLContext(_MocketSSLContext):
             if isinstance(current_address, tuple) and len(current_address) == 2
             else (None, None)
         )
-        ssl_obj._host = host
-        if current_port is not None:
-            ssl_obj._address = ssl_obj._host, ssl_obj._port = host or current_host, current_port
+        resolved_host = host or current_host
+        ssl_obj._host = resolved_host
+        if resolved_host is not None and current_port is not None:
+            ssl_obj._address = (resolved_host, current_port)
+            ssl_obj._port = current_port
         return ssl_obj
 
 
