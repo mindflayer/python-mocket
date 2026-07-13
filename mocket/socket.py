@@ -236,7 +236,7 @@ class MocketSocket:
 
     def _buffered_bytes(self) -> int:
         """Return the number of unread bytes buffered in the socket I/O."""
-        return len(self.io.getbuffer()) - self.io.tell()
+        return len(self.io.getvalue()) - self.io.tell()
 
     def _clear_readable_pipe(self) -> None:
         """Drain any stale readiness bytes from the pipe for this socket."""
@@ -261,7 +261,7 @@ class MocketSocket:
         if not w_fd:
             return
 
-        unread = self.io.getbuffer()[self.io.tell() :]
+        unread = self.io.getvalue()[self.io.tell() :]
         if unread:
             os.write(w_fd, unread)
 
