@@ -449,6 +449,9 @@ class MocketSocket:
 
         if response is not None:
             address = self._address_key()
+            # Ensure the address pipe exists before deciding whether to mirror
+            # response bytes or only publish readiness signals.
+            self.fileno()
             self.io.seek(0)
             self._clear_readable_pipe()
             self.io.write(response)
@@ -617,6 +620,9 @@ class MocketSocket:
         Raises:
             BlockingIOError: If socket is non-blocking and no data available
         """
+        if buffersize is None:
+            buffersize = self._buflen
+
         address = self._address_key()
         r_fd, _ = Mocket.get_pair(address)
         if r_fd and Mocket.pipe_uses_data(address):
