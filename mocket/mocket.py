@@ -14,7 +14,7 @@ from mocket.recording import MocketRecordStorage
 # NOTE this is here for backwards-compat to keep old import-paths working
 # from mocket.socket import MocketSocket as MocketSocket
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from mocket.entry import MocketEntry
     from mocket.types import Address
 
