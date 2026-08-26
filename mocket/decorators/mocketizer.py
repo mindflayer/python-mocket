@@ -32,13 +32,15 @@ class Mocketizer:
         self.instance = instance
         self.truesocket_recording_dir = truesocket_recording_dir
         self.namespace = namespace or str(id(self))
-        MocketMode.STRICT = strict_mode
-        if strict_mode:
-            MocketMode.STRICT_ALLOWED = strict_mode_allowed or []
-        elif strict_mode_allowed:
+        if not strict_mode and strict_mode_allowed:
             raise ValueError(
                 "Allowed locations are only accepted when STRICT mode is active."
             )
+        self._previous_strict_mode = MocketMode.STRICT
+        self._previous_strict_mode_allowed = MocketMode.STRICT_ALLOWED
+        MocketMode.STRICT = strict_mode
+        if strict_mode:
+            MocketMode.STRICT_ALLOWED = strict_mode_allowed or []
 
     def enter(self) -> None:
         """Enter the Mocketizer context (enable Mocket)."""
@@ -60,10 +62,15 @@ class Mocketizer:
 
     def exit(self) -> None:
         """Exit the Mocketizer context (disable Mocket)."""
-        if self.instance:
-            self.check_and_call("mocketize_teardown")
-
-        Mocket.disable()
+        try:
+            if self.instance:
+                self.check_and_call("mocketize_teardown")
+        finally:
+            try:
+                Mocket.disable()
+            finally:
+                MocketMode.STRICT = self._previous_strict_mode
+                MocketMode.STRICT_ALLOWED = self._previous_strict_mode_allowed
 
     def __exit__(self, type: Any, value: Any, tb: Any) -> None:
         """Exit context manager.

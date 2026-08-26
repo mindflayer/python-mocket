@@ -1,3 +1,6 @@
+import socket
+
+import httpx
 import pytest
 import requests
 
@@ -71,3 +74,28 @@ def test_strict_mode_allowed_or_not(strict_mode_on):
     with Mocketizer(strict_mode=strict_mode_on):
         assert MocketMode.is_allowed("foobar.com") is not strict_mode_on
         assert MocketMode.is_allowed(("foobar.com", 443)) is not strict_mode_on
+
+
+def test_mocketize_strict_mode_does_not_leak_after_outer_context():
+    with Mocketizer(strict_mode=False):
+
+        @mocketize(strict_mode=True)
+        def strict_test():
+            assert MocketMode.STRICT is True
+
+        strict_test()
+        assert MocketMode.STRICT is False
+
+
+@pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
+def test_mocketize_twice_nested():
+    original_socket = socket.socket
+    original_strict_mode = MocketMode.STRICT
+
+    with Mocketizer(strict_mode=True), Mocketizer(strict_mode=True):
+        pass
+
+    assert socket.socket is original_socket
+    assert MocketMode.STRICT is original_strict_mode
+    url = "http://httpbin.local/ip"
+    assert httpx.get(url, timeout=5.0).status_code == 200

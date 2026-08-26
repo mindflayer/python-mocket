@@ -9,8 +9,9 @@ import pytest
 from mocket import Mocket, MocketEntry, Mocketizer, mocketize
 from mocket.mockhttp import Entry
 from mocket.socket import MocketSocket
-from mocket.ssl.context import MocketSSLContext
+from mocket.ssl.context import MocketSSLContext, mock_wrap_socket
 from mocket.ssl.socket import MocketSSLSocket
+from mocket.urllib3 import mock_match_hostname
 
 
 @pytest.mark.parametrize("blocking", (False, True))
@@ -161,6 +162,33 @@ def test_wrap_bio_preserves_empty_server_hostname_on_getpeercert(monkeypatch):
 
     assert ssl_obj._host == ""
     assert ssl_obj._address == ("", 443)
+
+
+def test_wrap_bio_with_invalid_mocket_address(monkeypatch):
+    monkeypatch.setattr(Mocket, "_address", "invalid-address")
+    ssl_obj = MocketSSLContext().wrap_bio(
+        incoming=None,
+        outgoing=None,
+        server_hostname=None,
+    )
+
+    assert ssl_obj._host is None
+    assert ssl_obj._port is None
+
+
+def test_mock_wrap_socket_delegates_to_context(monkeypatch):
+    expected = MocketSSLSocket()
+
+    def fake_wrap_socket(self, sock, *args, **kwargs):
+        return expected
+
+    monkeypatch.setattr(MocketSSLContext, "wrap_socket", fake_wrap_socket)
+
+    assert mock_wrap_socket(MocketSocket()) is expected
+
+
+def test_mock_match_hostname_returns_none():
+    assert mock_match_hostname("example.org", object()) is None
 
 
 def test_getpeercert_does_not_overwrite_empty_host_when_port_missing(monkeypatch):
