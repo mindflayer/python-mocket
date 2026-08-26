@@ -71,3 +71,14 @@ def test_strict_mode_allowed_or_not(strict_mode_on):
     with Mocketizer(strict_mode=strict_mode_on):
         assert MocketMode.is_allowed("foobar.com") is not strict_mode_on
         assert MocketMode.is_allowed(("foobar.com", 443)) is not strict_mode_on
+
+
+def test_mocketize_strict_mode_does_not_leak_after_outer_context():
+    with Mocketizer(strict_mode=False):
+
+        @mocketize(strict_mode=True)
+        def strict_test():
+            assert MocketMode.STRICT is True
+
+        strict_test()
+        assert MocketMode.STRICT is False

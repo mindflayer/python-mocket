@@ -11,6 +11,7 @@ from typing import Any
 import urllib3
 
 _patches_restore: dict[tuple[ModuleType, str], Any] = {}
+_enable_depth = 0
 
 
 def _patch(module: ModuleType, name: str, patched_value: Any) -> None:
@@ -39,6 +40,11 @@ def _restore(module: ModuleType, name: str) -> None:
 
 def enable() -> None:
     """Enable Mocket by patching socket, ssl, and urllib3 modules."""
+    global _enable_depth
+    if _enable_depth > 0:
+        _enable_depth += 1
+        return
+
     from mocket.socket import (
         MocketSocket,
         mock_create_connection,
@@ -80,6 +86,8 @@ def enable() -> None:
     for (module, name), new_value in patches.items():
         _patch(module, name, new_value)
 
+    _enable_depth += 1
+
     with contextlib.suppress(ImportError):
         from urllib3.contrib.pyopenssl import extract_from_urllib3
 
@@ -88,6 +96,14 @@ def enable() -> None:
 
 def disable() -> None:
     """Disable Mocket by restoring all patched modules."""
+    global _enable_depth
+    if _enable_depth == 0:
+        return
+
+    _enable_depth -= 1
+    if _enable_depth > 0:
+        return
+
     for module, name in list(_patches_restore.keys()):
         _restore(module, name)
 

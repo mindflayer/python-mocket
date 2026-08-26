@@ -10,6 +10,7 @@ import pytest
 
 from mocket import Mocket, MocketEntry, Mocketizer, mocketize
 from mocket.compat import encode_to_bytes
+from mocket.mode import MocketMode
 
 
 class MocketTestCase(TestCase):
@@ -219,6 +220,19 @@ def test_patch(
 ):
     method_patch.return_value = "foo"
     assert os.getcwd() == "foo"
+
+
+def test_mocketize_twice_nested():
+    original_socket = socket.socket
+    original_strict_mode = MocketMode.STRICT
+
+    with Mocketizer(strict_mode=True), Mocketizer(strict_mode=True):
+        pass
+
+    assert socket.socket is original_socket
+    assert MocketMode.STRICT is original_strict_mode
+    url = "http://httpbin.local/ip"
+    assert httpx.get(url).status_code == 200
 
 
 @pytest.mark.skipif(not psutil.POSIX, reason="Uses a POSIX-only API to test")
