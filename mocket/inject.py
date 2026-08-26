@@ -109,8 +109,8 @@ def disable() -> None:
         if _enable_depth > 0:
             return
 
-    for module, name in list(_patches_restore.keys()):
-        _restore(module, name)
+        for module, name in list(_patches_restore.keys()):
+            _restore(module, name)
 
     with contextlib.suppress(ImportError):
         from urllib3.contrib.pyopenssl import inject_into_urllib3
