@@ -222,6 +222,7 @@ def test_patch(
     assert os.getcwd() == "foo"
 
 
+@pytest.mark.skipif('os.getenv("SKIP_TRUE_HTTP", False)')
 def test_mocketize_twice_nested():
     original_socket = socket.socket
     original_strict_mode = MocketMode.STRICT
@@ -232,7 +233,7 @@ def test_mocketize_twice_nested():
     assert socket.socket is original_socket
     assert MocketMode.STRICT is original_strict_mode
     url = "http://httpbin.local/ip"
-    assert httpx.get(url).status_code == 200
+    assert httpx.get(url, timeout=5.0).status_code == 200
 
 
 @pytest.mark.skipif(not psutil.POSIX, reason="Uses a POSIX-only API to test")
