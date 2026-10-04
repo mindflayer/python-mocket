@@ -8,11 +8,58 @@ from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
+import httpx
 import pytest
 import requests
 
 from mocket import Mocket, Mocketizer, mocketize
-from mocket.mocks.mockhttp import Entry, Response
+from mocket.mocks.mockhttp import Entry, Request, Response
+
+
+@pytest.mark.parametrize(
+    ("query", "expected"),
+    [
+        ("q=one%26two", {"q": ["one&two"]}),
+        ("q=one%2Btwo", {"q": ["one+two"]}),
+        ("q=%2526", {"q": ["%26"]}),
+        ("field%26name=value", {"field&name": ["value"]}),
+        ("field%3Dname=value", {"field=name": ["value"]}),
+        ("q=%25E2%2582%25AC", {"q": ["%E2%82%AC"]}),
+        ("q=one+two", {"q": ["one two"]}),
+        ("q=one%20two", {"q": ["one two"]}),
+        ("q=%E2%82%AC", {"q": ["\u20ac"]}),
+        ("q=&q=next&bare&empty=", {"q": ["", "next"], "bare": [""], "empty": [""]}),
+        ("", {}),
+        (None, {}),
+    ],
+)
+def test_request_querystring(query, expected):
+    path = "/" if query is None else f"/?{query}"
+    request = Request(f"GET {path} HTTP/1.1\r\nHost: testme.org\r\n\r\n".encode())
+    assert request.querystring == expected
+
+
+@pytest.mark.parametrize("scheme", ["http", "https"])
+@pytest.mark.parametrize("client", ["urllib", "requests", "httpx"])
+def test_recorded_querystring(scheme, client):
+    parameters = [("field&name", "a+b&c=%26"), ("q", ""), ("q", "\u20ac")]
+    url = f"{scheme}://testme.org/?{urlencode(parameters)}"
+
+    with Mocketizer(strict_mode=True):
+        Entry.single_register(Entry.GET, url, body="ok")
+        if client == "urllib":
+            with urlopen(url, timeout=5) as response:
+                assert response.read() == b"ok"
+        elif client == "requests":
+            with requests.get(url, timeout=5) as response:
+                assert response.content == b"ok"
+        else:
+            assert httpx.get(url, timeout=5, trust_env=False).content == b"ok"
+
+        assert Mocket.last_request().querystring == {
+            "field&name": ["a+b&c=%26"],
+            "q": ["", "\u20ac"],
+        }
 
 
 class HttpTestCase(TestCase):
