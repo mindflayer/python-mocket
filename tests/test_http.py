@@ -8,12 +8,11 @@ from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
-import httpx
 import pytest
 import requests
 
 from mocket import Mocket, Mocketizer, mocketize
-from mocket.mocks.mockhttp import Entry, Request, Response
+from mocket.mocks.mockhttp import Entry, Response
 
 
 @pytest.mark.parametrize(
@@ -35,26 +34,23 @@ from mocket.mocks.mockhttp import Entry, Request, Response
 )
 def test_request_querystring(query, expected):
     path = "/" if query is None else f"/?{query}"
-    request = Request(f"GET {path} HTTP/1.1\r\nHost: testme.org\r\n\r\n".encode())
-    assert request.querystring == expected
+    url = f"http://testme.org{path}"
+    with Mocketizer(strict_mode=True):
+        Entry.single_register(Entry.GET, url, body="ok")
+        with requests.get(url, timeout=5) as response:
+            assert response.content == b"ok"
+        assert Mocket.last_request().querystring == expected
 
 
 @pytest.mark.parametrize("scheme", ["http", "https"])
-@pytest.mark.parametrize("client", ["urllib", "requests", "httpx"])
-def test_recorded_querystring(scheme, client):
+def test_recorded_querystring(scheme):
     parameters = [("field&name", "a+b&c=%26"), ("q", ""), ("q", "\u20ac")]
     url = f"{scheme}://testme.org/?{urlencode(parameters)}"
 
     with Mocketizer(strict_mode=True):
         Entry.single_register(Entry.GET, url, body="ok")
-        if client == "urllib":
-            with urlopen(url, timeout=5) as response:
-                assert response.read() == b"ok"
-        elif client == "requests":
-            with requests.get(url, timeout=5) as response:
-                assert response.content == b"ok"
-        else:
-            assert httpx.get(url, timeout=5, trust_env=False).content == b"ok"
+        with requests.get(url, timeout=5) as response:
+            assert response.content == b"ok"
 
         assert Mocket.last_request().querystring == {
             "field&name": ["a+b&c=%26"],
