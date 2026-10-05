@@ -32,7 +32,7 @@ from mocket.mocks.mockhttp import Entry, Response
         (None, {}),
     ],
 )
-def test_request_querystring(query, expected):
+def test_request_querystring_uses_form_urlencoded_semantics(query, expected):
     path = "/" if query is None else f"/?{query}"
     url = f"http://testme.org{path}"
     with Mocketizer(strict_mode=True):
