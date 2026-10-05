@@ -7,7 +7,7 @@ import time
 from functools import cached_property
 from http.server import BaseHTTPRequestHandler
 from typing import Any, Callable
-from urllib.parse import parse_qs, unquote, urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from h11 import SERVER, Connection, Data
 from h11 import Request as H11Request
@@ -90,11 +90,7 @@ class Request:
             Dictionary of query parameter names to lists of values
         """
         parts = self.path.split("?", 1)
-        return (
-            parse_qs(unquote(parts[1]), keep_blank_values=True)
-            if len(parts) == 2
-            else {}
-        )
+        return parse_qs(parts[1], keep_blank_values=True) if len(parts) == 2 else {}
 
     @cached_property
     def body(self) -> str:

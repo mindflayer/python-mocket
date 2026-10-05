@@ -15,6 +15,49 @@ from mocket import Mocket, Mocketizer, mocketize
 from mocket.mocks.mockhttp import Entry, Response
 
 
+@pytest.mark.parametrize(
+    ("query", "expected"),
+    [
+        ("q=one%26two", {"q": ["one&two"]}),
+        ("q=one%2Btwo", {"q": ["one+two"]}),
+        ("q=%2526", {"q": ["%26"]}),
+        ("field%26name=value", {"field&name": ["value"]}),
+        ("field%3Dname=value", {"field=name": ["value"]}),
+        ("q=%25E2%2582%25AC", {"q": ["%E2%82%AC"]}),
+        ("q=one+two", {"q": ["one two"]}),
+        ("q=one%20two", {"q": ["one two"]}),
+        ("q=%E2%82%AC", {"q": ["\u20ac"]}),
+        ("q=&q=next&bare&empty=", {"q": ["", "next"], "bare": [""], "empty": [""]}),
+        ("", {}),
+        (None, {}),
+    ],
+)
+def test_request_querystring_uses_form_urlencoded_semantics(query, expected):
+    path = "/" if query is None else f"/?{query}"
+    url = f"http://testme.org{path}"
+    with Mocketizer(strict_mode=True):
+        Entry.single_register(Entry.GET, url, body="ok")
+        with requests.get(url, timeout=5) as response:
+            assert response.content == b"ok"
+        assert Mocket.last_request().querystring == expected
+
+
+@pytest.mark.parametrize("scheme", ["http", "https"])
+def test_recorded_querystring(scheme):
+    parameters = [("field&name", "a+b&c=%26"), ("q", ""), ("q", "\u20ac")]
+    url = f"{scheme}://testme.org/?{urlencode(parameters)}"
+
+    with Mocketizer(strict_mode=True):
+        Entry.single_register(Entry.GET, url, body="ok")
+        with requests.get(url, timeout=5) as response:
+            assert response.content == b"ok"
+
+        assert Mocket.last_request().querystring == {
+            "field&name": ["a+b&c=%26"],
+            "q": ["", "\u20ac"],
+        }
+
+
 class HttpTestCase(TestCase):
     def assertEqualHeaders(self, first, second, msg=None):
         first = {k.lower(): v for k, v in first.items()}
