@@ -26,7 +26,7 @@ def test_body(url):
             assert response.status_code == 404
             assert response.text == body
 
-            response = await client.post(url, data=body * 6)
+            response = await client.post(url, content=body * 6)
             assert response.status_code == 201
             assert response.text == body * 2
 

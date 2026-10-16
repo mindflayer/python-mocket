@@ -126,7 +126,7 @@ class TrueRedisTestCase(TestCase):
     @mocketize
     def test_hm(self):
         h = {b"f1": b"one", b"f2": b"two"}
-        self.assertTrue(self.rclient.hmset("hash", h))
+        self.assertEqual(self.rclient.hset("hash", mapping=h), len(h))
         self.assertEqual(self.rclient.hgetall("hash"), h)
 
     @mocketize

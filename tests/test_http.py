@@ -70,8 +70,8 @@ class TrueHttpEntryTestCase(HttpTestCase):
     @mocketize
     def test_truesendall(self):
         url = "http://httpbin.local/ip"
-        resp = urlopen(url)
-        self.assertEqual(resp.code, 200)
+        with urlopen(url) as resp:
+            self.assertEqual(resp.code, 200)
         resp = requests.get(url)
         self.assertEqual(resp.status_code, 200)
 
@@ -81,10 +81,11 @@ class TrueHttpEntryTestCase(HttpTestCase):
         ):
             url = "http://httpbin.local/ip"
 
-            urlopen(url)
+            with urlopen(url):
+                pass
             requests.get(url)
-            resp = urlopen(url)
-            self.assertEqual(resp.code, 200)
+            with urlopen(url) as resp:
+                self.assertEqual(resp.code, 200)
             resp = requests.get(url)
             self.assertEqual(resp.status_code, 200)
             assert "origin" in resp.json()
@@ -233,10 +234,10 @@ class HttpEntryTestCase(HttpTestCase):
             Entry.GET, "http://testme.org/", Response(status=404), Response()
         )
         self.assertRaises(HTTPError, urlopen, "http://testme.org/")
-        response = urlopen("http://testme.org/")
-        self.assertEqual(response.code, 200)
-        response = urlopen("http://testme.org/")
-        self.assertEqual(response.code, 200)
+        with urlopen("http://testme.org/") as response:
+            self.assertEqual(response.code, 200)
+        with urlopen("http://testme.org/") as response:
+            self.assertEqual(response.code, 200)
         self.assertEqual(len(Mocket.request_list()), 3)
 
     @mocketize
