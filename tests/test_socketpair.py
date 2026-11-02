@@ -68,22 +68,32 @@ def test_mock_socketpair_without_the_c_function(monkeypatch):
 
 
 def test_loopback_socketpair_rejects_a_foreign_peer(monkeypatch):
-    """CVE-2024-3219: the listener is reachable, so the peer must be ours."""
+    """CVE-2024-3219: the listener is reachable, so the peer must be ours.
+
+    The hijack has to be installed on ``mocket.socket.true_socket``, which is
+    the name ``_loopback_socketpair`` resolves. Patching ``socket.socket``
+    instead only works while that name still points at the same class: the
+    gevent tests in this suite call ``monkey.patch_socket()`` at import time,
+    which leaves ``socket.socket`` bound to gevent's subclass while
+    ``true_socket`` keeps the original one, so the hijack silently missed.
+    """
+    from mocket import socket as mocket_socket_module
     from mocket.socket import _loopback_socketpair
 
-    listener = socket.socket()
+    real = mocket_socket_module.true_socket
+    listener = real(socket.AF_INET, socket.SOCK_STREAM)
     listener.bind(("127.0.0.1", 0))
     listener.listen(1)
-    attacker = socket.socket()
+    attacker = real(socket.AF_INET, socket.SOCK_STREAM)
     attacker.connect(listener.getsockname())
-    hijacked, _ = listener.accept()
-    foreign_peer = hijacked.getpeername()
+    hijacked, foreign_peer = listener.accept()
     hijacked_fd = hijacked.detach()
 
-    def fake_accept(self):
-        return hijacked_fd, foreign_peer
+    class HijackedListener(real):
+        def _accept(self):
+            return hijacked_fd, foreign_peer
 
-    monkeypatch.setattr(socket.socket, "_accept", fake_accept)
+    monkeypatch.setattr(mocket_socket_module, "true_socket", HijackedListener)
     try:
         with pytest.raises(ConnectionError, match="Unexpected peer connection"):
             _loopback_socketpair()
