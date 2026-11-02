@@ -91,6 +91,20 @@ def test_loopback_socketpair_rejects_a_foreign_peer(monkeypatch):
 
     class HijackedListener(real):
         def _accept(self):
+            # _loopback_socketpair() connects with setblocking(False), exactly
+            # like CPython's own fallback, and relies on accept() to wait for
+            # the handshake before the peer check calls getpeername(). Linux
+            # leaves that connect in SYN_SENT for a moment, so skipping the
+            # wait here makes getpeername() raise ENOTCONN instead of the
+            # ConnectionError this test is about. Drain the real connection
+            # first; its peer is nobody we care about.
+            # Socket._accept() is CPython-internal and missing from the type
+            # stubs, hence the ignore: it is the only way to bypass the
+            # override above without recursing through accept().
+            real_fd, _ = real._accept(self)  # type: ignore[attr-defined]
+            # Wrap it before closing: on Windows a socket descriptor is not
+            # an OS file descriptor, so os.close() would raise EBADF.
+            real(fileno=real_fd).close()
             return hijacked_fd, foreign_peer
 
     monkeypatch.setattr(mocket_socket_module, "true_socket", HijackedListener)
