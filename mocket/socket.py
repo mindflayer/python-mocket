@@ -107,6 +107,69 @@ def mock_inet_pton(address_family: int, ip_string: str) -> bytes:
     return bytes("\x7f\x00\x00\x01", "utf-8")
 
 
+def _loopback_socketpair(
+    family: int = socket.AF_INET,
+    socktype: int = socket.SOCK_STREAM,
+    proto: int = 0,
+) -> tuple[socket.socket, socket.socket]:
+    """Build a connected pair of real sockets over the IPv4/IPv6 loopback.
+
+    Windows has no ``_socket.socketpair()``; the standard library builds the
+    pair in Python instead. That code path resolves the module-level ``socket``
+    name, which Mocket has already swapped for :class:`MocketSocket`, so the
+    pair is assembled here from ``true_socket`` to keep it out of the mock
+    layer. Only the loopback connection used by the event loop ends up here.
+    """
+    if family == socket.AF_INET:
+        host = "127.0.0.1"
+    elif family == socket.AF_INET6:
+        host = "::1"
+    else:
+        raise ValueError(
+            f"Only AF_INET and AF_INET6 address families are supported: {family}"
+        )
+    if socktype != socket.SOCK_STREAM:
+        raise ValueError(f"Only SOCK_STREAM socket type is supported: {socktype}")
+    if proto != 0:
+        raise ValueError(f"Only protocol zero is supported: {proto}")
+
+    lsock = true_socket(family, socktype, proto)
+    try:
+        lsock.bind((host, 0))
+        lsock.listen()
+        addr, port = lsock.getsockname()[:2]
+        csock = true_socket(family, socktype, proto)
+        try:
+            csock.setblocking(False)
+            with contextlib.suppress(BlockingIOError, InterruptedError):
+                csock.connect((addr, port))
+            csock.setblocking(True)
+            # accept() would wrap the descriptor back into MocketSocket.
+            fd, _peer = lsock._accept()
+            ssock = true_socket(family, socktype, proto, fileno=fd)
+        except Exception:
+            csock.close()
+            raise
+    finally:
+        lsock.close()
+
+    # Same check CPython added in its fallback for CVE-2024-3219: the listener
+    # is reachable from outside the process, so make sure the peer we accepted
+    # is our own csock and not somebody else that connected first.
+    try:
+        if (
+            ssock.getsockname() != csock.getpeername()
+            or csock.getsockname() != ssock.getpeername()
+        ):
+            raise ConnectionError("Unexpected peer connection")
+    except Exception:
+        ssock.close()
+        csock.close()
+        raise
+
+    return ssock, csock
+
+
 def mock_socketpair(
     *args: Any,
     **kwargs: Any,
@@ -125,7 +188,10 @@ def mock_socketpair(
     """
     import _socket
 
-    return _socket.socketpair(*args, **kwargs)
+    if hasattr(_socket, "socketpair"):
+        return _socket.socketpair(*args, **kwargs)
+
+    return _loopback_socketpair(*args, **kwargs)
 
 
 class MocketSocket:
