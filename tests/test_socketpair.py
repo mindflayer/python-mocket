@@ -4,7 +4,7 @@ import socket
 import pytest
 
 from mocket import Mocketizer
-from mocket.socket import MocketSocket
+from mocket.socket import MocketSocket, _loopback_socketpair, mock_socketpair
 
 
 def test_socketpair_returns_a_real_connected_pair():
@@ -114,3 +114,96 @@ def test_loopback_socketpair_rejects_a_foreign_peer(monkeypatch):
     finally:
         listener.close()
         attacker.close()
+
+
+def test_mock_socketpair_prefers_the_c_implementation(monkeypatch):
+    """When the interpreter has _socket.socketpair() there is nothing to build."""
+    import _socket
+
+    sentinel = (object(), object())
+    monkeypatch.setattr(
+        _socket, "socketpair", lambda *args, **kwargs: sentinel, raising=False
+    )
+
+    assert mock_socketpair() is sentinel
+
+
+def test_loopback_socketpair_works_over_ipv6():
+    """AF_INET6 is served from ::1; the pair must be just as usable as IPv4."""
+    probe = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+    try:
+        probe.bind(("::1", 0))
+    except OSError:
+        pytest.skip("IPv6 loopback is not available")
+    finally:
+        probe.close()
+
+    a, b = _loopback_socketpair(socket.AF_INET6)
+    try:
+        a.send(b"ping")
+        assert b.recv(4) == b"ping"
+    finally:
+        a.close()
+        b.close()
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [
+        ({"family": socket.AF_UNSPEC}, "Only AF_INET and AF_INET6 address families"),
+        ({"socktype": socket.SOCK_DGRAM}, "Only SOCK_STREAM socket type"),
+        ({"proto": 6}, "Only protocol zero"),
+    ],
+)
+def test_loopback_socketpair_rejects_unsupported_options(kwargs, message):
+    """Whatever the loopback fallback cannot honour is refused before binding."""
+    with pytest.raises(ValueError, match=message):
+        _loopback_socketpair(**kwargs)
+
+
+def test_loopback_socketpair_closes_the_client_when_accept_fails(monkeypatch):
+    """A failing accept() must not leak the socket that already connected."""
+    from mocket import socket as mocket_socket_module
+
+    real = mocket_socket_module.true_socket
+    created = []
+
+    class FailingListener(real):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            created.append(self)
+
+        def _accept(self):
+            raise OSError("accept() failed")
+
+    monkeypatch.setattr(mocket_socket_module, "true_socket", FailingListener)
+    with pytest.raises(OSError, match="accept"):
+        _loopback_socketpair()
+
+    _listener, client = created
+    assert client.fileno() == -1
+
+
+def test_loopback_socketpair_closes_both_sockets_on_a_peer_mismatch(monkeypatch):
+    """CVE-2024-3219: when the peer is not ours, both halves are closed."""
+    from mocket import socket as mocket_socket_module
+
+    real = mocket_socket_module.true_socket
+    created = []
+
+    class DoctoredPeers(real):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            created.append(self)
+
+        def getpeername(self):
+            host, port = super().getpeername()
+            return host, port + 1
+
+    monkeypatch.setattr(mocket_socket_module, "true_socket", DoctoredPeers)
+    with pytest.raises(ConnectionError, match="Unexpected peer connection"):
+        _loopback_socketpair()
+
+    _listener, client, accepted = created
+    assert client.fileno() == -1
+    assert accepted.fileno() == -1
