@@ -65,11 +65,7 @@ FYI: the last version compatible with Python 2.7 is *3.9.4*, bugfixing or backpo
 
 Support it
 ==========
-*Star* the project on GitHub, *Buy Me a Coffee* clicking the button below or, even better, contribute with patches or documentation.
-
-.. image:: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
-     :target: https://www.buymeacoffee.com/mocket
-     :alt: Buy Me A Coffee
+*Star* the project on GitHub, contribute with patches or documentation, or click on *Sponsor this project*.
 
 How to use it
 =============
